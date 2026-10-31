@@ -196,7 +196,10 @@ function applyGimmicks(){
 function startGimmick(c,g,o){
   c.gim=g;
   if(g==='mega'){const fid=o.enemy?formOf(baseOf(c.dex),'mega'):megaFor(c.dex,c.u.stone);if(!fid)return;
-    schedule(2.5,()=>{if(c.dead)return;transform(c,fid,{label:'Mega Evolution!',col:'#ff9be6',big:1});c.mega=1;c.dmg+=.1;c.as*=1.1;});}
+    schedule(1.8,()=>{if(c.dead||SIM.on)return;texts.push({x:c.x,y:c.y-40,txt:`${D[c.dex].n}'s ${GIMMICKS.mega.keyN} is reacting!`,col:'#ffd1f2',life:1.2,label:1});
+      ['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach((col,i)=>schedule(i*.1,()=>ring(c.x,c.y-10,col)));});
+    schedule(2.5,()=>{if(c.dead)return;transform(c,fid,{label:'Mega Evolution!',col:'#ff9be6',big:1});c.mega=1;c.dmg+=.1;c.as*=1.1;
+      if(!SIM.on)['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach(col=>burst(c.x,c.y-12,col,10,1.5));});}
   if(g==='zmove'){c.zReady=1;c.mana=Math.min(c.maxMana,c.mana+30);if(o.enemy)c.zType=kitOf(c.dex).mv.t;}
   if(g==='tera'){const t=o.enemy?D[c.dex].t[0]:c.u.shard;c.tera=t;c.teraOn=1;c.maxHp*=1.12;c.hp*=1.12;
     if(!SIM.on){texts.push({x:c.x,y:c.y-40,txt:`Terastallized: ${t}!`,col:'#7fe7ff',life:1.8,label:1});burst(c.x,c.y-12,'#bdf6ff',30,1.4);}}
@@ -212,7 +215,7 @@ function dynamax(c,lvl,gmax){
 }
 // called by useMove: modifies the move for Z / Max / Tera, returns {name, mult, aoe, after}
 function gimmickMove(u,mv){
-  if(u.zReady){u.zReady=0;const t=u.zType||ZTYPE[u.u.crystal]||mv.t;return{name:ZNAME[t]||'Z-Move',mult:3,aoe:1,noDodge:1,col:'#ffd34d',big:1};}
+  if(u.zReady){u.zReady=0;const t=u.zType||ZTYPE[u.u.crystal]||mv.t;if(!SIM.on)for(let i=0;i<4;i++)schedule(i*.08,()=>ring(u.x,u.y-8,'#ffd34d'));return{name:ZNAME[t]||'Z-Move',mult:3,aoe:1,noDodge:1,col:'#ffd34d',big:1};}
   if(u.dmaxOn){const M=MAXMOVE[mv.t]||MAXMOVE.Normal,g=u.gmaxOn&&GMAXNAME[baseOf(u.dex)];
     return{name:g?'G-Max '+g:M[0],mult:(g?1.3:1.1)+.02*(u.dmaxLvl||0),aoe:1,col:'#ff4d5e',big:1,after:()=>maxEffect(u,M,g?2:1)};}
   if(u.teraOn&&(mv.t===u.tera||D[u.dex].t.includes(u.tera)))return{mult:1.25};
