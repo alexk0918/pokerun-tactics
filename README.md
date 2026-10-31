@@ -94,7 +94,7 @@ Pokémon can carry a mutator too: from Kecleon Shops, the shadowy lab event, or 
 
 ### Signature kits
 
-Some lines have a hand-designed signature kit instead of the generic move, built around the Pokémon's design. Their shop cards show a red "Signature" tag, and the tooltip lists the role:
+Every Generation I line now has a hand-designed signature kit (all 78), and kits are being added generation by generation. Lines with a kit instead of the generic move, built around the Pokémon's design. Their shop cards show a red "Signature" tag, and the tooltip lists the role:
 
 | Line | Role | Kit |
 |---|---|---|
@@ -107,7 +107,7 @@ Some lines have a hand-designed signature kit instead of the generic move, built
 | Dreepy → Dragapult | Marksman | Fires Dreepy that arc in and spread across enemies; gains a dart every 4 casts for the whole run |
 | Gulpin → Swalot | Devourer | Swallows the weakest enemy for true damage; each kill permanently adds max HP |
 | Cubone → Marowak | Bone Collector | Bone damage stacks forever, +5 per knockout |
-| Bagon → Salamence | Sky Dreamer | Bagon headbutts and flinches; Shelgon hardens its shell; Salamence flies out of reach, dives onto the biggest group, then goes into Outrage (splashing attacks) before getting confused |
+| Bagon → Salamence | Sky Dreamer | Bagon headbutts and flinches; Shelgon hardens its shell; Salamence flies out of reach, dives onto the biggest group, then goes into Outrage (splashing attacks) |
 | Pichu → Raichu | Storm Chaser | Chain lightning across up to 6 enemies |
 | Machop → Machamp | Brawler | Punch flurry ending in a stun; No Guard |
 | Gastly → Gengar | Hexer | Shadow Balls shred Sp. Def; Cursed Body drains PP from attackers |
@@ -121,9 +121,87 @@ Some lines have a hand-designed signature kit instead of the generic move, built
 | Bulbasaur → Venusaur | Solar Cannon | Charged beam through a whole line, instant in sun |
 | Squirtle → Blastoise | Cannon Tank | Shell shield, then twin cannons with knockback |
 | Ralts → Gardevoir | Seer | Future Sight marks the strongest enemies and strikes them 2s later |
-| Pawniard → Kingambit | Leader | Cleaves the weakest nearby enemy; Kowtow Cleave can't miss and grows as allies fall. Earns the Leader's Crest |
-| Munchlax → Snorlax | Glutton | Rests to heal when hurt, then Body Slams nearby enemies (scales with max HP). Earns a Snack Stash |
-| Gimmighoul → Gholdengo | Treasure Keeper | Make It Rain hits harder the more Pokédollars you've saved and drops coins on knockouts. Earns a Gold Bottle Cap |
+| Pawniard → Kingambit | Leader | Cleaves the weakest nearby enemy; Kowtow Cleave can't miss and grows as allies fall |
+| Munchlax → Snorlax | Glutton | Rests to heal when hurt, then Body Slams nearby enemies (scales with max HP) |
+| Gimmighoul → Gholdengo | Treasure Keeper | Make It Rain hits harder the more Pokédollars you've saved and drops coins on knockouts |
+
+Every kit tooltip shows its PP cost and range, and every damage, heal and shield number is calculated from the Pokémon's current stats.
+
+### Set gear
+
+Inspired by TFT's Faerie crown and Honkai: Star Rail's Day Demigod gear, some sets hand you an exclusive item the first time they activate on your field. Only that set's Pokémon can wear it (one set gear per Pokémon), and it gets stronger at the set's higher tier:
+
+- **Partner Ribbon (Partner):** +20% damage and max HP; at 3, +35% and full PP at the start of battle.
+- **Apex Fang (Pseudo):** the wearer becomes the Apex: +35% max HP, damage and Attack Speed; at 3 it turns Radiant (+60%).
+- **Ancient Amber (Fossil):** revive with 50% HP, then +15% to all stats and an Ancient Power blast; at 3, 70% HP and +25%.
+- **Champion Ribbon (Kanto mission):** earned by collecting all 8 Kanto Badges. +25% damage and max HP, +15% Attack Speed.
+
+### Enhancers
+
+Drag an enhancer onto a completed item, in your bag or on a Pokémon, to fuse them. Each item takes one, and enhanced items show a "+" and a teal frame. There's a single tier: every enhancer pairs a real stat package with an effect big enough to shape a build, sitting between The Last Flame's rare and legendary recipes. When an enhanced item is on a Pokémon, its tooltip shows the calculated numbers.
+
+| Enhancer | Effect |
+|---|---|
+| Quick Powder | +25% Attack Speed, +3% more per attack (15 stacks); fully stacked attacks ricochet to a second enemy |
+| Metal Coat | Defenses and damage reduction; a shield whenever a move hits it (3s cooldown) |
+| Thick Club | +35% Attack, %-max-HP hits, every 5th attack stuns |
+| Light Ball | Sp. Atk and PP; moves arc lightning to 2 more enemies for 25% |
+| Lucky Punch | Crit chance and damage, moves can crit, crits restore PP |
+| Big Root | Lifesteal and stronger heals; overhealing becomes a shield |
+| Starf Berry | Below half HP: Attack Speed, lifesteal and Defense |
+| Enigma Berry | At half HP: big heal and defenses for itself, a heal for adjacent allies |
+| Deep Sea Tooth | Every 3rd attack deals true damage, growing permanently every time it triggers |
+| Rare Bone | +20 Attack; takedowns heal and permanently add Attack and Sp. Atk to the bone |
+| Soul Dew | PP, plus Sp. Atk that stacks every 4 seconds |
+| Electric Seed | Every 3rd attack chains lightning to 3 enemies and paralyzes them |
+| Black Sludge | Stacking Toxic poison; poisoned enemies heal less |
+| Reaper Cloth | Moves curse: cursed enemies take more damage and explode when they faint |
+| Smoke Ball | Dodges the first 3 attacks; each dodge restores PP and adds Attack Speed |
+| Loaded Dice | Max-plus-one multi-hits with bonus damage; 25% double strikes |
+| Ability Shield | Immune to stuns and status; restores PP whenever it shrugs off a stun |
+| Red Card | +150 HP; at half HP, a big shield and an area stun |
+| Adrenaline Orb | Attack Speed and damage as allies fall; takedowns restore PP |
+| Room Service | At battle start, enemies within 2 hexes lose Attack Speed and defenses for 8s |
+| Sacred Ash | Revives with full PP and bonus damage |
+
+### Mutated Pokémon
+
+Pokémon can carry a mutator too: from Kecleon Shops, the shadowy lab event, or enemies on later floors and Challenge paths. A mutated Pokémon glows in its mutator's color, keeps the mutator when it combines into a higher star, and gets the same bonus a mutated item would.
+
+**Shadow** is a new mutator for both items and Pokémon: +15% damage, but the holder takes 6% more damage.
+
+### Signature kits
+
+Every Generation I line now has a hand-designed signature kit (all 78), and kits are being added generation by generation. Lines with a kit instead of the generic move, built around the Pokémon's design. Their shop cards show a red "Signature" tag, and the tooltip lists the role:
+
+| Line | Role | Kit |
+|---|---|---|
+| Sobble → Inteleon | Sniper | Basic attacks hit the front; Snipe Shot aims at the farthest enemy, can't be dodged, ignores 30% Sp. Def |
+| Chespin → Chesnaught | Knight | Spiky armor damages attackers (scales with Defense); Spiky Shield triples it, then Body Press scales with Defense |
+| Fennekin → Delphox | Mage | Exploding fireballs that leave burning pillars and lower Sp. Atk |
+| Froakie → Greninja | Assassin | Dashes behind the weakest enemy and throws shuriken; knockouts refund PP |
+| Charcadet → Ceruledge | Cursed Knight | Bitter Blade lunges, cleaves and heals for 40% of damage (80% below half HP) |
+| Charcadet → Armarouge | Cannon Knight | Lobs an arcing cannonball into the biggest group; recoil lowers its own defenses |
+| Dreepy → Dragapult | Marksman | Fires Dreepy that arc in and spread across enemies; gains a dart every 4 casts for the whole run |
+| Gulpin → Swalot | Devourer | Swallows the weakest enemy for true damage; each kill permanently adds max HP |
+| Cubone → Marowak | Bone Collector | Bone damage stacks forever, +5 per knockout |
+| Bagon → Salamence | Sky Dreamer | Bagon headbutts and flinches; Shelgon hardens its shell; Salamence flies out of reach, dives onto the biggest group, then goes into Outrage (splashing attacks) |
+| Pichu → Raichu | Storm Chaser | Chain lightning across up to 6 enemies |
+| Machop → Machamp | Brawler | Punch flurry ending in a stun; No Guard |
+| Gastly → Gengar | Hexer | Shadow Balls shred Sp. Def; Cursed Body drains PP from attackers |
+| Riolu → Lucario | Aura Fighter | Aura Sphere grows with missing HP; Justified stacks damage |
+| Gible → Garchomp | Land Shark | Leaps onto the back line, area stun |
+| Mareanie → Toxapex | Fortress | Baneful Bunker: immune for a moment and poisons attackers, then Regenerator |
+| Happiny → Blissey | Nurse | Big heal and cleanse, then Wish heals the team |
+| Grookey → Rillaboom | Drummer | Area hit with slow; Grassy Surge heals allies standing in it |
+| Scorbunny → Cinderace | Striker | Pyro Ball bounces between enemies; Libero ramps Attack Speed |
+| Charmander → Charizard | Fire Breather | Burning cone through the target |
+| Bulbasaur → Venusaur | Solar Cannon | Charged beam through a whole line, instant in sun |
+| Squirtle → Blastoise | Cannon Tank | Shell shield, then twin cannons with knockback |
+| Ralts → Gardevoir | Seer | Future Sight marks the strongest enemies and strikes them 2s later |
+| Pawniard → Kingambit | Leader | Cleaves the weakest nearby enemy; Kowtow Cleave can't miss and grows as allies fall |
+| Munchlax → Snorlax | Glutton | Rests to heal when hurt, then Body Slams nearby enemies (scales with max HP) |
+| Gimmighoul → Gholdengo | Treasure Keeper | Make It Rain hits harder the more Pokédollars you've saved and drops coins on knockouts |
 
 Every kit tooltip shows its PP cost and range, and every damage, heal and shield number is calculated from the Pokémon's current stats.
 
@@ -210,7 +288,19 @@ Every Pokémon belongs to several sets, and each set activates at its breakpoint
 - **Partner:** Friendship stacks up over the run, and at 10 the Pokémon hangs on through a fainting blow.
 - **Pseudo:** your strongest pseudo-legendary becomes a bigger, stronger Apex; at 3, all of them do.
 
-**Region sets** are National Dex only.
+**Region sets (National Dex only, 2 / 4)** play like their games:
+
+| Region | Mechanic |
+|---|---|
+| Kanto (Gym Challenge) | Each win earns a Badge (+2.5% damage each); all 8 unlock the Champion Ribbon |
+| Johto (Day & Night) | Odd floors are Day (Attack Speed), even floors are Night (crit and damage) |
+| Hoenn (Primal Weather) | Shields; at 4, calls sun or rain and gains Attack Speed in it |
+| Sinnoh (Time & Space) | Defenses; at 4, enemies lose 40% Attack Speed for the first 4s |
+| Unova (Ideals & Truth) | Physical-heavy fields get Attack Speed, special-heavy fields get PP |
+| Kalos (Fairy Aura) | PP, and the first move each battle hits much harder |
+| Alola (Totem Trial) | Regeneration; at 4, the strongest becomes a Totem with an Attack Speed aura |
+| Galar (Power Spot) | HP and damage; at 4, the bulkiest grows giant for 8s |
+| Paldea (Terastal Treasure) | Crit, Terastallize after the first move; at 4, +₽1 per win |
 
 ### Scouting
 
@@ -275,7 +365,8 @@ js/sets.js          sets, ability passives, kit tuning
 js/game.js          game logic
 js/forms.js         form changes and generation gimmicks
 js/route.js         route choices, events, Kecleon shops, enhancers, unit mutators
-js/kits.js          signature kits and their combat helpers (arcing projectiles, dashes, ground zones)
+js/kits.js          kit building blocks, set gear and the first signature kits
+js/kits_gen1.js     Generation I signature kits
 js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata

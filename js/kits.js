@@ -124,14 +124,14 @@ defSig({ids:[104,105],role:'Bone Collector',cls:'Bruiser',cat:'phys',range:1,man
 defSig({ids:[371,372,373],role:'Sky Dreamer',cls:'Bruiser',cat:'phys',range:1,mana:[60,70,80],start:[10,20,30],pf:[1,1,1.05],names:['Headbutt','Iron Defense','Fly'],mvType:'Dragon',
   d:(c,i)=>[`Rams the target for ${DT(c,1.2)} and flinches it for 0.5s. It always aims a little higher.`,
     `Hardens its shell: gains a <b class="s-hp">${Math.round(c.maxHp*.22)}</b> <span class="sc">(22% <span class="s-hp">max HP</span>)</span> shield and +30 <span class="s-def">Defense</span> for 4s, then headbutts the target for ${DT(c,.9)}.`,
-    `Soars out of reach for 1s (can't be targeted or hit), then dives onto the biggest group of enemies for ${DT(c,1.4)} to everything within 1 hex, knocking them back. Then it goes into an <b>Outrage</b> for 4s: +30% <span class="s-as">Attack Speed</span>, and its attacks splash 50% damage to enemies next to the target. Afterwards it's confused, stunned for 0.8s.`][i],
+    `Soars out of reach for 1s (can't be targeted or hit), then dives onto the biggest group of enemies for ${DT(c,1.4)} to everything within 1 hex, knocking them back. Then it goes into an <b>Outrage</b> for 4s: +30% <span class="s-as">Attack Speed</span>, and its attacks splash 50% damage to enemies next to the target.`][i],
   cast(c,tg,i){
     if(i===0){if(hdist(c,tg)>1)dashTo(c,tg);schedule(.12,()=>{if(c.dead||tg.dead)return;hitAb(c,tg,1.2);stun(tg,.5);boom(tg,'#7fb0ff');});return;}
     if(i===1){c.shield+=c.maxHp*.22;c.def+=30;schedule(4,()=>{c.def-=30;});if(!SIM.on)ring(c.x,c.y-8,'#c8d0d8');schedule(.3,()=>{if(!c.dead&&!tg.dead)hitAb(c,tg,.9);});return;}
     c.airT=combatT+1;c.busy=Math.max(c.busy,1.1);c.target=null;if(!SIM.on){burst(c.x,c.y-10,'#9fd0ff',18,1.2);texts.push({x:c.x,y:c.y-40,txt:'Fly!',col:'#bfe4ff',life:1,label:1});}
     schedule(1,()=>{if(c.dead)return;const t=cluster(c);if(!t)return;dashTo(c,t,false,.15);
       schedule(.16,()=>{if(c.dead)return;for(const o of[t,...near(t,1)]){hitAb(c,o,1.4);knock(c,o);}boom(t,'#7a9cff',3);
-        const ch=.3;c.outrageT=combatT+4;c.as*=1+ch;schedule(4,()=>{if(c.dead)return;c.as/=1+ch;stun(c,.8);if(!SIM.on)texts.push({x:c.x,y:c.y-34,txt:'Confused',col:'#d8c7ff',life:.9,label:1});});});});}});
+        const ch=.3;c.outrageT=combatT+4;c.as*=1+ch;schedule(4,()=>{if(!c.dead)c.as/=1+ch;});});});}});
 
 // Pikachu line: chain lightning.
 defSig({ids:[172,25,26],role:'Storm Chaser',cls:'Mystic',cat:'spec',range:3,mana:70,pf:[.5,.62,.75],names:['Thunder Shock','Thunderbolt','Thunderbolt'],mvType:'Electric',
@@ -218,44 +218,136 @@ defSig({ids:[280,281,282],role:'Seer',cls:'Mystic',cat:'spec',range:3,mana:80,pf
   cast(c,tg,i){const ts=foesOf(c).sort((a,b)=>Math.max(b.atk,b.spa)-Math.max(a.atk,a.spa)).slice(0,[1,2,3][i]);for(const t of ts)t.markT=combatT+2;
     schedule(2,()=>{if(c.dead)return;for(const t of ts)if(!t.dead){hitAb(c,t,1.15);boom(t,'#ff7ad9',2);}});}});
 
-/* ================= Earned special items =================
-   Some lines earn a unique item by taking part in fights (tracked by their growth counter).
-   Special items take a normal item slot, can't be crafted, and only one of each exists per run. */
-const SPECIAL={
-  'leaders-crest':{n:"Leader's Crest",growth:'Supreme Overlord',need:8,how:'8 takedowns by the Pawniard line',
-    d:`+15% damage. Allies within 1 hex gain +10% move damage and +10% <span class="s-as">Attack Speed</span>. Held by Kingambit: +8% damage for every ally that has fainted this battle.`,e:{dmg:.15,aura:{ab:.1,as:.1},crestKing:.08}},
-  'big-malasada':{n:'Snack Stash',growth:'Leftovers Feast',need:6,how:'6 battles fought by Munchlax or Snorlax',
-    d:`Restores 3% <span class="s-hp">max HP</span> per second. Every 5 seconds it tosses a snack to your most injured ally, healing them for 10% of the holder's <span class="s-hp">max HP</span>.`,e:{regen:.03,snack:.1}},
-  'gold-bottle-cap':{n:'Gold Bottle Cap',growth:'Coin Hoard',need:6,how:'6 wins with the Gimmighoul line',
-    d:`Hyper Training: +15% <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span>, +25 <span class="s-def">Defense</span> and <span class="s-def">Sp. Def</span>, and +15% <span class="s-as">Attack Speed</span>.`,e:{atkP:.15,spaP:.15,def:25,res:25,as:.15}},
+/* ================= Set gear =================
+   Like TFT's Faerie crown or Currency Wars' Day Demigod gear: some sets hand you an exclusive item the first time
+   they activate. Only that set's Pokémon can wear it, and it gets stronger at higher set tiers. */
+const GEAR={
+  Partner:{id:'friend-ball',n:'Partner Ribbon',set:'Partner',tiers:[{dmg:.2,hpP:.2},{dmg:.35,hpP:.35,mana:100}],
+    lines:['+20% damage and max HP.','+35% damage and max HP, and starts battle with full PP.']},
+  Pseudo:{id:'dragon-scale',n:'Apex Fang',set:'Pseudo',tiers:[{apexWear:.35},{apexWear:.6}],
+    lines:['The wearer becomes the Apex: +35% max HP, damage and Attack Speed, and it grows bigger.','Radiant: the Apex gains +60% instead.']},
+  Fossil:{id:'old-amber',n:'Ancient Amber',set:'Fossil',tiers:[{revive:.5,ancient:.15},{revive:.7,ancient:.25}],
+    lines:['Revives once with 50% HP. On reviving, gains +15% to all stats and lets out an Ancient Power blast: 15% of its max HP as special damage to enemies within 1 hex.','Revives with 70% HP and gains +25% instead.']},
+  Kanto:{id:'star-piece',n:'Champion Ribbon',set:'Kanto',mission:1,tiers:[{dmg:.25,hpP:.25,as:.15},{dmg:.25,hpP:.25,as:.15}],
+    lines:['Earned by collecting all 8 Kanto Badges. +25% damage and max HP and +15% Attack Speed.']},
 };
-const isSpc=it=>typeof it.k==='string'&&it.k.startsWith('spc:');
-const spcKey=it=>it.k.slice(4);
-function spcDef(it){const S=SPECIAL[spcKey(it)];return{id:spcKey(it),n:S.n,d:S.d};}
-function specialFor(u){const G=growthOf(u);if(!G)return null;const id=Object.keys(SPECIAL).find(k=>SPECIAL[k].growth===G.n);return id?{id,...SPECIAL[id]}:null;}
-function awardSpecials(){
-  run.specials=run.specials||[];
-  for(const u of allOwned()){const S=specialFor(u);if(!S||run.specials.includes(S.id)||(u.gs||0)<S.need)continue;
-    run.specials.push(S.id);run.bag.push({k:'spc:'+S.id,mut:[]});
-    if(!SIM.on)setTimeout(()=>{banner(`${nameOf(u)} earned the ${S.n}!`,'A special item was added to your bag',2200);},1200);}
-}
+const isGear=it=>typeof it.k==='string'&&it.k.startsWith('gear:');
+const gearKey=it=>it.k.slice(5);
+function gearDef(it){const G=GEAR[gearKey(it)];return{id:G.id,n:G.n,d:`<b>Exclusive to ${G.set} Pokémon.</b> ${G.lines.map((l,i)=>G.lines.length>1?`<br>(${SETS[G.set].bp[i]}) ${l}`:l).join('')}`};}
+function gearEffects(it,u,tr){const G=GEAR[gearKey(it)];if(!unitSets(u).includes(G.set))return{};const ti=tierOf(G.set,tr[G.set]||0);return ti?G.tiers[ti-1]:{};}
+function canWearGear(it,u){const G=GEAR[gearKey(it)];return unitSets(u).includes(G.set)&&!u.items.some(isGear)&&u.items.length<3;}
+// hand out gear the first time its set is active on the field
+function grantGear(){if(!run||!MODE)return;run.gearGot=run.gearGot||[];const ct=countTraits(Object.values(run.board));
+  for(const k in GEAR){const G=GEAR[k];if(G.mission||run.gearGot.includes(k)||tierOf(G.set,ct[G.set]||0)<1)continue;run.gearGot.push(k);run.bag.push({k:'gear:'+k,mut:[]});
+    if(!SIM.on)banner(`${G.set} gear: ${G.n}`,`Only ${G.set} Pokémon can wear it`,2200);}}
+function grantMissionGear(k){run.gearGot=run.gearGot||[];if(run.gearGot.includes(k))return;run.gearGot.push(k);run.bag.push({k:'gear:'+k,mut:[]});if(!SIM.on)setTimeout(()=>banner(`Mission complete: ${GEAR[k].n}`,`Only ${GEAR[k].set} Pokémon can wear it`,2400),1200);}
+// unit-earned items were replaced by set gear
+const SPECIAL={};const isSpc=it=>false;const spcKey=it=>'';function spcDef(){return{id:'',n:'',d:''};}function specialFor(){return null;}function awardSpecials(){}
 
 // Pawniard line: the leader. Kowtow Cleave never misses and grows as allies fall.
 defSig({ids:[624,625,983],role:'Leader',cls:'Bruiser',cat:'phys',range:1,mana:[70,70,75],pf:[1.1,1.4,1.75],names:['Metal Claw','Night Slash','Kowtow Cleave'],mvType:'Dark',
-  d:(c,i)=>`${i===2?'Bows, then cleaves':'Slashes'} the weakest enemy within 2 hexes for ${DT(c,1.25)}${i===1?' with +30% crit chance':''}${i===2?'. It can\'t miss, and deals +12% for every ally that has fainted this battle':''}. Earns the <b>Leader's Crest</b> after 8 takedowns.`,
+  d:(c,i)=>`${i===2?'Bows, then cleaves':'Slashes'} the weakest enemy within 2 hexes for ${DT(c,1.25)}${i===1?' with +30% crit chance':''}${i===2?'. It can\'t miss, and deals +12% for every ally that has fainted this battle':''}`,
   cast(c,tg,i){const t=foesOf(c).filter(o=>hdist(c,o)<=2).sort((a,b)=>a.hp-b.hp)[0]||tg;if(hdist(c,t)>1)dashTo(c,t);
     const fallen=units.filter(o=>o.team===c.team&&o.dead).length;
     schedule(.15,()=>{if(c.dead||t.dead)return;hitAb(c,t,1.25*(i===2?1+.12*fallen:1),{cr:i===1?.3:0});boom(t,'#c9c9d6',2);});}});
 
 // Munchlax/Snorlax: the glutton. Naps to heal, then flattens everything nearby with its weight.
 defSig({ids:[446,143],role:'Glutton',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[80,90],start:20,pf:[.8,1],names:['Lick','Body Slam'],mvType:'Normal',
-  d:(c,i)=>`${i?`If it's below 60% HP, it first takes a quick <b>Rest</b>: asleep for 1.5s while healing <b class="s-hp">${Math.round(c.maxHp*.4)}</b> <span class="sc">(40% <span class="s-hp">max HP</span>)</span>. Then it`:'It'} Body Slams the target and adjacent enemies for <b class="s-hp">${Math.round(c.base*.6+c.maxHp*.08)}</b> <span class="sc">(${Math.round(c.base*.6)} + 8% <span class="s-hp">max HP</span>)</span> <span class="s-atk">physical</span> damage, stunning them for 0.6s. Earns a <b>Snack Stash</b> after 6 battles.`,
+  d:(c,i)=>`${i?`If it's below 60% HP, it first takes a quick <b>Rest</b>: asleep for 1.5s while healing <b class="s-hp">${Math.round(c.maxHp*.4)}</b> <span class="sc">(40% <span class="s-hp">max HP</span>)</span>. Then it`:'It'} Body Slams the target and adjacent enemies for <b class="s-hp">${Math.round(c.base*.6+c.maxHp*.08)}</b> <span class="sc">(${Math.round(c.base*.6)} + 8% <span class="s-hp">max HP</span>)</span> <span class="s-atk">physical</span> damage, stunning them for 0.6s.`,
   cast(c,tg,i){const slam=()=>{if(c.dead||tg.dead)return;for(const o of[tg,...near(tg,1)]){damage(c,o,(c.base*.6+c.maxHp*.08)*(o===tg?1:.7),{ab:1,cat:'phys',type:'Normal'});stun(o,.6);}boom(tg,'#d8c8a8',3);};
     if(i&&c.hp<c.maxHp*.6){stun(c,1.5);heal(c,c.maxHp*.4);if(!SIM.on)texts.push({x:c.x,y:c.y-38,txt:'Zzz...',col:'#c6b3ff',life:1.4,label:1});schedule(1.55,slam);}else slam();}});
 
 // Gimmighoul/Gholdengo: the treasure keeper. Make It Rain hits harder the richer you are.
 const richBonus=c=>c.team===0&&run?Math.min(.3,Math.floor(run.gold/2)*.01):0;
 defSig({ids:[999,1000],role:'Treasure Keeper',cls:'Mystic',cat:'spec',range:3,mana:[70,75],pf:[.8,1.15],names:['Astonish','Make It Rain'],mvType:'Steel',
-  d:(c,i)=>`Showers coins on the target and every enemy within 1 hex of it for ${DT(c,1)}, plus <b>+1% per ₽2 you have saved</b> (up to +30%; now +${Math.round(richBonus(c)*100)}%). ${i?'Each knockout with it drops ₽1 (up to ₽2 per battle). ':''}Earns a <b>Gold Bottle Cap</b> after 6 wins.`,
+  d:(c,i)=>`Showers coins on the target and every enemy within 1 hex of it for ${DT(c,1)}, plus <b>+1% per ₽2 you have saved</b> (up to +30%; now +${Math.round(richBonus(c)*100)}%). ${i?'Each knockout with it drops ₽1 (up to ₽2 per battle).':''}`,
   cast(c,tg,i){const m=1+richBonus(c);for(const o of[tg,...near(tg,1)]){hitAb(c,o,m*(o===tg?1:.75));if(!SIM.on)for(let k=0;k<6;k++)fx.push({x:o.x+rnd(-8,8),y:o.y-40-rnd(0,20),vx:0,vy:90,life:.45,max:.45,col:pick(['#ffd34d','#fff0a0','#c9961d']),sz:2,g:120});
       if(i&&o.dead&&c.team===0&&(battle.gholdN||0)<2){battle.gholdN=(battle.gholdN||0)+1;run.gold++;if(!SIM.on)texts.push({x:o.x,y:o.y-30,txt:'+₽1',col:'#ffd34d',life:1});}}}});
+
+/* ================= Kit building blocks =================
+   Each block returns {d(c,i), cast(c,tg,i,ctx)}. seq() chains blocks; staged() picks a block per evolution stage.
+   Values given as arrays are per stage. ctx carries the chosen target between blocks. */
+const P=(v,i)=>Array.isArray(v)?v[Math.min(i,v.length-1)]:v;
+const pcnt=v=>Math.round(v*100)+'%';
+const HPT=(c,p)=>c?`<b class="s-hp">${Math.round(c.maxHp*p)}</b> <span class="sc">(${pcnt(p)} <span class="s-hp">max HP</span>)</span>`:`${pcnt(p)} <span class="s-hp">max HP</span>`;
+const HEALV=(c,m)=>(c.base+KIT.healRatio*c.spa)*(1+c.healAmp)*m;
+const HT=(c,m)=>`<b class="s-hp">${Math.round(HEALV(c,m))}</b> <span class="sc">(${Math.round(c.base*m)} + <span class="s-spa">${pcnt(KIT.healRatio*m)} Sp. Atk</span>)</span>`;
+// target pickers
+function pickT(c,tg,to,r=9){const f=foesOf(c).filter(o=>hdist(c,o)<=r&&!(o.airT>combatT));if(!f.length)return tg;
+  if(to==='weak')return f.sort((a,b)=>a.hp-b.hp)[0];if(to==='far')return f.sort((a,b)=>hdist(c,b)-hdist(c,a)||a.hp-b.hp)[0];
+  if(to==='strong')return f.sort((a,b)=>Math.max(b.atk,b.spa)-Math.max(a.atk,a.spa))[0];if(to==='cluster')return cluster(c)||tg;if(to==='tank')return f.sort((a,b)=>b.maxHp-a.maxHp)[0];return tg&&!tg.dead?tg:f[0];}
+const TO={target:'the target',weak:'the weakest enemy',far:'the farthest enemy',strong:'the strongest enemy',cluster:'the biggest group of enemies',tank:'the bulkiest enemy'};
+// status effects shared by every block
+function applyFx(c,t,fx,i){if(!fx||t.dead)return;
+  if(fx.stun)stun(t,P(fx.stun,i));if(fx.sleep){stun(t,P(fx.sleep,i));if(!SIM.on)texts.push({x:t.x,y:t.y-30,txt:'Zzz',col:'#c6b3ff',life:.8,label:1});}
+  if(fx.freeze&&!t.stunImm){stun(t,P(fx.freeze,i));if(!SIM.on)burst(t.x,t.y-10,'#dff6ff',10,.7);}
+  if(fx.slow){t.slowT=Math.max(t.slowT,fx.slow[1]);t.slowP=Math.max(t.slowP,P(fx.slow[0],i));}
+  if(fx.burn)setDot(t,'burn',P(fx.burn,i),4,c);if(fx.psn)setDot(t,'poison',P(fx.psn,i),4,c);
+  if(fx.shred){t.def=Math.max(0,t.def-P(fx.shred,i));}if(fx.sdef){t.res=Math.max(0,t.res-P(fx.sdef,i));}
+  if(fx.knock)knock(c,t);if(fx.pull)pullTo(c,t);if(fx.flinch&&Math.random()<P(fx.flinch,i))stun(t,.35);
+  if(fx.tri){const k=pick(['burn','freeze','para']);if(k==='burn')setDot(t,'burn',.015,4,c);else{stun(t,k==='freeze'?.8:.6);}}
+  if(fx.weaken)debuff(t,'atk',P(fx.weaken,i),4),debuff(t,'spa',P(fx.weaken,i),4);}
+function fxText(fx,i){if(!fx)return'';const o=[];
+  if(fx.stun)o.push(`stuns for ${P(fx.stun,i)}s`);if(fx.sleep)o.push(`puts it to sleep for ${P(fx.sleep,i)}s`);if(fx.freeze)o.push(`freezes it for ${P(fx.freeze,i)}s`);
+  if(fx.slow)o.push(`slows its <span class="s-as">Attack Speed</span> by ${pcnt(P(fx.slow[0],i))} for ${fx.slow[1]}s`);
+  if(fx.burn)o.push(`burns for ${(P(fx.burn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);if(fx.psn)o.push(`poisons for ${(P(fx.psn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);
+  if(fx.shred)o.push(`lowers <span class="s-def">Defense</span> by ${P(fx.shred,i)}`);if(fx.sdef)o.push(`lowers <span class="s-def">Sp. Def</span> by ${P(fx.sdef,i)}`);
+  if(fx.knock)o.push('knocks back a hex');if(fx.pull)o.push('drags it next to this Pokémon');if(fx.flinch)o.push(`${pcnt(P(fx.flinch,i))} chance to flinch`);
+  if(fx.tri)o.push('burns, freezes or paralyzes at random');if(fx.weaken)o.push(`lowers <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> by ${pcnt(P(fx.weaken,i))} for 4s`);
+  return o.length?' It '+o.join(', ')+'.':'';}
+function pullTo(c,t){if(t.dead||t.stunImm)return;const opts=nbrs(c.c,c.r).filter(h=>!occupied(h.c,h.r,t));if(!opts.length)return;const h=opts.sort((a,b)=>hdist(a,t)-hdist(b,t))[0],p=hexXY(h.c,h.r);
+  t.move={c:h.c,r:h.r,fx:t.x,fy:t.y,tx:p.x,ty:p.y,t:0,dur:.25};stun(t,.4);}
+// ---- blocks
+const B={
+  // single hit: o.to target picker, o.dash (melee leap), o.proj (projectile colour), o.cr crit bonus, o.pen, o.n hits, o.echo second hit %, o.heal lifesteal %
+  hit:(m,o={})=>({d:(c,i)=>{const n=P(o.n||1,i),to=TO[o.to||'target'];return`${o.dash?`${o.to==='far'?'Leaps onto':'Dashes to'} ${to} and strikes`:o.proj===false?'Strikes':`Hits ${to}`}${n>1?` ${n} times`:''} for ${DT(c,P(m,i))}${n>1?' each':''}${o.cr?`, with +${pcnt(o.cr)} crit chance`:''}${o.pen?`, ignoring ${pcnt(o.pen)} of its defenses`:''}.${o.heal?` Heals for ${pcnt(P(o.heal,i))} of the damage dealt.`:''}${o.echo?` A second hit follows for ${pcnt(o.echo)}.`:''}${fxText(o.fx,i)}`;},
+    cast(c,tg,i,x){const t=x.t=pickT(c,tg,o.to,o.range||9);if(!t)return;const n=P(o.n||1,i);if(o.dash&&hdist(c,t)>1)dashTo(c,t,o.to==='far'||o.to==='weak',.22);
+      const one=(k)=>{if(c.dead||t.dead)return;const d=hitAb(c,t,P(m,i)*(k===-1?o.echo:1),{cr:o.cr||0,pen:o.pen||0});if(o.heal)heal(c,d*P(o.heal,i));if(k===n-1||k===-1)applyFx(c,t,o.fx,i);if(!SIM.on)spark(t.x,t.y-12,tcol(c),6);};
+      for(let k=0;k<n;k++)schedule((o.dash?.22:0)+k*.12,()=>{const go=()=>one(k);if(c.range>1&&o.proj!==false&&!o.dash)fire(c,t,o.col||tcol(c),go,{sp:o.sp||340,size:o.size||3});else go();});
+      if(o.echo)schedule((o.dash?.22:0)+n*.12+.2,()=>one(-1));}}),
+  // arcing missiles spread across enemies within r
+  barrage:(n,m,o={})=>({d:(c,i)=>`Launches ${P(n,i)} ${o.what||'missiles'} that arc down on enemies within ${o.r||4} hexes, each dealing ${DT(c,P(m,i))}${o.splash?' to the enemy it lands on and adjacent enemies':''}.${fxText(o.fx,i)}`,
+    cast(c,tg,i){const pool=shuffle(foesOf(c).filter(f=>hdist(c,f)<=(o.r||4)));const ts=pool.length?pool:[tg];const N=P(n,i);
+      for(let k=0;k<N;k++)schedule(k*.08,()=>{if(c.dead)return;const a=ts.filter(f=>!f.dead);if(!a.length)return;const t=a[k%a.length];
+        fire(c,t,o.col||tcol(c),()=>{for(const q of[t,...(o.splash?near(t,1):[])])hitAb(c,q,P(m,i)*(q===t?1:.6));applyFx(c,t,o.fx,i);},{arc:1,dur:.45+Math.random()*.3,lift:50+Math.random()*60,side:rnd(-60,60),retarget:1,size:o.size||3});});}}),
+  chain:(n,m,o={})=>({d:(c,i)=>`Strikes the target for ${DT(c,P(m,i))}, then jumps to ${P(n,i)} more enem${P(n,i)>1?'ies':'y'}, losing ${pcnt(1-(o.decay||.85))} each jump.${fxText(o.fx,i)}`,
+    cast(c,tg,i){const hit=[];let cur=tg,prev=c;for(let k=0;k<=P(n,i)&&cur;k++){const t=cur,p=prev,mm=P(m,i)*Math.pow(o.decay||.85,k);hit.push(t);
+      schedule(k*.09,()=>{if(c.dead||t.dead)return;lineFx(p,t,o.col||tcol(c),2,.25);hitAb(c,t,mm);applyFx(c,t,o.fx,i);});prev=t;cur=foesOf(c).filter(f=>!hit.includes(f)&&hdist(f,t)<=3).sort((a,b)=>hdist(a,t)-hdist(b,t))[0];}}}),
+  // explosion around a point: o.at target|cluster|weak|far, o.r radius, o.arc lob
+  blast:(m,o={})=>({d:(c,i)=>`${o.arc?'Lobs':'Fires'} ${o.what||'an attack'} at ${TO[o.at||'target']} that ${o.r===0?'hits it':`explodes on it and every enemy within ${o.r||1} hex${(o.r||1)>1?'es':''}`} for ${DT(c,P(m,i))}${o.r===0?'':` (${pcnt(o.splash||.7)} to the others)`}.${fxText(o.fx,i)}`,
+    cast(c,tg,i,x){const t=x.t=pickT(c,tg,o.at);if(!t)return;fire(c,t,o.col||tcol(c),()=>{const r=o.r??1;for(const q of[t,...(r?near(t,r):[])]){hitAb(c,q,P(m,i)*(q===t?1:o.splash||.7));applyFx(c,q,o.fx,i);}boom(t,o.col||tcol(c),2);},
+      o.arc?{arc:1,dur:.6,lift:90,side:0,retarget:1,size:5}:{sp:300,size:4});}}),
+  nova:(m,o={})=>({d:(c,i)=>`${o.say||'Unleashes a shockwave'} that hits every enemy within ${P(o.r||2,i)} hexes for ${DT(c,P(m,i))}.${fxText(o.fx,i)}`,
+    cast(c,tg,i){for(const q of foesOf(c).filter(f=>hdist(f,c)<=P(o.r||2,i))){hitAb(c,q,P(m,i));applyFx(c,q,o.fx,i);}if(!SIM.on){ring(c.x,c.y-6,o.col||tcol(c));schedule(.1,()=>ring(c.x,c.y-6,'#ffffff'));}}}),
+  cone:(m,o={})=>({d:(c,i)=>`${o.say||'Sweeps a cone'} through the target and enemies up to ${P(o.depth||1,i)} hex${P(o.depth||1,i)>1?'es':''} behind it for ${DT(c,P(m,i))} (70% to the others).${fxText(o.fx,i)}`,
+    cast(c,tg,i){const ts=[tg,...alive(tg.team).filter(f=>f!==tg&&hdist(f,tg)<=P(o.depth||1,i)&&hdist(f,c)>=hdist(tg,c))];for(const q of ts){hitAb(c,q,P(m,i)*(q===tg?1:.7));applyFx(c,q,o.fx,i);if(!SIM.on)burst(q.x,q.y-10,o.col||tcol(c),10,1);}lineFx(c,tg,o.col||tcol(c),3,.3);}}),
+  beam:(m,o={})=>({d:(c,i)=>`${o.charge?`Charges for ${o.charge}s, then fires`:'Fires'} ${o.what||'a beam'} through the target that hits every enemy in a line for ${DT(c,P(m,i))}.${fxText(o.fx,i)}`,
+    cast(c,tg,i){const go=()=>{if(c.dead||tg.dead)return;const ts=lineHits(c,tg);if(!ts.includes(tg))ts.push(tg);for(const q of ts){hitAb(c,q,P(m,i));applyFx(c,q,o.fx,i);}
+      if(!SIM.on){const dx=tg.x-c.x,dy=tg.y-c.y,L=Math.hypot(dx,dy)||1;fx.push({line:1,x1:c.x,y1:c.y-12,x2:c.x+dx/L*420,y2:c.y-12+dy/L*420,life:.35,max:.35,col:o.col||tcol(c),w:4});}};
+      if(o.charge){c.busy=Math.max(c.busy,o.charge+.1);schedule(o.charge,go);}else go();}}),
+  shield:(p,o={})=>({d:(c,i)=>`Gives ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':o.who==='lowest'?'the most injured ally':'itself'} a shield of ${HPT(c,P(p,i))}${o.who&&o.who!=='self'?' (of each one\'s max HP)':''}${o.def?` and +${P(o.def,i)} <span class="s-def">Defense</span> and <span class="s-def">Sp. Def</span> for 4s`:''}.`,
+    cast(c,tg,i){const ws=o.who==='team'?alive(c.team):o.who==='adjacent'?alive(c.team).filter(a=>hdist(a,c)<=1):o.who==='lowest'?[alive(c.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0]]:[c];
+      for(const a of ws){if(!a)continue;a.shield+=a.maxHp*P(p,i);if(o.def){const v=P(o.def,i);a.def+=v;a.res+=v;schedule(4,()=>{a.def-=v;a.res-=v;});}if(!SIM.on)ring(a.x,a.y-8,'#dfe8ff');}}}),
+  heal:(m,o={})=>({d:(c,i)=>`Heals ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':o.who==='self'?'itself':'the most injured ally'} for ${HT(c,P(m,i))}${o.cleanse?' and cures burn and poison':''}.`,
+    cast(c,tg,i){const ws=o.who==='team'?alive(c.team):o.who==='adjacent'?alive(c.team).filter(a=>hdist(a,c)<=1):o.who==='self'?[c]:[alive(c.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0]];
+      for(const a of ws){if(!a)continue;heal(a,HEALV(c,P(m,i)));if(o.cleanse)a.burn=a.poison=null;if(!SIM.on)burst(a.x,a.y-12,'#c6ff8a',8,.6);}}}),
+  buff:(st,o={})=>({d:(c,i)=>`Gives ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':'itself'} ${Object.entries(st).map(([k,v])=>`+${k==='def'||k==='res'?P(v,i):pcnt(P(v,i))} ${{as:'<span class="s-as">Attack Speed</span>',dmg:'damage',atk:'<span class="s-atk">Attack</span>',spa:'<span class="s-spa">Sp. Atk</span>',def:'<span class="s-def">Defense</span>',res:'<span class="s-def">Sp. Def</span>',dr:'damage reduction'}[k]}`).join(', ')} ${o.dur?`for ${o.dur}s`:'for the rest of the battle (stacks)'}.`,
+    cast(c,tg,i){const ws=o.who==='team'?alive(c.team):o.who==='adjacent'?alive(c.team).filter(a=>hdist(a,c)<=1):[c];
+      for(const a of ws){for(const[k,v0]of Object.entries(st)){const v=P(v0,i);const ap=s=>{if(k==='as'||k==='atk'||k==='spa')a[k]*=s>0?1+v:1/(1+v);else if(k==='dmg')a.dmg+=s*v;else if(k==='dr')a.taken*=s>0?1-v:1/(1-v);else a[k]+=s*v;};ap(1);if(o.dur)schedule(o.dur,()=>ap(-1));}
+        if(!SIM.on)spark(a.x,a.y-16,'#ffe27a',6);}}}),
+  // status without damage on chosen targets
+  control:(fx,o={})=>({d:(c,i)=>`${o.say||'Targets'} ${o.n?`the ${P(o.n,i)} nearest enemies`:o.r?`every enemy within ${o.r} hex${o.r>1?'es':''} of ${TO[o.at||'target']}`:TO[o.to||'target']}.${fxText(fx,i)}`,
+    cast(c,tg,i,x){let ts;if(o.n)ts=foesOf(c).sort((a,b)=>hdist(a,c)-hdist(b,c)).slice(0,P(o.n,i));else{const t=x.t=pickT(c,tg,o.at||o.to);ts=o.r?[t,...near(t,o.r)]:[t];}
+      for(const q of ts)if(q)applyFx(c,q,fx,i);if(!SIM.on&&ts[0])ring(ts[0].x,ts[0].y-6,o.col||'#c6b3ff');}}),
+  zone:(m,o={})=>({d:(c,i)=>`${o.say||'Covers the ground'} around ${o.at==='self'?'itself':TO[o.at||'target']} (${o.r||1} hex${(o.r||1)>1?'es':''}) for ${P(o.dur||4,i)}s. ${o.heal?`Allies inside heal ${pcnt(P(o.heal,i))} <span class="s-hp">max HP</span> per second`:`Enemies inside take ${DT(c,P(m,i))} every half second`}.${fxText(o.fx,i)?' Each tick'+fxText(o.fx,i).slice(3):''}`,
+    cast(c,tg,i){const at=o.at==='self'?c:pickT(c,tg,o.at);if(!at)return;
+      zone(c,at,o.r||1,P(o.dur||4,i),o.col||tcol(c),z=>{if(o.heal){for(const a of inZone(z,c.team))heal(a,a.maxHp*P(o.heal,i)/2,true);return;}for(const q of inZone(z,1-c.team)){hitAb(c,q,P(m,i),{noCrit:1,quiet:1});applyFx(c,q,o.fx,i);}},!!o.heal);}}),
+  ramp:(st)=>({d:(c,i)=>`Powers up: ${Object.entries(st).map(([k,v])=>`+${pcnt(P(v,i))} ${{as:'<span class="s-as">Attack Speed</span>',atk:'<span class="s-atk">Attack</span>',spa:'<span class="s-spa">Sp. Atk</span>',dmg:'damage'}[k]}`).join(', ')} for the rest of the battle (stacks).`,
+    cast(c,tg,i){for(const[k,v]of Object.entries(st)){if(k==='dmg')c.dmg+=P(v,i);else c[k]*=1+P(v,i);}if(!SIM.on)burst(c.x,c.y-12,'#ffe27a',10,.7);}}),
+  airborne:(dur)=>({d:()=>`Rises out of reach for ${dur}s (can't be targeted or hit).`,cast(c){c.airT=combatT+dur;c.busy=Math.max(c.busy,dur);c.target=null;if(!SIM.on)burst(c.x,c.y-10,'#cfe8ff',14,1);}}),
+};
+// run blocks in order, half a beat apart
+function seq(...bs){return{d:(c,i)=>bs.map(b=>b.d(c,i)).join(' Then: '),cast(c,tg,i){const x={};let t=0;for(const b of bs){const tt=t;schedule(tt,()=>{if(!c.dead)b.cast(c,x.t&&!x.t.dead?x.t:tg,i,x);});t+=b.gap??.3;}}};}
+function staged(...bs){return{d:(c,i)=>bs[Math.min(i,bs.length-1)].d(c,i),cast:(c,tg,i,x)=>bs[Math.min(i,bs.length-1)].cast(c,tg,i,x||{})};}
+// define a kit from blocks
+function kit(base,body){defSig(Object.assign(base,{d:base.d||((c,i)=>(base.lead?base.lead+' ':'')+body.d(c,i)+(base.tail?' '+base.tail(c,i):'')),cast:base.cast||((c,tg,i)=>body.cast(c,tg,i,{}))}));}

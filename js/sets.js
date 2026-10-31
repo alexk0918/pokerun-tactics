@@ -54,20 +54,20 @@ const SETS={
   Regrowth:{cat:'style',bp:[2,4],m:[{regen:.02},{regen:.04}],t:[{regen:.005},{regen:.01}],d:'Regrowth Pokémon restore 2% / 4% max HP per second, and your team restores 0.5% / 1%.'},
   Phantom:{cat:'style',bp:[2,4],m:[{dodge:.15},{dodge:.3}],t:[{dodge:.05},{dodge:.1}],d:'Phantoms dodge 15% / 30% of attacks; the rest of your team dodges 5% / 10%.'},
   Charged:{cat:'style',bp:[2,4],m:[{zap:45,as:.1},{zap:100,as:.2}],d:'Every 3rd attack from a Charged Pokémon zaps up to 3 enemies for 45 / 100 special damage. +10% / +20% Attack Speed.'},
-  Partner:{cat:'style',bp:[2,3],m:[{hpP:.1,dmg:.1,friend:1},{hpP:.2,dmg:.2,friend:2}],d:'<b>Friendship:</b> starters, Pikachu and Eevee gain +10% / +20% max HP and damage. Each battle a Partner Pokémon fights while this is active, it gains 1 Friendship (2 at 3), forever: +1.5% max HP and damage per point, up to 20. At 10 Friendship it <b>hangs on for you</b>, surviving its first fainting blow each battle.'},
-  Fossil:{cat:'style',bp:[2,3],m:[{revive:.3},{revive:.6}],d:'The first time a Fossil Pokémon faints, it is revived with 30% / 60% HP.'},
-  Pseudo:{cat:'style',bp:[2,3],m:[{hpP:.15,dmg:.1},{hpP:.25,dmg:.2}],x:[{apex:1},{apex:2}],d:'<b>Apex:</b> pseudo-legendary lines gain +15% / +25% max HP and +10% / +20% damage. At 2, your strongest Pseudo becomes the <b>Apex</b>: +35% max HP, damage and Attack Speed, and it grows bigger. At 3, every Pseudo is an Apex.'},
+  Partner:{cat:'style',bp:[2,3],m:[{hpP:.1,dmg:.1,friend:1},{hpP:.2,dmg:.2,friend:2}],d:'<b>Friendship:</b> starters, Pikachu and Eevee gain +10% / +20% max HP and damage. Each battle a Partner Pokémon fights while this is active, it gains 1 Friendship (2 at 3), forever: +1.5% max HP and damage per point, up to 20. At 10 Friendship it <b>hangs on for you</b>, surviving its first fainting blow each battle. At 2, you also receive the Partner Ribbon, gear for one Partner Pokémon.'},
+  Fossil:{cat:'style',bp:[2,3],m:[{revive:.3},{revive:.5}],d:'<b>Ancient Power:</b> the first time a Fossil Pokémon faints, it revives with 30% / 50% HP. At 2, you receive the Ancient Amber, gear that makes its Fossil wearer come back even stronger.'},
+  Pseudo:{cat:'style',bp:[2,3],m:[{hpP:.15,dmg:.1},{hpP:.25,dmg:.2}],d:'<b>Apex:</b> pseudo-legendary lines gain +15% / +25% max HP and +10% / +20% damage. At 2, you receive the Apex Fang: whoever wears it becomes the Apex, with +35% max HP, damage and Attack Speed. At 3, the fang turns Radiant (+60%).'},
 
-  /* Regions (National Dex only) */
-  Kanto:{cat:'region',bp:[2,4],m:[{hpP:.15},{hpP:.3}],d:'Kanto Pokémon gain +15% / +30% max HP.'},
-  Johto:{cat:'region',bp:[2,4],m:[{as:.15},{as:.3}],d:'Johto Pokémon gain +15% / +30% Attack Speed.'},
-  Hoenn:{cat:'region',bp:[2,4],m:[{shieldP:.15},{shieldP:.3}],d:'Hoenn Pokémon start with a shield of 15% / 30% max HP.'},
-  Sinnoh:{cat:'region',bp:[2,4],m:[{def:15,res:15},{def:35,res:35}],d:'Sinnoh Pokémon gain +15 / +35 Defense and Sp. Def.'},
-  Unova:{cat:'region',bp:[2,4],m:[{dmg:.12},{dmg:.25}],d:'Unova Pokémon deal +12% / +25% damage.'},
-  Kalos:{cat:'region',bp:[2,4],m:[{mana:20},{mana:40}],d:'Kalos Pokémon start battle with +20 / +40 PP.'},
-  Alola:{cat:'region',bp:[2,4],m:[{regen:.015},{regen:.03}],d:'Alola Pokémon restore 1.5% / 3% max HP per second.'},
-  Galar:{cat:'region',bp:[2,4],m:[{hpP:.1,dmg:.08},{hpP:.2,dmg:.15}],d:'Galar Pokémon gain +10% / +20% max HP and +8% / +15% damage.'},
-  Paldea:{cat:'region',bp:[2,4],m:[{crit:.15},{crit:.3}],d:'Paldea Pokémon gain +15% / +30% crit chance.'},
+  /* Regions (National Dex only): each one plays like its games */
+  Kanto:{cat:'region',bp:[2,4],m:[{hpP:.1,kanto:1},{hpP:.2,kanto:1}],d:'<b>Gym Challenge:</b> Kanto Pokémon gain +10% / +20% max HP. Every battle you win with Kanto active earns a Badge (up to 8): Kanto Pokémon deal +2.5% damage per Badge. Collect all 8 to receive the Champion Ribbon, gear only Kanto Pokémon can wear.'},
+  Johto:{cat:'region',bp:[2,4],m:[{johto:.15},{johto:.3}],d:'<b>Day & Night:</b> odd floors are Day, even floors are Night. By day, Johto Pokémon gain +15% / +30% Attack Speed. By night, they gain +15% / +30% crit chance and +10% / +20% damage.'},
+  Hoenn:{cat:'region',bp:[2,4],m:[{shieldP:.15},{shieldP:.3,wAS:{sun:.2,rain:.2}}],x:[{},{primal:1}],d:'<b>Primal Weather:</b> Hoenn Pokémon start with a shield of 15% / 30% max HP. At 4, if nothing else sets the weather, Hoenn calls harsh sunlight or rain (whichever suits your Fire and Water Pokémon), and Hoenn Pokémon gain +20% Attack Speed in it.'},
+  Sinnoh:{cat:'region',bp:[2,4],m:[{def:15,res:15},{def:30,res:30}],x:[{},{timeStop:.4}],d:'<b>Time & Space:</b> Sinnoh Pokémon gain +15 / +30 Defense and Sp. Def. At 4, time stops for the enemy as battle begins: they lose 40% Attack Speed for 4 seconds.'},
+  Unova:{cat:'region',bp:[2,4],m:[{dmg:.08,unova:.15},{dmg:.15,unova:.3}],d:'<b>Ideals & Truth:</b> Unova Pokémon deal +8% / +15% damage. If most of your field attacks physically, Unova follows Ideals: +15% / +30% Attack Speed. Otherwise it follows Truth: +15 / +30 starting PP.'},
+  Kalos:{cat:'region',bp:[2,4],m:[{mana:15,firstAmp:.3},{mana:30,firstAmp:.6}],d:'<b>Fairy Aura:</b> Kalos Pokémon start with +15 / +30 PP, and their first move each battle deals +30% / +60% damage.'},
+  Alola:{cat:'region',bp:[2,4],m:[{regen:.015},{regen:.025}],x:[{},{totem:1}],d:'<b>Totem Trial:</b> Alola Pokémon restore 1.5% / 2.5% max HP per second. At 4, your strongest Alola Pokémon becomes a Totem: +40% max HP and an aura that gives adjacent allies +15% Attack Speed.'},
+  Galar:{cat:'region',bp:[2,4],m:[{hpP:.08,dmg:.08},{hpP:.15,dmg:.15}],x:[{},{powerSpot:1}],d:'<b>Power Spot:</b> Galar Pokémon gain +8% / +15% max HP and damage. At 4, your bulkiest Galar Pokémon grows giant at the start of battle: +50% max HP and +20% damage for 8 seconds.'},
+  Paldea:{cat:'region',bp:[2,4],m:[{crit:.12,teraUp:.1},{crit:.25,teraUp:.2}],x:[{},{treasure:1}],d:'<b>Terastal Treasure:</b> Paldea Pokémon gain +12% / +25% crit chance, and after their first move they Terastallize for +10% / +20% damage. At 4, every win also digs up ₽1.'},
 };
 const SETCAT_LABEL={type:'Type',class:'Class',style:'Style',region:'Region'};
 const CLASSCOL={Vanguard:'#5b7fa8',Juggernaut:'#7a6a55',Bruiser:'#b5532f',Striker:'#c9961d',Mystic:'#7a5ad0',Artillery:'#c0444f',Combo:'#2f8f86',Trickster:'#8a3f9a',Medic:'#4d9a3a'};

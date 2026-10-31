@@ -229,17 +229,17 @@ function renderForest(){
 /* ================= Items ================= */
 const ITEMIMG={};
 const iconOf=id=>`assets/items/${id}.png`;
-function loadItemImages(){const ids=new Set([...Object.values(COMP).map(c=>c.id),...Object.values(CRAFT).map(c=>c.id),...Object.keys(USE),...Object.keys(RELICS),...Object.keys(ENH),...Object.keys(SPECIAL),...Object.values(NODES).map(n=>n.icon).filter(Boolean)]);
+function loadItemImages(){const ids=new Set([...Object.values(COMP).map(c=>c.id),...Object.values(CRAFT).map(c=>c.id),...Object.keys(USE),...Object.keys(RELICS),...Object.keys(ENH),...Object.values(GEAR).map(g=>g.id),...Object.values(NODES).map(n=>n.icon).filter(Boolean)]);
   for(const id of ids){const i=new Image();i.src=iconOf(id);ITEMIMG[id]=i;}}
 const isComp=it=>it.k.length===1&&!!COMP[it.k];
 const isCraft=it=>!!CRAFT[it.k];
 const isUse=it=>!!USE[it.k];
-function itemDef(it){if(isEnh(it))return enhDef(it);if(isSpc(it))return spcDef(it);if(isGim(it))return gimDef(it);if(isFormItem(it))return formItemDef(it);if(isComp(it))return COMP[it.k];if(isCraft(it))return CRAFT[it.k];return USE[it.k];}
+function itemDef(it){if(isGear(it))return gearDef(it);if(isEnh(it))return enhDef(it);if(isSpc(it))return spcDef(it);if(isGim(it))return gimDef(it);if(isFormItem(it))return formItemDef(it);if(isComp(it))return COMP[it.k];if(isCraft(it))return CRAFT[it.k];return USE[it.k];}
 function itemName(it){const d=itemDef(it);return(it.mut&&it.mut.length?it.mut.map(m=>MUTS[m].n).join(' ')+' ':'')+d.n+(it.enh?'+':'');}
-function itemTier(it){return isEnh(it)?'enh':isSpc(it)?'spc':isGim(it)?'gim':isFormItem(it)?'formi':isComp(it)?'common':isCraft(it)?'epic':'use';}
+function itemTier(it){return isGear(it)?'gear':isEnh(it)?'enh':isSpc(it)?'spc':isGim(it)?'gim':isFormItem(it)?'formi':isComp(it)?'common':isCraft(it)?'epic':'use';}
 function addE(t,e){for(const k in e){const v=e[k];if(typeof v==='number')t[k]=(t[k]||0)+v;else if(Array.isArray(v))t[k]=[...(t[k]||[]),...v];else if(v&&typeof v==='object')t[k]=Object.assign({},t[k]||{},v);else t[k]=v;}return t;}
 function itemEffects(it){
-  const t={};if(isGim(it)||isFormItem(it)||isEnh(it))return t;
+  const t={};if(isGim(it)||isFormItem(it)||isEnh(it)||isGear(it))return t;
   if(isComp(it))addE(t,COMP[it.k].e);
   if(isCraft(it)){addE(t,COMP[it.k[0]].e);addE(t,COMP[it.k[1]].e);addE(t,CRAFT[it.k].e);}
   for(const m of it.mut||[])addE(t,MUTS[m].e);
@@ -391,9 +391,10 @@ function equipRaw(it,u){
   if(isComp(it)){const j=u.items.findIndex(isComp);if(j>=0){u.items[j]=combineItems(u.items[j],it);return{crafted:u.items[j]};}}
   if(u.items.length>=3)return false;u.items.push(it);return'equipped';
 }
-function canEquip(it,u){if(isEnh(it))return u.items.some(canEnhance);if(isGim(it))return true;if(isFormItem(it))return u.items.length<3;if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
+function canEquip(it,u){if(isGear(it))return canWearGear(it,u);if(isEnh(it))return u.items.some(canEnhance);if(isGim(it))return true;if(isFormItem(it))return u.items.length<3;if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
 function useItem(bi,u){
   const it=run.bag[bi];if(!it)return false;
+  if(isGear(it)){if(!u)return false;if(!canWearGear(it,u)){toast(`Only ${GEAR[gearKey(it)].set} Pokémon can wear the ${GEAR[gearKey(it)].n} (one set gear each).`);return false;}}
   if(isEnh(it)){if(!u)return false;return enhOnUnit(bi,u);}
   if(isGim(it)){if(!u)return false;return equipGim(bi,u);}
   if(isUse(it)){
@@ -489,14 +490,17 @@ function startOfBattle(trs){
   let w=null;
   for(const side of[0,1])if(!w&&tx[side].weather)w={k:tx[side].weather,pow:tx[side].wPow||1,side};
   if(!w)for(const u of units)if(u.fx.weather){w={k:u.fx.weather,pow:1,side:u.team};break;}
+  if(!w)for(const side of[0,1])if(tx[side].primal){const ms=units.filter(u=>u.team===side),fi=ms.filter(u=>D[u.dex].t.includes('Fire')).length,wa=ms.filter(u=>D[u.dex].t.includes('Water')).length;w={k:fi>wa?'sun':'rain',pow:1,side};break;}
   if(units.some(u=>u.fx.noWeather))w=null;
   if(w){battle.weather=w.k;battle.wPow=w.pow;battle.wSide=w.side;if(!SIM.on)texts.push({x:320,y:150,txt:{sun:'Harsh sunlight!',rain:'It started to rain!',sand:'A sandstorm kicked up!',snow:'It started to snow!'}[w.k],col:'#ffe27a',life:1.8,label:1});
     for(const u of units){if(w.k==='snow'&&u.team===w.side&&D[u.dex].t.includes('Ice')){u.def+=20*w.pow;u.res+=20*w.pow;}
       if(w.k==='snow'&&u.team!==w.side)u.as*=1-.1*w.pow;}}
   for(const side of[0,1]){const x=tx[side],foes=units.filter(o=>o.team!==side),mine=units.filter(o=>o.team===side);
-    if(x.rocks)battle.rocks[1-side]=x.rocks;if(x.plague)battle.plague[side]=1;
-    if(x.apex){const ps=mine.filter(o=>unitSets(o.u).includes('Pseudo')).sort((a,b)=>b.u.star*lineOf(b.u).cost-a.u.star*lineOf(a.u).cost||b.maxHp-a.maxHp);
-      for(const o of x.apex>=2?ps:ps.slice(0,1)){o.maxHp*=1.35;o.hp*=1.35;o.dmg+=.35;o.as*=1.35;o.scaleMul=(o.scaleMul||1)*1.15;o.apex=1;if(!SIM.on)texts.push({x:o.x,y:o.y-36,txt:'Apex!',col:'#ffd34d',life:1.4,label:1});}}
+    if(x.rocks)battle.rocks[1-side]=x.rocks;if(side===0)battle.treasure=!!x.treasure;
+    if(x.timeStop){for(const o of foes)o.as*=1-x.timeStop;schedule(4,()=>{for(const o of foes)o.as/=1-x.timeStop;});if(!SIM.on)texts.push({x:320,y:120,txt:'Time stops!',col:'#9fd4ff',life:1.4,label:1});}
+    if(x.totem){const t=mine.filter(o=>unitSets(o.u).includes('Alola')).sort((a,b)=>b.maxHp-a.maxHp)[0];if(t){t.maxHp*=1.4;t.hp*=1.4;t.scaleMul=(t.scaleMul||1)*1.15;for(const a of mine)if(a!==t&&hdist(a,t)<=1)a.as*=1.15;if(!SIM.on)texts.push({x:t.x,y:t.y-36,txt:'Totem!',col:'#ffd34d',life:1.3,label:1});}}
+    if(x.powerSpot){const g=mine.filter(o=>unitSets(o.u).includes('Galar')).sort((a,b)=>b.maxHp-a.maxHp)[0];if(g){g.maxHp*=1.5;g.hp*=1.5;g.dmg+=.2;g.scaleMul=(g.scaleMul||1)*1.35;schedule(8,()=>{if(g.dead)return;g.maxHp/=1.5;g.hp=Math.min(g.hp,g.maxHp);g.dmg-=.2;g.scaleMul/=1.35;});if(!SIM.on)texts.push({x:g.x,y:g.y-40,txt:'Power Spot!',col:'#ff6b8a',life:1.3,label:1});}}if(x.plague)battle.plague[side]=1;
+    for(const o of mine.filter(o=>o.fx.apexWear)){const a=o.fx.apexWear;{o.maxHp*=1+a;o.hp*=1+a;o.dmg+=a;o.as*=1+a;o.scaleMul=(o.scaleMul||1)*1.15;o.apex=1;if(!SIM.on)texts.push({x:o.x,y:o.y-36,txt:'Apex!',col:'#ffd34d',life:1.4,label:1});}}
     if(x.tide){const wave=()=>{if(mode!=='combat')return;for(const o of alive(side))if(D[o.dex].t.includes('Water')||o.u.shard==='Water')gainMana(o,x.tide);
         if(x.tideDmg)for(const o of alive(1-side))hurt(o,o.maxHp*x.tideDmg*(100/(100+Math.max(0,o.res))),null);
         if(!SIM.on)for(let i=0;i<40;i++)fx.push({x:rnd(150,490),y:side?60:200,vx:0,vy:side?120:-120,life:.9,max:.9,col:pick(['#7fc4ff','#bfe4ff','#4d9ae0']),sz:2,g:0});schedule(5,wave);};schedule(5,wave);}
@@ -513,6 +517,7 @@ function startOfBattle(trs){
     if(F.archangel){const tick=()=>{if(u.dead)return;u.spa*=1+F.archangel;schedule(4,tick);};schedule(4,tick);}
     if(u.kit.sig&&u.kit.sig.begin)u.kit.sig.begin(u,u.kit.si);
     if(F.snack){const toss=()=>{if(u.dead||mode!=='combat')return;const al=alive(u.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];if(al){heal(al,u.maxHp*F.snack);if(!SIM.on)burst(al.x,al.y-14,'#f0c890',8,.6);}schedule(5,toss);};schedule(5,toss);}
+    if(F.unova){const ms=units.filter(o=>o.team===u.team),ph=ms.filter(o=>o.cat==='phys').length;if(ph*2>=ms.length)u.as*=1+F.unova;else gainMana(u,F.unova*100);}
     if(F.blink)schedule(.15,()=>{if(u.dead)return;const far=alive(1-u.team).sort((a,b)=>hdist(u,b)-hdist(u,a))[0];if(far)dashTo(u,far,true,.35);});
     if(F.aura)for(const o of units)if(o!==u&&o.team===u.team&&hdist(o,u)<=1){const a=F.aura;if(a.regen)o.regen+=a.regen;if(a.dr)o.taken*=1-a.dr;if(a.ab)o.abm+=a.ab;if(a.as)o.as*=1+a.as;if(a.aImm)o.fx.aImm=1;}
     if(F.clay)for(const o of units)if(o.team===u.team&&hdist(o,u)<=1)o.shield+=o.maxHp*F.clay;
@@ -542,6 +547,9 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
     if(augIs('tailwind'))addE(E,{as:.12});if(augIs('oran'))addE(E,{hpF:150});if(augIs('swords'))addE(E,{dmg:.18});if(augIs('champion'))addE(E,{dmg:.3,as:.15});if(augIs('endure'))E.focus=(E.focus||0)+1;
     if(hasRelic('soothe-bell'))addE(E,{regen:.015});if(hasRelic('rainbow-wing'))addE(E,{hpP:.12,dmg:.12});if(hasRelic('silver-wing'))addE(E,{shieldP:.15});
   }
+  for(const it of u.items)if(isGear(it))addE(E,gearEffects(it,u,tr));
+  if(E.kanto&&team===0)E.dmg=(E.dmg||0)+Math.min(8,run.badges||0)*.025;
+  if(E.johto){const v=E.johto;if(!run||run.floor%2===1)E.as=(E.as||0)+v;else{E.crit=(E.crit||0)+v;E.dmg=(E.dmg||0)+v*.66;}}
   if(E.adapt){const nt=Object.keys(tr).filter(k=>SETS[k]&&SETS[k].cat==='type').length;addE(E,{hpP:E.adapt*nt,dmg:E.adapt*nt});}
   if(E.hoard&&team===0)E.dmg=(E.dmg||0)+Math.min(.4,(run.hoard||0)*.01);
   if(E.friend&&team===0&&u.fr){const f=Math.min(20,u.fr);addE(E,{hpP:f*.015,dmg:f*.015});if(f>=10)E.focus=(E.focus||0)+1;}
@@ -667,7 +675,7 @@ function checkHp(tg,src){
   if(tg.fx.halfShield&&!tg.hsOn&&tg.hp>0&&lowHp(tg,.5)){tg.hsOn=1;tg.shield+=tg.maxHp*tg.fx.halfShield;if(tg.fx.redCard)for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)stun(o,tg.fx.redCard);if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Red Card!',col:'#ff8a7a',life:1});ring(tg.x,tg.y-8,'#ff6b6b');}}
   if(tg.hp>0){formsOnHp(tg);return;}
   if(tg.focus>0){tg.focus--;tg.hp=1;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Hung on!',col:'#ff8a7a',life:1.2});return;}
-  if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;tg.burn=tg.poison=null;if(tg.fx.ashFull){tg.mana=tg.maxMana;tg.dmg+=tg.fx.ashFull;}if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
+  if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;tg.burn=tg.poison=null;if(tg.fx.ashFull){tg.mana=tg.maxMana;tg.dmg+=tg.fx.ashFull;}if(tg.fx.ancient){const a=tg.fx.ancient;tg.atk*=1+a;tg.spa*=1+a;tg.def*=1+a;tg.res*=1+a;tg.as*=1+a;for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)damage(tg,o,tg.maxHp*.15,{ab:1,cat:'spec',noCrit:1,refl:1});}if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
   if(tg.team===0&&battle.flute){battle.flute=false;tg.hp=tg.maxHp*.35;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Woke up!',col:'#c6b3ff',life:1.2});return;}
   tg.dead=true;tg.hp=0;setAnim(tg,'Faint');tg.move=null;if(!SIM.on)burst(tg.x,tg.y-8,'#ffffff',10,.7);
   battle.kills[1-tg.team]++;
@@ -791,6 +799,8 @@ function applyMoveFx(u,t,mv){
 }
 function cast(u,tg){
   u.mana=0;u.casts++;const K=u.kit;formsOnCast(u);
+  if(u.casts===1&&u.fx.firstAmp){const a=u.fx.firstAmp;u.dmg+=a;schedule(1.2,()=>{u.dmg-=a;});}
+  if(u.casts===1&&u.fx.teraUp){u.dmg+=u.fx.teraUp;if(!SIM.on)texts.push({x:u.x,y:u.y-44,txt:'Terastal!',col:'#7fe7ff',life:1.1,label:1});}
   if(u.fx.mindLink)for(const o of alive(u.team))if(o!==u&&o.fx.mindLink){gainMana(o,u.fx.mindLink);if(!SIM.on)spark(o.x,o.y-16,'#ff9be6',4);}
   if(K.sig&&!u.zReady&&!u.dmaxOn){const anim=u.range>1||K.type!=='cast'?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);
     schedule(hTime(u,anim),()=>{if(u.dead)return;if(!SIM.on)texts.push({x:u.x,y:u.y-34,txt:u.mv.n,col:'#ffffff',life:1.1,label:1});K.sig.cast(u,tg,K.si);if(u.spray)u.spa*=1+u.spray;if(u.leppa)gainMana(u,u.leppa);});return;}
@@ -817,6 +827,8 @@ function endCombat(win){
   // growth, lucky eggs, golden items
   const grew=[];let xp=0,gold=0;
   if(win&&units.some(c=>c.team===0&&c.fx.hoard))run.hoard=(run.hoard||0)+1;
+  if(win&&units.some(c=>c.team===0&&c.fx.kanto)&&(run.badges||0)<8){run.badges=(run.badges||0)+1;if(!SIM.on)setTimeout(()=>toast(`Kanto Badge ${run.badges}/8 earned!`),1500);if(run.badges>=8)grantMissionGear('Kanto');}
+  if(win&&battle.treasure)gold+=1;
   for(const c of units){if(c.team!==0||c.summon)continue;const u=c.u;formsAfterBattle(u);if(c.fx.friend)u.fr=Math.min(20,(u.fr||0)+c.fx.friend);
     xp+=c.xpEgg;if(win)gold+=c.goldMut;if(c.fx.pickup&&Math.random()<c.fx.pickup)gold++;
     for(const it of u.items)if((it.mut||[]).includes('growing'))it.gs=(it.gs||0)+.02;
@@ -1139,7 +1151,7 @@ function itemBody(it,compact){
   return lines.join('');
 }
 function showItemTip(it,e){const tip=$('tip');const t=itemTier(it);
-  tip.innerHTML=`<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?(it.enh?'Enhanced item':'Completed item'):t==='gim'?(run&&run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick item'):t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
+  tip.innerHTML=`<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?(it.enh?'Enhanced item':'Completed item'):t==='gim'?(run&&run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick item'):t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
   <div class="lbl" style="margin-top:8px">${isEnh(it)?'Drag onto a completed item or a Pokémon holding one':isUse(it)?(USE[it.k].target?'Drag onto a Pokémon':'Click to use'):isComp(it)?'Drag onto a Pokémon or another component':isGim(it)?'Drag onto a Pokémon (own slot)':'Drag onto a Pokémon'}</div>`;placeTip(e);}
 function showInfoTip(html,e){$('tip').innerHTML=html;placeTip(e);}
 function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.width/1280;let x=(e.clientX-sr.left)/sc+18,y=(e.clientY-sr.top)/sc-40;
@@ -1149,6 +1161,7 @@ let toastT=0;function toast(m){if(SIM.on)return;const t=$('toast');t.textContent
 function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="banner win">${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</div>`;setTimeout(()=>{if(h.firstChild&&h.firstChild.textContent.startsWith(title))h.innerHTML='';},ms);}
 function showGameUI(on){['hud','traits','mods','shop','bag'].forEach(id=>$(id).hidden=!on);}
 function renderUI(){
+  if(run&&mode==='plan')grantGear();
   if(!run||SIM.on)return;saveRun();const f=run.floor;
   $('hpnum').textContent=run.hp;const fr=run.hp/run.maxHp,hb=$('hpbar');hb.firstElementChild.style.width=(fr*100)+'%';hb.className='hpbar'+(fr<.3?' low':fr<.6?' mid':'');
   $('goldnum').textContent=run.gold;$('teamnum').innerHTML=`${Object.keys(run.board).length}<small>/${teamCap()}</small>`;
@@ -1193,7 +1206,7 @@ function renderUI(){
   if(mode==='loot')$('fight').disabled=false;
   // bag
   $('bagct').textContent=`${run.bag.length}/${BAGMAX}`;
-  let sl='';for(let i=0;i<BAGMAX;i++){const it=run.bag[i];sl+=it?`<button class="slot t-${{epic:'epic',use:'use',gim:'gim',formi:'relic',enh:'enh',spc:'spc'}[itemTier(it)]||'common'}${it.enh?' enhd':''}" data-i="${i}" aria-label="${esc(itemName(it))}"><img src="${iconOf(itemDef(it).id)}" alt="">${it.mut&&it.mut.length?'<i class="mutdot"></i>':''}</button>`:`<div class="slot empty"></div>`;}
+  let sl='';for(let i=0;i<BAGMAX;i++){const it=run.bag[i];sl+=it?`<button class="slot t-${{epic:'epic',use:'use',gim:'gim',formi:'relic',enh:'enh',spc:'spc',gear:'gear'}[itemTier(it)]||'common'}${it.enh?' enhd':''}" data-i="${i}" aria-label="${esc(itemName(it))}"><img src="${iconOf(itemDef(it).id)}" alt="">${it.mut&&it.mut.length?'<i class="mutdot"></i>':''}</button>`:`<div class="slot empty"></div>`;}
   $('slots').innerHTML=sl;
 }
 $('cards').addEventListener('click',e=>{const c=e.target.closest('.card');if(c&&c.dataset.i)buy(+c.dataset.i);});
@@ -1208,7 +1221,7 @@ $('traits').addEventListener('pointermove',e=>{const ct=countTraits(Object.value
   const el=e.target.closest('.trait');if(!el){hideTip();return;}const k=el.dataset.trait,S=SETS[k],n=ct[k]||0;
   const mem=[...new Set(Object.values(run.board).filter(u=>setsOf(u.dex,u.root).includes(k)).map(u=>u.dex))];
   const SD=setDescHtml(k,n);
-  showInfoTip(`<div class="lbl">${SETCAT_LABEL[S.cat]} set</div><h3 style="font-size:20px;margin:2px 0 4px">${k}</h3><div class="bprow">${SD.bps}<span class="sc"> · you have ${n}</span></div><p style="margin:6px 0 0;line-height:1.4">${SD.t}</p>${k==='Dragon'?`<p class="sc" style="margin:6px 0 0">Hoard stacks: ${run.hoard||0} (+${Math.min(40,run.hoard||0)}% damage)</p>`:''}${mem.length?`<div class="por3" style="display:flex;gap:4px;margin-top:6px">${mem.map(d=>`<img src="${por(d)}" alt="" style="width:30px;height:30px;border:2px solid var(--ink);border-radius:4px">`).join('')}</div>`:''}`,e);});
+  showInfoTip(`<div class="lbl">${SETCAT_LABEL[S.cat]} set</div><h3 style="font-size:20px;margin:2px 0 4px">${k}</h3><div class="bprow">${SD.bps}<span class="sc"> · you have ${n}</span></div><p style="margin:6px 0 0;line-height:1.4">${SD.t}</p>${k==='Kanto'?`<p class="sc" style="margin:6px 0 0">Badges: ${run.badges||0}/8</p>`:''}${k==='Dragon'?`<p class="sc" style="margin:6px 0 0">Hoard stacks: ${run.hoard||0} (+${Math.min(40,run.hoard||0)}% damage)</p>`:''}${mem.length?`<div class="por3" style="display:flex;gap:4px;margin-top:6px">${mem.map(d=>`<img src="${por(d)}" alt="" style="width:30px;height:30px;border:2px solid var(--ink);border-radius:4px">`).join('')}</div>`:''}`,e);});
 $('traits').addEventListener('pointerleave',hideTip);
 $('reroll').onclick=reroll;
 $('buyxp').onclick=buyXP;
@@ -1352,7 +1365,7 @@ function showAugment(){
 function itemCard(it,i,cls=''){const t=isRelicId(it)?'relic':itemTier(it);
   const id=isRelicId(it)?it:itemDef(it).id,name=isRelicId(it)?RELICS[it].n:itemName(it);
   const body=isRelicId(it)?`<p>${RELICS[it].d}</p>`:itemBody(it,true);
-  const tl=t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick'):t==='formi'?'Form item':'Relic';
+  const tl=t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick'):t==='formi'?'Form item':'Relic';
   return`<button class="pick win item p-${t==='common'?'common':t} ${cls}" data-i="${i}"><div class="icon"><img src="${iconOf(id)}" alt=""></div><span class="tier ${t==='common'?'common':t}">${tl}</span><h2 style="font-size:20px">${esc(name)}</h2><div class="desc">${body}</div></button>`;}
 const isRelicId=x=>typeof x==='string'&&RELICS[x];
 function openChest(){
