@@ -31,11 +31,11 @@ After each floor you choose where to go next from two or three paths. One is usu
 | Pokémon Center | No battle: rest (25% HP), train (+6 XP) or take two consumables | |
 | Kecleon Shop | Buy Pokémon, components, completed items, enhancers, relics and consumables | |
 
-Each act guarantees a Kecleon Shop among the options on three floors, and there's a small chance of one on any other floor. When your HP is low, a Pokémon Center is more likely to appear. The floor track shows the paths you took, with "?" for floors still to choose.
+Each act guarantees a Kecleon Shop among the options on three floors, and there's a small chance of one on any other floor. Pokémon Centers are uncommon: at most two are offered per act, never on back-to-back floors, and they're a bit more likely when your HP is low. The floor track shows the paths you took, with "?" for floors still to choose.
 
 ### Events
 
-Mystery paths draw one of 14 events, each at most once per run. Each offers choices with different risks:
+Mystery paths draw one of 14 events, each at most once per run. Each choice shows its outcome after you pick it, and most events let you just leave:
 
 - **A Snorlax blocks the path:** sneak around it, leave it a berry, or wake it up and fight it as an Alpha.
 - **A Mysterious Egg:** hatch it into a ₽3–4 Pokémon, or return it.
@@ -56,24 +56,88 @@ Mystery paths draw one of 14 events, each at most once per run. Each offers choi
 
 The stock: two Pokémon, two components, one completed item, two enhancers, a relic and a consumable. Prices are ₽cost+2 for Pokémon, ₽4 for components, ₽9 for completed items, ₽7 for enhancers, ₽12 for relics and ₽3 for consumables, plus ₽2 for anything mutated.
 
-35% of Kecleon are mutated (Shadow Kecleon, Golden Kecleon and so on). A mutated Kecleon is tinted and gives about 70% of its stock that mutator, including the Pokémon.
+25% of Kecleon are mutated (Shadow Kecleon, Golden Kecleon and so on). A mutated Kecleon is tinted and gives about 70% of its stock that mutator, including the Pokémon.
 
 ### Enhancers
 
-Enhancers work like The Last Flame's recipes. Drop one onto a completed item, either in your bag or on a Pokémon, to add an effect. Each item takes one, and enhanced items show a "+" and a teal frame. There are 20 enhancers:
+Drop an enhancer onto a completed item, in your bag or on a Pokémon, to add an effect. Each item takes one, and enhanced items show a "+" and a teal frame. Enhancers sit between The Last Flame's rare and legendary recipes, in two tiers:
 
-- **Stat boosts:** Quick Powder, Metal Coat, Thick Club, Light Ball, Lucky Punch, Soul Dew, Big Root, Starf Berry.
-- **On-hit effects:** Black Sludge (poison), Electric Seed (paralysis), Spell Tag (bonus damage to weakened enemies).
-- **Passives:** Smoke Ball, Loaded Dice, Ability Shield.
-- **Triggered effects:** Red Card (shield at half HP), Adrenaline Orb (speed when an ally faints), Room Service (slows nearby enemies at the start of battle), Sacred Ash (revive), Rare Bone (heals and grows on knockouts), Enigma Berry (heal at half HP).
+- **Refined (about 60% of drops, ₽6 at Kecleon):** rare-recipe stat packages pushed past a completed item's budget, each with a small kicker.
+  - Quick Powder: Attack Speed that ramps with every attack.
+  - Metal Coat: Defense, Sp. Def and damage reduction.
+  - Thick Club: Attack, plus %-max-HP hits.
+  - Light Ball: Sp. Atk and starting PP.
+  - Lucky Punch: crit, and moves can crit.
+  - Big Root: lifesteal, with overhealing turned into a shield.
+  - Starf Berry: low-HP Attack Speed and lifesteal.
+  - Enigma Berry: a heal and resistances at half HP.
+- **Signature (about 40%, ₽9):** build-defining effects like legendary recipes, slightly toned down. Several grow over the whole run.
+  - Deep Sea Tooth: every third attack deals true damage, growing with every trigger, Kraken Slayer style.
+  - Rare Bone: permanent Attack and Sp. Atk per takedown, Hubris style.
+  - Soul Dew: Sp. Atk stacks every 4 seconds, Archangel's style.
+  - Electric Seed: chain lightning every third attack.
+  - Black Sludge: stacking poison plus reduced healing.
+  - Spell Tag: curse that amplifies damage; cursed enemies explode on death.
+  - Smoke Ball: dodges that restore PP.
+  - Loaded Dice: multi-hit moves and double strikes.
+  - Ability Shield: crowd-control immunity.
+  - Red Card: a shield and stun at half HP.
+  - Adrenaline Orb: Attack Speed and damage as allies fall, PP on takedowns.
+  - Room Service: an Attack Speed and armor debuff on enemies at battle start.
+  - Sacred Ash: revive with full PP and bonus damage.
 
-Enhancers come from Alpha Pokémon, rivals, Kecleon Shops and some events.
+Mini-boss enhancer picks always include at least one Signature enhancer.
 
 ### Mutated Pokémon
 
 Pokémon can carry a mutator too: from Kecleon Shops, the shadowy lab event, or enemies on later floors and Challenge paths. A mutated Pokémon glows in its mutator's color, keeps the mutator when it combines into a higher star, and gets the same bonus a mutated item would.
 
 **Shadow** is a new mutator for both items and Pokémon: +15% damage, but the holder takes 6% more damage.
+
+### Signature kits
+
+Some lines have a hand-designed signature kit instead of the generic move, built around the Pokémon's design. Their shop cards show a red "Signature" tag, and the tooltip lists the role:
+
+| Line | Role | Kit |
+|---|---|---|
+| Sobble → Inteleon | Sniper | Basic attacks hit the front; Snipe Shot aims at the farthest enemy, can't be dodged, ignores 30% Sp. Def |
+| Chespin → Chesnaught | Knight | Spiky armor damages attackers (scales with Defense); Spiky Shield triples it, then Body Press scales with Defense |
+| Fennekin → Delphox | Mage | Exploding fireballs that leave burning pillars and lower Sp. Atk |
+| Froakie → Greninja | Assassin | Dashes behind the weakest enemy and throws shuriken; knockouts refund PP |
+| Charcadet → Ceruledge | Cursed Knight | Bitter Blade lunges, cleaves and heals for 40% of damage (80% below half HP) |
+| Charcadet → Armarouge | Cannon Knight | Lobs an arcing cannonball into the biggest group; recoil lowers its own defenses |
+| Dreepy → Dragapult | Marksman | Fires Dreepy that arc in and spread across enemies; gains a dart every 4 casts for the whole run |
+| Gulpin → Swalot | Devourer | Swallows the weakest enemy for true damage; each kill permanently adds max HP (Cho'Gath style) |
+| Cubone → Marowak | Bone Collector | Bone damage stacks forever, +5 per knockout (Nasus style) |
+| Bagon → Salamence | Dragon in Training | Practice stacks forever, unlocking splash, burning ground and an execute (Smolder style) |
+| Pichu → Raichu | Storm Chaser | Chain lightning across up to 6 enemies |
+| Machop → Machamp | Brawler | Punch flurry ending in a stun; No Guard |
+| Gastly → Gengar | Hexer | Shadow Balls shred Sp. Def; Cursed Body drains PP from attackers |
+| Riolu → Lucario | Aura Fighter | Aura Sphere grows with missing HP; Justified stacks damage |
+| Gible → Garchomp | Land Shark | Leaps onto the back line, area stun |
+| Mareanie → Toxapex | Fortress | Baneful Bunker: immune for a moment and poisons attackers, then Regenerator |
+| Happiny → Blissey | Nurse | Big heal and cleanse, then Wish heals the team |
+| Grookey → Rillaboom | Drummer | Area hit with slow; Grassy Surge heals allies standing in it |
+| Scorbunny → Cinderace | Striker | Pyro Ball bounces between enemies; Libero ramps Attack Speed |
+| Charmander → Charizard | Flamethrower | Burning cone through the target |
+| Bulbasaur → Venusaur | Solar Cannon | Charged beam through a whole line, instant in sun |
+| Squirtle → Blastoise | Cannon Tank | Shell shield, then twin cannons with knockback |
+| Ralts → Gardevoir | Seer | Future Sight marks the strongest enemies and strikes them 2s later |
+
+Values that grow over the run show their progress in the tooltip.
+
+### Reading tooltips and damage
+
+Scaling and damage are color coded:
+
+- Orange: Attack and physical damage.
+- Purple: Sp. Atk and special damage.
+- White in battle (underlined in tooltips): true damage, which ignores Defense and Sp. Def.
+- Green: HP and healing.
+- Gold: Defense and Sp. Def.
+- Yellow: Attack Speed.
+
+While you drag a Pokémon, or hover one on the field, the hexes it can reach from that spot light up: blue on your side, red on the enemy side.
 
 ### Economy
 
@@ -164,6 +228,7 @@ js/sets.js          sets, ability passives, kit tuning
 js/game.js          game logic
 js/forms.js         form changes and generation gimmicks
 js/route.js         route choices, events, Kecleon shops, enhancers, unit mutators
+js/kits.js          signature kits and their combat helpers (arcing projectiles, dashes, ground zones)
 js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata

@@ -33,9 +33,12 @@ function genRoute(f){
   const opts=[Math.random()<.85||combatOnly?'battle':pick(['event','endurance'])];
   const hard=f===3?['challenge','challenge','endurance']:f<6?['challenge','challenge','endurance','timeattack']:['challenge','alpha','alpha','endurance','timeattack'];
   opts.push(pick(hard.filter(k=>!opts.includes(k))));
-  if(Math.random()<.45){const third=(combatOnly?['endurance','timeattack','challenge']:f>=6?['event','event','center','endurance','timeattack']:f===3?['event','event','endurance']:['event','event','timeattack']).filter(k=>!opts.includes(k));if(third.length)opts.push(pick(third));}
+  if(Math.random()<.45){const third=(combatOnly?['endurance','timeattack','challenge']:f>=6?['event','event','event','endurance','endurance','timeattack','timeattack','center']:f===3?['event','event','endurance']:['event','event','timeattack']).filter(k=>!opts.includes(k));if(third.length)opts.push(pick(third));}
   if(!combatOnly&&(run.shopFloors.includes(f)||(f>3&&Math.random()<.06))&&!opts.includes('shop')){if(opts.length<3)opts.push('shop');else opts[2]='shop';}
-  if(!combatOnly&&f>=6&&run.hp<run.maxHp*.4&&!opts.includes('center')&&Math.random()<.6){if(opts.length<3)opts.push('center');else if(opts[2]!=='shop')opts[2]='center';}
+  if(!combatOnly&&f>=6&&run.hp<run.maxHp*.35&&!opts.includes('center')&&Math.random()<.35){if(opts.length<3)opts.push('center');else if(opts[2]!=='shop')opts[2]='center';}
+  const cen=opts.indexOf('center');
+  if(cen>=0&&((run.centersOffered||0)>=2||run.lastCenterOffer===f-1)){opts.splice(cen,1);if(opts.length<2)opts.push(pick(['event','endurance','timeattack'].filter(k=>!opts.includes(k))));}
+  if(opts.includes('center')){run.centersOffered=(run.centersOffered||0)+1;run.lastCenterOffer=f;}
   return opts.map(k=>({k}));
 }
 function nodeName(f){
@@ -126,7 +129,7 @@ function lootQuality(win){
 // after the chest (and relic): enhancer reward, then the route choice
 function afterFloor(){
   chest=null;
-  if(run.pendingEnh){run.pendingEnh=false;run.enhChoices=shuffle(Object.keys(ENH)).slice(0,3);mode='reward';
+  if(run.pendingEnh){run.pendingEnh=false;run.enhChoices=enhChoices(3);mode='reward';
     if(SIM.on){run.bag.length<BAGMAX&&run.bag.push({k:'enh:'+run.enhChoices[0],mut:[]});run.enhChoices=null;}
     else{showEnhPick();return'enh';}}
   const nf=run.floor+1;
@@ -162,31 +165,41 @@ function showRoute(){
 }
 
 /* ================= Enhancers ================= */
+// Two tiers. Refined: rare-recipe style stat packages with a small kicker, pushed above a completed item's budget.
+// Signature: legendary-recipe style effects that define what the holder does, toned down a bit. Some grow over the whole run.
+const eA='<span class="s-atk">Attack</span>',eSA='<span class="s-spa">Sp. Atk</span>',eHP='<span class="s-hp">max HP</span>',eDF='<span class="s-def">Defense</span>',eSD='<span class="s-def">Sp. Def</span>',eAS='<span class="s-as">Attack Speed</span>';
+const ePH='<span class="s-atk">physical</span>',eSP='<span class="s-spa">special</span>',eTR='<span class="s-true">true</span>';
 const ENH={
-  'quick-powder':{n:'Quick Powder',d:'+18% Attack Speed.',e:{as:.18}},
-  'metal-coat':{n:'Metal Coat',d:'+20 Defense and Sp. Def.',e:{def:20,res:20}},
-  'thick-club':{n:'Thick Club',d:'+20% Attack.',e:{atkP:.2}},
-  'light-ball':{n:'Light Ball',d:'+20% Sp. Atk.',e:{spaP:.2}},
-  'lucky-punch':{n:'Lucky Punch',d:'+15% crit chance and +20% crit damage.',e:{crit:.15,critD:.2}},
-  'soul-dew':{n:'Soul Dew',d:'+18% move damage and +10 starting PP.',e:{ab:.18,mana:10}},
-  'big-root':{n:'Big Root',d:'+10% lifesteal and +25% healing done.',e:{ls:.1,healAmp:.25}},
-  'black-sludge':{n:'Black Sludge',d:'Attacks poison for 1.5% max HP per second.',e:{poisonHit:.015}},
-  'electric-seed':{n:'Electric Seed',d:'Attacks have a 12% chance to paralyze for 0.6s.',e:{seedStun:.12}},
-  'spell-tag':{n:'Spell Tag',d:'+22% damage to enemies below half HP.',e:{execute:.22}},
-  'smoke-ball':{n:'Smoke Ball',d:'Dodges the first 3 attacks each battle.',e:{dodgeN:3}},
-  'loaded-dice':{n:'Loaded Dice',d:'Multi-hit moves always hit the maximum number of times, plus one.',e:{skillLink:1,hitsB:1}},
-  'ability-shield':{n:'Ability Shield',d:'Immune to stuns and status conditions.',e:{stunImm:1,aImm:1}},
-  'red-card':{n:'Red Card',d:'Active: the first time the holder drops below half HP, it gains a shield of 30% max HP.',e:{halfShield:.3}},
-  'adrenaline-orb':{n:'Adrenaline Orb',d:'Active: each time an ally faints, +15% Attack Speed (up to 3 times).',e:{adren:.15}},
-  'room-service':{n:'Room Service',d:'Active: at the start of battle, enemies within 2 hexes lose 15% Attack Speed.',e:{slowAura:.15}},
-  'sacred-ash':{n:'Sacred Ash',d:'Active: revives once with 40% HP.',e:{revive:.4}},
-  'rare-bone':{n:'Rare Bone',d:'Active: each knockout heals 20% max HP and adds +6% damage.',e:{killHeal:.2}},
-  'starf-berry':{n:'Starf Berry',d:'+35% Attack Speed while below half HP.',e:{lowAS:.35}},
-  'enigma-berry':{n:'Enigma Berry',d:'Active: heals 25% max HP the first time the holder drops below half.',e:{sitrus:.25}},
+  // ---- Refined ----
+  'quick-powder':{tier:'refined',n:'Quick Powder',d:`+25% ${eAS}. Each basic attack adds +2% ${eAS} for the battle (up to 15 times).`,e:{as:.25,qpRamp:.02}},
+  'metal-coat':{tier:'refined',n:'Metal Coat',d:`+35 ${eDF} and ${eSD}, and takes 8% less damage.`,e:{def:35,res:35,dr:.08}},
+  'thick-club':{tier:'refined',n:'Thick Club',d:`+35% ${eA}. Basic attacks deal bonus ${ePH} damage equal to 3% of the target's ${eHP}.`,e:{atkP:.35,pctHit:.03}},
+  'light-ball':{tier:'refined',n:'Light Ball',d:`+35% ${eSA} and +15 starting PP.`,e:{spaP:.35,mana:15}},
+  'lucky-punch':{tier:'refined',n:'Lucky Punch',d:`+25% crit chance and +30% crit damage. Moves can crit.`,e:{crit:.25,critD:.3,abCrit:1}},
+  'big-root':{tier:'refined',n:'Big Root',d:`+18% lifesteal on all damage. Healing past full HP becomes a shield (up to 25% ${eHP}).`,e:{ls:.18,ohShield:.25}},
+  'starf-berry':{tier:'refined',n:'Starf Berry',d:`Below half HP: +50% ${eAS} and +20% lifesteal.`,e:{lowAS:.5,lowLs:.2}},
+  'enigma-berry':{tier:'refined',n:'Enigma Berry',d:`The first time it drops below half HP: heals 35% ${eHP} and gains +25 ${eDF} and ${eSD}.`,e:{sitrus:.35,enigma:25}},
+  // ---- Signature ----
+  'deep-sea-tooth':{tier:'signature',n:'Deep Sea Tooth',d:`+15% ${eAS}. Every third basic attack deals bonus ${eTR} damage equal to 30 + 30% ${eA}. <b>Grows:</b> +1% bonus damage for every time it has triggered this run.`,e:{as:.15,kraken:1},stack:'procs'},
+  'rare-bone':{tier:'signature',n:'Rare Bone',d:`+15 ${eA}. <b>Grows:</b> each takedown permanently adds +2 ${eA} and ${eSA} to this item.`,e:{atkF:15},stack:'takedowns'},
+  'soul-dew':{tier:'signature',n:'Soul Dew',d:`+20 starting PP. Every 4 seconds in battle: +8% ${eSA}, stacking.`,e:{mana:20,archangel:.08}},
+  'electric-seed':{tier:'signature',n:'Electric Seed',d:`+15% ${eAS}. Every third basic attack chains lightning to 3 enemies for 40 + 40% ${eSA} ${eSP} damage and paralyzes them for 0.3s.`,e:{as:.15,chainHit:1}},
+  'black-sludge':{tier:'signature',n:'Black Sludge',d:`Attacks and moves stack Toxic (up to 5): each stack deals 0.6% ${eHP} per second. Poisoned enemies receive 33% less healing.`,e:{toxic:.006}},
+  'spell-tag':{tier:'signature',n:'Spell Tag',d:`Moves curse the target for 5s. Cursed enemies take 15% more damage from everyone and burst when knocked out, dealing 20% of their ${eHP} as ${eSP} damage to adjacent enemies.`,e:{curse:1}},
+  'smoke-ball':{tier:'signature',n:'Smoke Ball',d:`Dodges the first 3 attacks each battle. Each dodge restores 10 PP and adds +10% ${eAS} for the battle.`,e:{dodgeN:3,dodgePP:10}},
+  'loaded-dice':{tier:'signature',n:'Loaded Dice',d:`Multi-hit moves always land the maximum number of hits plus one and deal +20% damage. Basic attacks have a 25% chance to strike twice.`,e:{skillLink:1,hitsB:1,multiAmp:.2,double:.25}},
+  'ability-shield':{tier:'signature',n:'Ability Shield',d:`Immune to stuns and status conditions. +25 ${eSD} and +10 ${eDF}.`,e:{stunImm:1,aImm:1,res:25,def:10}},
+  'red-card':{tier:'signature',n:'Red Card',d:`+150 HP. The first time it drops below half HP: gains a shield of 35% ${eHP} and stuns adjacent enemies for 1.2s.`,e:{hpF:150,halfShield:.35,redCard:1.2}},
+  'adrenaline-orb':{tier:'signature',n:'Adrenaline Orb',d:`Each time an ally faints: +15% ${eAS} and +10% damage (up to 3 times). Each takedown restores 25 PP.`,e:{adren:.15,killPP:25}},
+  'room-service':{tier:'signature',n:'Room Service',d:`At the start of battle, enemies within 2 hexes lose 20% ${eAS} and 20 ${eDF} and ${eSD} for 8 seconds.`,e:{slowAura:.2,shredAura:20}},
+  'sacred-ash':{tier:'signature',n:'Sacred Ash',d:`Revives once with 50% HP and full PP, then deals +25% damage for the rest of the battle.`,e:{revive:.5,ashFull:.25}},
 };
 const isEnh=it=>typeof it.k==='string'&&it.k.startsWith('enh:');
 const enhKey=it=>it.k.slice(4);
-function enhDef(it){const k=enhKey(it),E=ENH[k];return{id:k,n:E.n,d:E.d};}
+function enhDef(it){const k=enhKey(it),E=ENH[k];return{id:k,n:E.n,d:E.d,tier:E.tier};}
+// Signature enhancers are rarer: about 40% of rolls
+const rollEnh=()=>pick(Object.keys(ENH).filter(k=>ENH[k].tier===(Math.random()<.4?'signature':'refined')));
+function enhChoices(n){const out=[];for(let i=0;i<40&&out.length<n;i++){const k=rollEnh();if(!out.includes(k))out.push(k);}if(!out.some(k=>ENH[k].tier==='signature'))out[n-1]=pick(Object.keys(ENH).filter(k=>ENH[k].tier==='signature'));return out;}
 const canEnhance=it=>isCraft(it)&&!it.enh;
 function applyEnh(enh,target){if(!canEnhance(target))return false;target.enh=enhKey(enh);return true;}
 function enhOnUnit(bi,u){
@@ -217,6 +230,10 @@ const KFILTER={shiny:'hue-rotate(260deg) saturate(1.3)',blazing:'sepia(1) satura
 const unitMutName=u=>u&&u.mut&&MUTS[u.mut]?MUTS[u.mut].n:'';
 function drawUnitAura(s,t){
   const u=s.cu?s.cu.u:s.pu;if(!u||(s.cu&&s.cu.dead))return;const sc=s.sc||1;
+  const cu=s.cu;
+  if(cu&&cu.protT>combatT){ctx.strokeStyle=`rgba(214,140,255,${.7+.2*Math.sin(t*10)})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(s.x,s.y-10*sc,15*sc,18*sc,0,0,7);ctx.stroke();ctx.fillStyle='rgba(200,107,214,.18)';ctx.fill();}
+  if(cu&&cu.markT>combatT){const y=s.y-34*sc;ctx.strokeStyle='#ff7ad9';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(s.x,y,6,3,0,0,7);ctx.stroke();ctx.fillStyle='#ff7ad9';ctx.fillRect(Math.round(s.x)-1,Math.round(y)-1,2,2);}
+  if(cu&&cu.curseT>combatT&&Math.random()<.2)fx.push({x:s.x+rnd(-6,6),y:s.y-rnd(6,20),vx:0,vy:-16,life:.5,max:.5,col:'#9b6bff',sz:1,g:0});
   if(u.alpha||u.tgt){const pulse=.22+.1*Math.sin(t*5);ctx.fillStyle=u.alpha?`rgba(255,60,40,${pulse})`:`rgba(120,190,255,${pulse})`;ctx.beginPath();ctx.ellipse(s.x,s.y-10*sc,15*sc,19*sc,0,0,7);ctx.fill();}
   if(u.mut&&MUTCOL[u.mut]){const c=hex2rgb(MUTCOL[u.mut]),a=u.mut==='shadow'?.42:.28,pulse=a+.1*Math.sin(t*4+u.uid);
     ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${pulse})`;ctx.beginPath();ctx.ellipse(s.x,s.y-9*sc,12*sc,16*sc,0,0,7);ctx.fill();
@@ -232,9 +249,9 @@ function drawRouteHud(t){
 }
 
 /* ================= Kecleon shop ================= */
-const KPRICE={unit:c=>c+2,comp:4,craft:9,enh:7,relic:12,use:3,mut:2};
+const KPRICE={unit:c=>c+2,comp:4,craft:9,enh:6,enhSig:9,relic:12,use:3,mut:2};
 function genKShop(){
-  const mutated=Math.random()<.35,mut=mutated?pick(Object.keys(MUTS)):null;
+  const mutated=Math.random()<.25,mut=mutated?pick(Object.keys(MUTS)):null;
   const rm=base=>mutated?(Math.random()<.7?[mut]:[]):rollMut(base);
   const stock=[];
   const o=LVODDS[Math.min(MAXLV,run.level+1)];
@@ -242,7 +259,7 @@ function genKShop(){
     stock.push({t:'unit',root,mut:m,price:KPRICE.unit(c)+(m?KPRICE.mut:0)});}
   for(let i=0;i<2;i++){const it=mkComp(randComp(),rm(.2));stock.push({t:'item',it,price:KPRICE.comp+(it.mut.length?KPRICE.mut:0)});}
   {const it={k:randCraft(),mut:rm(.3)};stock.push({t:'item',it,price:KPRICE.craft+(it.mut.length?KPRICE.mut:0)});}
-  for(const k of shuffle(Object.keys(ENH)).slice(0,2))stock.push({t:'item',it:{k:'enh:'+k,mut:[]},price:KPRICE.enh});
+  for(const k of [rollEnh(),rollEnh()])stock.push({t:'item',it:{k:'enh:'+k,mut:[]},price:ENH[k].tier==='signature'?KPRICE.enhSig:KPRICE.enh});
   {const r=shuffle(Object.keys(RELICS).filter(x=>!run.relics.includes(x)))[0];if(r)stock.push({t:'relic',id:r,price:KPRICE.relic});}
   stock.push({t:'item',it:{k:pick(Object.keys(USE)),mut:[]},price:KPRICE.use});
   return{mut,stock};
@@ -289,14 +306,17 @@ const EVENTS={
   snorlax:{n:'A Snorlax blocks the path',img:()=>por(143),txt:'A huge Snorlax is fast asleep across the trail. It doesn\'t look like it will move any time soon.',
     opts:[{t:'Sneak around it',d:'50%: find an item. 50%: it rolls onto you (−8 HP).',fn:()=>Math.random()<.5?'You slip past and find something it was sleeping on. '+gainBag(mkComp(randComp(),rollMut(.25))):'It rolls over in its sleep, right onto you! '+loseHp(8)},
       {t:'Leave it a berry',d:'Pay ₽4. It might leave something behind.',cost:4,fn:()=>{run.gold-=4;return'It munches the berry and rolls away, revealing a completed item. '+gainBag({k:randCraft(),mut:rollMut(.3)});}},
-      {t:'Wake it up!',d:'Fight it as an Alpha. Enhancer if you win.',ok:()=>!!lineRootOf(143),fn:()=>{nodeToBattle({k:'alpha',force:143});return null;}}]},
+      {t:'Wake it up!',d:'Fight it as an Alpha. Enhancer if you win.',ok:()=>!!lineRootOf(143),fn:()=>{nodeToBattle({k:'alpha',force:143});return null;}},
+      {t:'Leave it be',d:'Turn back and take the long way around.',fn:()=>'You tiptoe back the way you came. The snoring fades behind you.'}]},
   egg:{n:'A Mysterious Egg',img:()=>iconOf('mystery-egg'),txt:'An Egg is resting alone in the tall grass. It\'s warm, and something inside is moving.',
     opts:[{t:'Take the Egg',d:'It hatches into a ₽3–4 Pokémon (needs bench space).',ok:benchRoom,fn:()=>{const root=pick([...MODE.byCost[2],...MODE.byCost[3]]);giveUnit(root);return`It hatched into ${D[root].n}! It joined your bench.`;}},
-      {t:'Return it to its owner',d:'+₽4 and +5 HP.',fn:()=>{run.gold+=4;return'A grateful Breeder thanks you with ₽4. '+healHp(5);}}]},
+      {t:'Return it to its owner',d:'+₽4 and +5 HP.',fn:()=>{run.gold+=4;return'You find a Breeder searching the grass nearby. They thank you with ₽4 and a snack. '+healHp(5);}},
+      {t:'Leave it alone',d:'Its parent is probably nearby.',fn:()=>'You leave the Egg where it is. Something rustles in the bushes as you walk away.'}]},
   berry:{n:'A Berry Tree',img:()=>iconOf('sitrus-berry'),txt:'A Berry tree heavy with fruit stands in a sunny patch of the clearing.',
-    opts:[{t:'Pick some Berries',d:'+15 HP.',fn:()=>healHp(15)},
+    opts:[{t:'Pick some Berries',d:'+15 HP.',fn:()=>'The Berries are sweet and ripe. '+healHp(15)},
       {t:'Shake it hard',d:'60%: two components. 40%: something falls on you.',fn:()=>Math.random()<.6?'Two things fall out of the branches! '+gainBag(mkComp(randComp(),[]))+' '+gainBag(mkComp(randComp(),[])):'A startled Pokémon drops on your head! '+loseHp(10)+' '+gainBag(mkComp(randComp(),[]))},
-      {t:'Take a cutting',d:'Gain a Potion.',fn:()=>gainBag({k:'potion',mut:[]})}]},
+      {t:'Take a cutting',d:'Gain a Potion.',fn:()=>'You carefully take a cutting and brew it into medicine. '+gainBag({k:'potion',mut:[]})},
+      {t:'Walk on',d:'Leave the tree be.',fn:()=>'You leave the tree for the wild Pokémon.'}]},
   trade:{n:'A traveling trader',img:()=>iconOf('luxury-ball'),txt:'A trainer with a backpack full of Poké Balls offers to trade. "Your weakest for something better? Deal?"',
     opts:[{t:'Trade',d:'Your cheapest 1★ Pokémon for a 1★ one costing ₽1 more.',ok:()=>allOwned().some(u=>u.star===1),fn:()=>{const mine=allOwned().filter(u=>u.star===1).sort((a,b)=>lineOf(a).cost-lineOf(b).cost)[0];const c=Math.min(5,lineOf(mine).cost+1);const root=pick(MODE.byCost[c-1]);
         const nm=nameOf(mine);for(const it of mine.items)run.bag.push(it);const loc=locate(mine);const nu=mkUnit(root);nu.mut=mine.mut;if(loc.kind==='board')run.board[loc.c+','+loc.r]=nu;else run.bench[loc.i]=nu;if(!SIM.on)ensure(root);combine();return`You traded ${nm} for ${D[root].n}!`;}},
@@ -307,29 +327,32 @@ const EVENTS={
       {t:'No thanks',d:'Leave.',fn:()=>'"Come back when you\'re serious."'}]},
   daycare:{n:'The Day Care',img:()=>iconOf('premier-ball'),txt:'A kindly couple runs a Day Care by the path. "We can raise one of your Pokémon in no time."',
     opts:[{t:'Raise a Pokémon',d:'₽7: your best 1★ Pokémon becomes 2★ and evolves.',cost:7,ok:()=>allOwned().some(u=>u.star===1),fn:()=>{run.gold-=7;const u=allOwned().filter(x=>x.star===1).sort((a,b)=>lineOf(b).cost-lineOf(a).cost)[0];const nm=nameOf(u);u.star=2;evolveStep(u);combine();return`${nm} grew to 2★!`;}},
-      {t:'Drop by for tea',d:'+8 HP.',fn:()=>healHp(8)}]},
+      {t:'Drop by for tea',d:'+8 HP.',fn:()=>'The old couple pours you a cup of tea. '+healHp(8)},
+      {t:'Keep walking',d:'Leave.',fn:()=>'You wave as you pass the Day Care fence.'}]},
   gamecorner:{n:'Game Corner',img:()=>iconOf('coin-case'),txt:'Someone has set up a slot machine in the middle of the forest. It\'s blinking invitingly.',
     opts:[{t:'Play slots',d:'₽3: 15% for ₽20, 35% for ₽6.',cost:3,fn:()=>{run.gold-=3;const x=Math.random();if(x<.15){run.gold+=20;return'Jackpot! You won ₽20!';}if(x<.5){run.gold+=6;return'Three Cherries. You won ₽6.';}return'No luck this time.';}},
       {t:'Bet big',d:'₽10: 30% chance for ₽30.',cost:10,fn:()=>{run.gold-=10;if(Math.random()<.3){run.gold+=30;return'Triple 7s! You won ₽30!';}return'The machine eats your coins.';}},
       {t:'Walk away',d:'Leave.',fn:()=>'You walk past without looking back.'}]},
   ruins:{n:'Unown Ruins',img:()=>por(201),txt:'Strange letters cover a crumbling stone wall. A cluster of Unown hums as you approach.',
-    opts:[{t:'Decipher the wall',d:'Gain an enhancer, but lose 5 HP.',fn:()=>gainBag({k:'enh:'+pick(Object.keys(ENH)),mut:[]})+' '+loseHp(5)},
+    opts:[{t:'Decipher the wall',d:'Gain a Signature enhancer, but lose 5 HP.',fn:()=>'The letters rearrange into a word you somehow understand. '+gainBag({k:'enh:'+pick(Object.keys(ENH).filter(k=>ENH[k].tier==='signature')),mut:[]})+' '+loseHp(5)},
       {t:'Take the stone tablet',d:'Gain a random relic, but lose 12 HP.',ok:()=>run.hp>14&&Object.keys(RELICS).some(r=>!run.relics.includes(r)),fn:()=>{const r=pick(Object.keys(RELICS).filter(x=>!run.relics.includes(x)));run.relics.push(r);return`You got the ${RELICS[r].n}! The Unown lash out. `+loseHp(12);}},
       {t:'Leave quietly',d:'Nothing happens.',fn:()=>'The humming fades behind you.'}]},
   shrine:{n:'A forest shrine',img:()=>iconOf('odd-keystone'),txt:'A small, mossy shrine sits between two roots. People have left offerings here.',
     opts:[{t:'Make an offering',d:'₽6: every item on your strongest Pokémon becomes Blessed.',cost:6,ok:()=>allOwned().some(u=>u.items.some(i=>!isGim(i)&&!isFormItem(i))),fn:()=>{run.gold-=6;const u=allOwned().filter(x=>x.items.length).sort((a,b)=>b.items.length-a.items.length)[0];for(const it of u.items)if(!(it.mut||[]).includes('blessed')&&(it.mut||[]).length<2)it.mut=[...(it.mut||[]),'blessed'];return`A soft light settles on ${nameOf(u)}'s items.`;}},
-      {t:'Pray',d:'+10 HP.',fn:()=>healHp(10)}]},
+      {t:'Pray',d:'+10 HP.',fn:()=>'A calm breeze passes through the clearing. '+healHp(10)},
+      {t:'Leave it',d:'Nothing happens.',fn:()=>'You bow your head and move on.'}]},
   rocket:{n:'Team Rocket ambush!',img:()=>por(52),txt:'"Prepare for trouble!" A pair of grunts and their Meowth block the trail and demand your money.',
     opts:[{t:'Battle them',d:'A Challenge battle. +₽5 if you win.',fn:()=>{nodeToBattle({k:'challenge',bonus:5,rocket:1});return null;}},
       {t:'Pay them off',d:'Lose ₽5.',fn:()=>{const g=Math.min(5,run.gold);run.gold-=g;return`They grab ₽${g} and blast off.`;}},
       {t:'Run for it',d:'Lose 6 HP.',fn:()=>'You escape, scraped up. '+loseHp(6)}]},
   fossil:{n:'A fossil lab',img:()=>iconOf('old-amber'),txt:'A scientist has set up a tent with a strange machine. "I found this fossil nearby. Shall I revive it?"',
     opts:[{t:'Revive it',d:'₽6: gain a Pokémon (a fossil line if this region has one).',cost:6,ok:benchRoom,fn:()=>{run.gold-=6;const fos=FOSSIL_IDS.map(lineRootOf).filter(r=>r&&MODE.lines[r]);const root=fos.length?pick(fos):pick(MODE.byCost[2]);giveUnit(root);return`The machine whirs... ${D[root].n} joined your bench!`;}},
-      {t:'Sell it to them',d:'+₽5.',fn:()=>{run.gold+=5;return'The scientist happily pays ₽5.';}}]},
+      {t:'Sell it to them',d:'+₽5.',fn:()=>{run.gold+=5;return'The scientist happily pays ₽5.';}},
+      {t:'Leave the lab',d:'Nothing happens.',fn:()=>'"Your loss!" The machine keeps humming as you leave.'}]},
   grotto:{n:'A hidden grotto',img:()=>iconOf('poke-ball'),txt:'Three Poké Balls lie in a quiet grotto behind the trees. You only have room for one.',
     opts:['Left','Middle','Right'].map(s=>({t:`Take the ${s.toLowerCase()} one`,d:'Could be anything.',fn:()=>{const x=Math.random();
-      if(x<.25)return'It\'s a completed item! '+gainBag({k:randCraft(),mut:rollMut(.3)});if(x<.45)return'It\'s an enhancer! '+gainBag({k:'enh:'+pick(Object.keys(ENH)),mut:[]});
-      if(x<.7)return gainBag(mkComp(randComp(),rollMut(.3)));if(x<.85)return gainBag({k:pick(Object.keys(USE)),mut:[]});run.gold+=8;return'It\'s full of coins: ₽8!';}}))},
+      if(x<.25)return'It\'s a completed item! '+gainBag({k:randCraft(),mut:rollMut(.3)});if(x<.45)return'It\'s an enhancer! '+gainBag({k:'enh:'+rollEnh(),mut:[]});
+      if(x<.7)return'It\'s a component. '+gainBag(mkComp(randComp(),rollMut(.3)));if(x<.85)return'It\'s a consumable. '+gainBag({k:pick(Object.keys(USE)),mut:[]});run.gold+=8;return'It\'s full of coins: ₽8!';}})).concat([{t:'Leave them',d:'Someone may be coming back for these.',fn:()=>'You leave the grotto as you found it.'}])},
   cipher:{n:'A shadowy lab',img:()=>iconOf('dusk-ball'),txt:'A Cipher admin steps out of a dark tent. "I can unlock the hidden power in your Pokémon. There is a small... cost."',
     opts:[{t:'Accept',d:'A random Pokémon on the field becomes Shadow: +15% damage, takes 6% more damage.',ok:()=>Object.values(run.board).some(u=>!u.mut),fn:()=>{const u=pick(Object.values(run.board).filter(x=>!x.mut));u.mut='shadow';return`${nameOf(u)} is wreathed in dark energy. It's now Shadow ${nameOf(u)}.`;}},
       {t:'Take a sample instead',d:'Gain a Shadow component.',fn:()=>gainBag(mkComp(randComp(),['shadow']))},
@@ -338,9 +361,10 @@ const EVENTS={
     opts:[{t:'Dig it up',d:'Gain an item for your generation gimmick.',fn:()=>{const g=gimLootItem();return g?gainBag(g):'It crumbles to dust.';}},
       {t:'Leave it',d:'Nothing happens.',fn:()=>'You leave it to glow in peace.'}]},
   center:{n:'Pokémon Center',img:()=>iconOf('max-potion'),txt:'"Welcome to the Pokémon Center! We restore your tired Pokémon to full health." Choose one service.',
-    opts:[{t:'Rest',d:'Restore 25% of your Trainer HP.',fn:()=>healHp(Math.round(run.maxHp*.25))},
+    opts:[{t:'Rest',d:'Restore 25% of your Trainer HP.',fn:()=>'Nurse Joy patches up your team. '+healHp(Math.round(run.maxHp*.25))},
       {t:'Train',d:'+6 XP.',ok:()=>run.level<MAXLV,fn:()=>{gainXP(6);return`You trained hard. You're now trainer level ${run.level}.`;}},
-      {t:'Pick up supplies',d:'Gain two random consumables.',fn:()=>gainBag({k:pick(Object.keys(USE)),mut:[]})+' '+gainBag({k:pick(Object.keys(USE)),mut:[]})}]},
+      {t:'Pick up supplies',d:'Gain two random consumables.',fn:()=>'The Poké Mart counter has a few spare things. '+gainBag({k:pick(Object.keys(USE)),mut:[]})+' '+gainBag({k:pick(Object.keys(USE)),mut:[]})},
+      {t:'Just pass through',d:'Nothing happens.',fn:()=>'You wave to Nurse Joy and head back out.'}]},
 };
 function pickEvent(){const ids=Object.keys(EVENTS).filter(k=>k!=='center'&&!run.seenEv.includes(k)&&(!EVENTS[k].need||EVENTS[k].need()));const id=ids.length?pick(ids):'grotto';run.seenEv.push(id);return id;}
 const optOk=o=>(!o.cost||run.gold>=o.cost)&&(!o.ok||o.ok());

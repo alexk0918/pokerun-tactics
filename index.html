@@ -390,6 +390,13 @@ body,button{-webkit-font-smoothing:none;font-smooth:never;}
 .kinfo{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
 .kinfo b{font-size:16px;font-weight:normal;line-height:1.15;}
 .kprice{font-size:24px;color:#b98a14;flex:none;}
+
+/* --- v7: signature kits, colored scaling --- */
+.s-atk{color:#d0661e;} .s-spa{color:#7a4fd8;} .s-hp{color:#2f8f3a;} .s-def{color:#a8781a;} .s-as{color:#b98a00;} .s-true{color:#24303d;text-decoration:underline;}
+b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
+.tier-on{color:#2f8f3a;} .tier-off{color:#9aa4ad;}
+.sigrole{color:#c0392b;} .card .sigtag~.grows,.card .grows:has(~.sigtag){bottom:28px;} .tier.enhs{background:linear-gradient(90deg,#8a6ce0,#2fb8a0);}
+.card .sigtag{position:absolute;right:6px;bottom:6px;font-family:var(--label);font-size:16px;color:#fff;background:#c0392b;border-radius:4px;padding:0 4px;}
 </style>
 
 </head>
@@ -431,9 +438,10 @@ body,button{-webkit-font-smoothing:none;font-smooth:never;}
 
 <script src="js/data.js?v=10"></script>
 <script src="js/sets.js?v=10"></script>
-<script src="js/game.js?v=11"></script>
+<script src="js/game.js?v=12"></script>
 <script src="js/forms.js?v=11"></script>
-<script src="js/route.js?v=1"></script>
+<script src="js/route.js?v=2"></script>
+<script src="js/kits.js?v=1"></script>
 <script src="js/gamepad.js?v=10"></script>
 </body>
 </html>
