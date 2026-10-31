@@ -48,11 +48,29 @@ Once you've invested in a set (3+ different lines and ₽8+ worth of units, from
 
 ### Kits: real moves and abilities
 
-- Every Pokémon uses a real move from its level-up learnset, chosen per evolution stage (Squirtle uses Hydro Pump, Blastoise uses Wave Crash, Gyarados uses Aqua Tail). Moves keep their real behavior: multi-hit, spread damage, drain, recoil, status (burn, poison, paralysis, sleep, freeze, confusion), flinch, stat changes, high crit and priority.
+- Every Pokémon uses a real move from its level-up learnset. Moves keep their real behavior: multi-hit, spread damage, drain, recoil, status (burn, poison, paralysis, sleep, freeze, confusion), flinch, stat changes, high crit and priority.
+- Lines that keep a type through evolution power up their move as they evolve, with moves that play the same way (Squirtle Water Gun → Wartortle Water Pulse → Blastoise Hydro Pump; Charmander Ember → Flame Burst → Flamethrower; Oddish Mega Drain → Giga Drain). About 450 Pokémon have a move line, shown in their tooltip.
+- A line keeps one class from start to finish, decided by its final form (Squirtle and Wartortle are Vanguards like Blastoise).
 - Physical moves scale with Attack and are reduced by Defense; special moves scale with Sp. Atk and are reduced by Sp. Def.
 - Each Pokémon also gets its real ability as a passive (around 180 implemented), such as Intimidate, Static, Levitate, Multiscale, Speed Boost, Drought or Regenerator.
 - Some Pokémon have no active move: Juggernauts (Snorlax, Wailord) are pure HP tanks, and Strikers (fast physical attackers) fire their move as a free follow-up every third attack.
 - Some lines grow permanently over a run, such as Magikarp, Abra, Mankey, Munchlax/Snorlax, Shuckle, Feebas, Pawniard, Honedge, Wishiwashi, Skwovet, Gimmighoul, Pichu/Pikachu and Eevee. Their shop card shows a "Grows" tag.
+
+## Controller
+
+Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a browser that supports the Gamepad API:
+
+| Input | Action |
+|---|---|
+| Left stick | Move the cursor (right stick for fine adjustments) |
+| D-pad | Snap to the next button, card, item or Pokémon |
+| A | Select. Hold A to drag a Pokémon or item, release to drop |
+| B | Back / cancel a drag |
+| X | Reroll |
+| Y | Level up |
+| RB | Release the Pokémon under the cursor |
+| Start | Start / battle / open chest |
+| Select | Toggle battle speed |
 
 ## Project layout
 
@@ -61,6 +79,7 @@ index.html          markup and styles
 js/data.js          balance tables: items, relics, augments, levels
 js/sets.js          sets, ability passives, kit tuning
 js/game.js          game logic
+js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata
 data/kits.json      per-species move, heal/guard move and abilities (from PokéAPI)
