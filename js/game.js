@@ -1081,25 +1081,40 @@ cv.addEventListener('pointerdown',e=>{const p=toInternal(e);
   if(e.button===1||e.button===2){camDrag={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
   if(mode==='carousel'){carouselClick(p);return;}
   if(mode==='loot'&&chest&&!chest.open&&Math.abs(p.x-chest.x)<22&&Math.abs(p.y-chest.y)<20){openChest();return;}
+  if(drag&&drag.sticky){drag.x=p.x;drag.y=p.y;drag.over=dropTarget(p.x,p.y);finishDrag();swallowClick();return;}
   if((mode!=='plan'&&mode!=='loot')||evoOpen)return;const hit=ownedAt(p.x,p.y);if(!hit)return;
-  drag={u:hit.u,from:hit.from,x:p.x,y:p.y,over:null};hideTip();try{cv.setPointerCapture(e.pointerId);}catch(_){} });
+  drag={u:hit.u,from:hit.from,x:p.x,y:p.y,sx:p.x,sy:p.y,moved:false,over:dropTarget(p.x,p.y)};hideTip();try{cv.setPointerCapture(e.pointerId);}catch(_){} });
 cv.addEventListener('pointermove',e=>{const p=toInternal(e);
   if(camDrag){camPan(-(e.clientX-camDrag.x)/cv.getBoundingClientRect().width*W,-(e.clientY-camDrag.y)/cv.getBoundingClientRect().height*H);camDrag.x=e.clientX;camDrag.y=e.clientY;return;}
-  if(drag){drag.x=p.x;drag.y=p.y;{const el=document.elementFromPoint(e.clientX,e.clientY);dropSell=!!(el&&el.closest&&el.closest('#shop'));}drag.over=dropTarget(p.x,p.y);const sell=drag.over&&drag.over.kind==='sell';$('shop').classList.toggle('sell',sell);$('sellzone').textContent=`Release ${nameOf(drag.u)} for ₽${sellValue(drag.u)}`;return;}
+  if(drag){drag.x=p.x;drag.y=p.y;if(!drag.moved&&Math.hypot(p.x-drag.sx,p.y-drag.sy)>5)drag.moved=true;{const el=document.elementFromPoint(e.clientX,e.clientY);dropSell=!!(el&&el.closest&&el.closest('#shop'));}drag.over=dropTarget(p.x,p.y);const sell=drag.over&&drag.over.kind==='sell';$('shop').classList.toggle('sell',sell);$('sellzone').textContent=`Release ${nameOf(drag.u)} for ₽${sellValue(drag.u)}`;return;}
   if(itemDrag)return;
   if(mode==='carousel'){carouselHover(p,e);return;}
   if(mode==='loot'&&chest&&!chest.open&&Math.abs(p.x-chest.x)<22&&Math.abs(p.y-chest.y)<20){cv.style.cursor='pointer';hideTip();return;}
   const hit=unitAt(p.x,p.y);hoverRange=hit&&hit.from&&hit.from.kind==='board'?{u:hit.u,c:hit.from.c,r:hit.from.r}:null;if(hit){showTip(hit.u,e,hit);cv.style.cursor=hit.enemy||hit.cu?'help':'grab';}else{hideTip();cv.style.cursor='default';}});
 cv.addEventListener('pointerleave',()=>{hoverRange=null;if(!drag)hideTip();});
 cv.addEventListener('pointerup',()=>{camDrag=null;
-  if(!drag)return;const t=drag.over,u=drag.u,from=drag.from;drag=null;$('shop').classList.remove('sell');
+  if(!drag)return;
+  // a tap (no movement) picks the Pokémon up; the next tap or A press places it
+  if(!drag.moved&&!drag.sticky){drag.sticky=true;hintOnce('tapPlace',`Placing ${nameOf(drag.u)}: tap a hex or bench slot, or the shop to release. B or Esc cancels.`);return;}
+  finishDrag();});
+let swallowT=0;const swallowClick=()=>{swallowT=performance.now()+400;};
+addEventListener('click',e=>{if(performance.now()<swallowT){swallowT=0;e.stopPropagation();e.preventDefault();}},true);
+const HINTED=new Set();function hintOnce(k,m){if(HINTED.has(k)||SIM.on)return;HINTED.add(k);toast(m);}
+function cancelCarry(){if(drag){drag=null;$('shop').classList.remove('sell');renderUI();return true;}if(itemDrag){itemDrag=null;$('ghost').hidden=true;hideTip();return true;}return false;}
+// while carrying, a press outside the board drops on the shop (release) or cancels
+addEventListener('pointerdown',e=>{
+  if(drag&&drag.sticky&&e.target!==cv){e.stopPropagation();e.preventDefault();swallowClick();if(e.target.closest&&e.target.closest('#shop')){const u=drag.u;drag=null;$('shop').classList.remove('sell');sell(u);}else cancelCarry();return;}
+  if(itemDrag&&itemDrag.sticky){e.stopPropagation();e.preventDefault();swallowClick();const s=e.target.closest&&e.target.closest('.slot');if(s&&+s.dataset.i===itemDrag.i){cancelCarry();return;}itemDrop(e);}
+},true);
+function finishDrag(){
+  const t=drag.over,u=drag.u,from=drag.from;drag=null;$('shop').classList.remove('sell');
   if(!t||(mode!=='plan'&&mode!=='loot')){renderUI();return;}
   if(t.kind==='sell'){sell(u);return;}
   const getAt=t=>t.kind==='bench'?run.bench[t.i]:run.board[t.c+','+t.r];
   const setAt=(t,v)=>{if(t.kind==='bench')run.bench[t.i]=v;else{const k=t.c+','+t.r;if(v)run.board[k]=v;else delete run.board[k];}};
   const other=getAt(t);if(other===u){renderUI();return;}
   if(from.kind==='bench'&&t.kind==='board'&&!other&&Object.keys(run.board).length>=teamCap()){toast(`Your team is full (${teamCap()}). Level up or swap a Pokémon.`);renderUI();return;}
-  setAt(from,other||null);setAt(t,u);renderUI();});
+  setAt(from,other||null);setAt(t,u);renderUI();}
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(!camOn())return;e.preventDefault();const q=toScreenInt(e);camZoom(Math.exp(-Math.sign(e.deltaY)*Math.min(120,Math.abs(e.deltaY))*.0018*(OPTS.zoomSpd||1)),q.x,q.y);},{passive:false});
 
@@ -1114,7 +1129,13 @@ addEventListener('pointermove',e=>{
     const el=document.elementFromPoint(e.clientX,e.clientY);if(el===cv){const q=toInternal(e);const o=ownedAt(q.x,q.y);if(o)showTip(o.u,e,{});else hideTip();}}
 });
 addEventListener('pointerup',e=>{
-  if(!itemDrag)return;const d=itemDrag;itemDrag=null;$('ghost').hidden=true;hideTip();
+  if(!itemDrag||itemDrag.sticky)return;
+  // a tap on an item picks it up (instant-use items are used instead); the next tap places it
+  if(!itemDrag.moved){const it=run&&run.bag[itemDrag.i];if(it&&!(isUse(it)&&!USE[it.k].target)&&(mode==='plan'||mode==='loot')){itemDrag.sticky=itemDrag.moved=true;const g=$('ghost'),p=stagePt(e);g.src=iconOf(itemDef(it).id);g.style.left=p.x+'px';g.style.top=p.y+'px';g.hidden=false;
+    hintOnce('tapItem',`Holding ${itemName(it)}: tap a Pokémon or another item to use or combine it. B or Esc cancels.`);return;}}
+  itemDrop(e);});
+function itemDrop(e){
+  const d=itemDrag;itemDrag=null;$('ghost').hidden=true;hideTip();
   if(!run||(mode!=='plan'&&mode!=='loot'))return;
   const it=run.bag[d.i];if(!it)return;
   if(!d.moved){if(isUse(it)&&!USE[it.k].target)useItem(d.i,null);return;}
@@ -1122,7 +1143,7 @@ addEventListener('pointerup',e=>{
   const slot=el&&el.closest&&el.closest('.slot');
   if(slot&&slot.dataset.i!=null&&+slot.dataset.i!==d.i){if(!craftInBag(d.i,+slot.dataset.i))toast('Combine two components, or drop an enhancer on a completed item.');return;}
   if(el===cv){const q=toInternal(e);const o=ownedAt(q.x,q.y);if(o){if(isUse(it)&&!USE[it.k].target){toast(`Click ${USE[it.k].n} to use it.`);return;}useItem(d.i,o.u);}}
-});
+}
 
 /* ================= UI ================= */
 const chip=(txt,col)=>`<span class="chip" style="background:${col}">${txt}</span>`;

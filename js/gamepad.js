@@ -1,6 +1,7 @@
 "use strict";
 /* PokéRun Tactics — controller support (standard gamepad mapping: Xbox-style layouts such as the AYN Thor).
-   Left stick moves a cursor, D-pad snaps between targets, A clicks or drags (hold A to drag).
+   Left stick moves a cursor, D-pad snaps between targets. A selects: press A on a Pokémon or item to pick it up and A again to place it
+   (holding A and dragging also works).
    B back / cancel · X reroll · Y level up · Start battle / open chest · Select menu · LB hide or show the shop · RB release Pokémon under cursor
    Right stick zooms (up/down) and pans (left/right) the board · R3 resets the zoom · L3 battle speed. Cursor speed and dead zone live in Settings › Gamepad. */
 const PAD={on:false,x:640,y:360,prev:[],aDown:false,downEl:null,lastMove:0,repeat:{},el:null,hint:null};
@@ -57,8 +58,7 @@ function padRepeat(gp,i,now){ // edge + auto-repeat for D-pad
 }
 function padClickAt(el){const b=el&&el.closest&&el.closest('button, .pick, .mode, .card');if(b&&!b.disabled)b.click();}
 function padBack(){
-  if(typeof drag!=='undefined'&&drag){drag=null;$('shop').classList.remove('sell');renderUI();return;}
-  if(typeof itemDrag!=='undefined'&&itemDrag){itemDrag=null;$('ghost').hidden=true;return;}
+  if(cancelCarry())return;
   const back=document.querySelector('#overlay #back, #overlay #skip, #overlay #setclose, #overlay #dexclose');if(back){back.click();return;}
   if(paused){closePause();return;}
   hideTip();

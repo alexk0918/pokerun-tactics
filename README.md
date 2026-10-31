@@ -281,6 +281,7 @@ Forms that don't have a PMD sprite yet use the base Pokémon's sprite tinted tow
 
 Built to stay readable on small handheld screens such as the AYN Thor:
 
+- Pokémon and items can be moved with two taps or clicks: one to pick up, one to place. Tapping the shop while carrying a Pokémon releases it, and Esc or B puts it back. Dragging still works.
 - A slim top bar holds trainer HP, the route tracker, level, Pokédollars, battle speed and the Menu button.
 - The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (strategy, augment, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
 - The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
@@ -307,8 +308,8 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 | Left stick | Move the cursor (speed and dead zone in Settings › Gamepad) |
 | Right stick | Zoom (up/down) and pan (left/right) the board, or a fine cursor nudge if set in Settings |
 | D-pad | Snap to the next button, card, item, carousel Pokémon or board Pokémon |
-| A | Select. Hold A to drag a Pokémon or item, release to drop |
-| B | Back / cancel a drag / close the menu |
+| A | Select. Press A on a Pokémon or item to pick it up, move, then press A again to place it (holding A and dragging also works) |
+| B | Back / put down what you are carrying / close the menu |
 | X | Reroll |
 | Y | Level up |
 | LB | Hide or show the shop |

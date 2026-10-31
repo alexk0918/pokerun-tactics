@@ -39,7 +39,7 @@ $('p-set').onclick=()=>{$('pause').hidden=true;showSettings('game');};
 $('p-quit').onclick=()=>{const b=$('p-quit');if(!b.dataset.sure){b.dataset.sure=1;b.textContent='Press again to quit';setTimeout(()=>{b.dataset.sure='';b.textContent='Quit to title';},2500);return;}
   b.dataset.sure='';b.textContent='Quit to title';closePause();if(mode==='combat'||mode==='result'){units=[];proj=[];}saveRun();setTimeout(showTitle,160);};
 addEventListener('keydown',e=>{
-  if(e.key==='Escape'){if(!run)return;if(ov.innerHTML.trim()&&!paused)return;if($('setclose')){$('setclose').click();return;}if($('dexclose')&&paused){closeKitDex();return;}
+  if(e.key==='Escape'){if(!run)return;if(cancelCarry()){e.preventDefault();return;}if(ov.innerHTML.trim()&&!paused)return;if($('setclose')){$('setclose').click();return;}if($('dexclose')&&paused){closeKitDex();return;}
     e.preventDefault();if(paused)closePause();else openPause();return;}
   if(paused||!run||evoOpen||ov.innerHTML.trim())return;
   if(e.key==='Tab'){e.preventDefault();toggleShop();}
@@ -65,8 +65,8 @@ const SET_TABS=[
     {k:'padSens',n:'Cursor speed',v:[.5,.75,1,1.25,1.5,2],l:['50%','75%','100%','125%','150%','200%']},
     {k:'padDZ',n:'Stick dead zone',v:[.1,.18,.26],l:['Small','Normal','Large']},
     {k:'padRS',n:'Right stick',v:['zoom','fine'],l:['Zoom and pan','Fine cursor']}],
-   info:[['Left stick','Move the cursor'],['D-pad','Jump between buttons and Pokémon'],['A','Select · hold to drag'],['B','Back · cancel a drag'],['X','Reroll the shop'],['Y','Level up'],['LB','Hide or show the shop'],['RB','Release the Pokémon under the cursor'],['Right stick','Zoom (up/down) and pan (left/right)'],['R3','Reset the zoom'],['L3','Battle speed'],['Start','Battle · open the chest · confirm'],['Select','Menu']]},
-  {id:'controls',n:'Controls',rows:[],info:[['Click','Select, buy, open the chest'],['Drag','Move Pokémon and items'],['Right-drag','Pan the board'],['Mouse wheel','Zoom the board'],['+ / − / 0','Zoom in, out, reset'],['Space','Battle · open the chest'],['D','Reroll'],['F','Level up'],['Tab','Hide or show the shop'],['B','Hide or show the bag'],['Esc','Menu']]},
+   info:[['Left stick','Move the cursor'],['D-pad','Jump between buttons and Pokémon'],['A','Select · press on a Pokémon or item to pick it up, again to place it'],['B','Back · put down what you are carrying'],['X','Reroll the shop'],['Y','Level up'],['LB','Hide or show the shop'],['RB','Release the Pokémon under the cursor'],['Right stick','Zoom (up/down) and pan (left/right)'],['R3','Reset the zoom'],['L3','Battle speed'],['Start','Battle · open the chest · confirm'],['Select','Menu']]},
+  {id:'controls',n:'Controls',rows:[],info:[['Click','Select, buy, open the chest'],['Click, then click','Pick up a Pokémon or item, then place it (dragging also works)'],['Right-drag','Pan the board'],['Mouse wheel','Zoom the board'],['+ / − / 0','Zoom in, out, reset'],['Space','Battle · open the chest'],['D','Reroll'],['F','Level up'],['Tab','Hide or show the shop'],['B','Hide or show the bag'],['Esc','Menu']]},
   {id:'data',n:'Data',rows:[],acts:[['o-del','Delete saved run'],['o-dex','Forget Kit Dex discoveries'],['o-reset','Reset all settings']]},
 ];
 let setTab='general',setFrom='title';
