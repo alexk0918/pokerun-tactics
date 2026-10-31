@@ -397,6 +397,29 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .tier-on{color:#2f8f3a;} .tier-off{color:#9aa4ad;}
 .sigrole{color:#c0392b;} .t-gear{border-color:#e05a9a;background:#ffe8f2;} .tier.gear{background:linear-gradient(90deg,#ff8ad2,#8a6ce0);} .pick.item.p-gear .icon{background:#ffe8f2;border-color:#e05a9a;} .tv-on{color:var(--ink);background:#ffe9a8;border-radius:3px;padding:0 2px;} .tv-off{color:#a3acb4;} .tv-lock,.tv-lock b,.tv-lock span{color:#a3acb4!important;background:none!important;} .bprow{font-size:24px;} .bp-on{color:#2f8f3a;} .bp-off{color:#b5bdc4;} #tip.wide{width:620px;column-count:2;column-gap:18px;} #tip.wide>*{break-inside:avoid;} #tip.wide .items{margin-top:0;} .t-spc{border-color:#d68a1d;background:#fff1d6;} .tier.spc{background:linear-gradient(90deg,#d68a1d,#c0392b);} .pick.item.p-spc .icon{background:#fff1d6;border-color:#d68a1d;} #tip .items .calc{font-size:16px;line-height:1.3;color:#3a4652;} #tip .items div{align-items:flex-start;} .card .sigtag~.grows,.card .grows:has(~.sigtag){bottom:28px;} .tier.enhs{background:linear-gradient(90deg,#8a6ce0,#2fb8a0);}
 .card .sigtag{position:absolute;right:6px;bottom:6px;font-family:var(--label);font-size:16px;color:#fff;background:#c0392b;border-radius:4px;padding:0 4px;}
+
+/* --- v8: Kit Dex --- */
+.hudbtns{gap:6px!important;}
+.dexscreen{width:1200px;}
+.dexwin{width:100%;height:660px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;font-size:16px;}
+.dexhead{display:flex;align-items:center;gap:14px;}
+.dexhead h2{margin:0;font-size:32px;font-weight:normal;line-height:1;}
+.dexfind{margin-left:auto;font-family:var(--display);font-size:16px;padding:6px 10px;border:2px solid #c5d1d9;border-radius:6px;width:240px;color:var(--ink);background:#fff;}
+.dextabs{display:flex;gap:6px;flex-wrap:wrap;}
+.dextab{all:unset;cursor:pointer;font-family:var(--display);font-size:16px;padding:3px 10px;border:2px solid #c5d1d9;border-radius:6px;color:var(--ink);}
+.dextab small{font-size:16px;color:var(--muted);}
+.dextab[aria-pressed="true"]{border-color:var(--ink);background:#e9eef7;}
+.dextab:focus-visible{outline:3px solid var(--gold);}
+.dexlist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:6px;}
+.dexent{display:grid;grid-template-columns:180px 1fr;gap:12px;border:2px solid #dbe3e8;border-radius:8px;padding:8px 10px;background:#fff;}
+.dexent.unknown{grid-template-columns:180px 1fr;align-items:center;background:#f1f4f6;}
+.dexent.unknown img{filter:grayscale(1) blur(3px) contrast(.6);opacity:.5;}
+.dexpor{display:flex;gap:4px;align-items:flex-start;}
+.dexpor img{width:40px;height:40px;image-rendering:pixelated;border:2px solid #c5d1d9;border-radius:6px;background:#e8efe2;}
+.dexname{font-size:16px;}
+.dexmv{margin:4px 0 0;}
+.dexdesc{line-height:1.35;}
+.dexent details{margin-top:6px;} .dexent summary{cursor:pointer;color:var(--frame);}
 </style>
 
 </head>
@@ -415,7 +438,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
     </div>
     <div class="win" id="teambox"><div><div class="lbl">Level <b id="lvl">2</b></div><div class="num" id="teamnum">0<small>/2</small></div><div class="xpbar" id="xpbar" title="XP"><i></i></div></div></div>
     <div class="win" id="goldbox"><div class="coin">₽</div><div><div class="lbl">Pokédollars</div><div class="num" id="goldnum">0</div></div></div>
-    <div class="win"><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button></div>
+    <div class="win hudbtns"><button class="btn-speed" id="dexbtn" title="Kit Dex">Dex</button><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button></div>
   </div>
   <div id="traits" hidden></div>
   <div id="mods" hidden></div>
@@ -438,11 +461,13 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 
 <script src="js/data.js?v=10"></script>
 <script src="js/sets.js?v=14"></script>
-<script src="js/game.js?v=14"></script>
+<script src="js/game.js?v=15"></script>
 <script src="js/forms.js?v=11"></script>
 <script src="js/route.js?v=14"></script>
-<script src="js/kits.js?v=14"></script>
-<script src="js/kits_gen1.js?v=1"></script>
+<script src="js/kits.js?v=15"></script>
+<script src="js/kits_gen1.js?v=2"></script>
+<script src="js/kits_gen2.js?v=1"></script>
+<script src="js/kitdex.js?v=1"></script>
 <script src="js/gamepad.js?v=10"></script>
 </body>
 </html>

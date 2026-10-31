@@ -591,7 +591,7 @@ function stepCombat(dt){
     if(u.dead){u.deadT+=dt;continue;}
     if(!SIM.on&&!u.loop&&u.animT>=animLen(u.dex,u.anim)&&!u.move)setAnim(u,'Idle',true);
     if(u.regen>0)heal(u,u.maxHp*u.regen*dt,true);
-    for(const k of['burn','poison'])if(u[k]){u[k].t-=dt;if(!u.fx.mGuard)hurt(u,u.maxHp*u[k].p*dt,u[k].src);if(u[k]&&u[k].t<=0)u[k]=null;}
+    for(const k of['burn','poison'])if(u[k]){u[k].t-=dt;if(k==='poison'&&u.poisonHeal)heal(u,u.maxHp*u[k].p*dt,true);else if(!u.fx.mGuard)hurt(u,u.maxHp*u[k].p*dt,u[k].src);if(u[k]&&u[k].t<=0)u[k]=null;}
     if(sand&&u.team!==battle.wSide&&!u.fx.mGuard&&!u.fx.noWeatherChip&&!D[u.dex].t.some(t=>t==='Rock'||t==='Ground'||t==='Steel'))hurt(u,u.maxHp*sandP*dt,null);
     if(u.dead)continue;
     if(u.slowT>0)u.slowT-=dt;
@@ -912,7 +912,7 @@ function update(dt){
     if(d<=sp||p.tg.dead){p.done=1;if(!p.tg.dead)p.onHit();}else{p.x+=dx/d*sp;p.y+=dy/d*sp;}}proj=proj.filter(p=>!p.done);
   for(const l of leaves){l.ph+=dt*2;l.x+=(l.vx+Math.sin(l.ph)*10)*dt;l.y+=l.vy*dt;if(l.y>H+10||l.x>W+10){l.y=rnd(-40,-5);l.x=rnd(-40,W);}}
   if(chest)chest.t+=dt;
-  if(mode==='title'||mode==='modes'||mode==='strategy')for(const w of wander){w.t+=dt;
+  if(mode==='title'||mode==='modes'||mode==='strategy'||mode==='dex')for(const w of wander){w.t+=dt;
     if(w.move){w.move.t+=dt/w.move.dur;const k=Math.min(1,w.move.t);w.x=w.move.fx+(w.move.tx-w.move.fx)*k;w.y=w.move.fy+(w.move.ty-w.move.fy)*k;if(k>=1){w.move=null;w.anim='Idle';w.wait=rnd(.6,2.4);}}
     else{w.wait-=dt;if(w.wait<=0){const tx=clamp(w.x+rnd(-70,70),150,490),ty=clamp(w.y+rnd(-40,40),70,250);w.move={fx:w.x,fy:w.y,tx,ty,t:0,dur:Math.hypot(tx-w.x,ty-w.y)/28+.2};w.dir=dirFrom(tx-w.x,ty-w.y);w.anim='Walk';w.t=0;}}}
 }
@@ -924,7 +924,7 @@ function draw(t){
   for(let i=0;i<3;i++){const x=150+i*150+Math.sin(t*.3+i)*8;ctx.fillStyle=`rgba(255,240,190,${.035+.015*Math.sin(t*.7+i*2)})`;ctx.beginPath();ctx.moveTo(x,-10);ctx.lineTo(x+40,-10);ctx.lineTo(x+150,H);ctx.lineTo(x+90,H);ctx.closePath();ctx.fill();}
   ctx.restore();
   const list=[];
-  if(mode==='title'||mode==='modes'||mode==='strategy')for(const w of wander)list.push({dex:w.dex,anim:w.anim,t:w.t,dir:w.dir,x:w.x,y:w.y,shadow:1});
+  if(mode==='title'||mode==='modes'||mode==='strategy'||mode==='dex')for(const w of wander)list.push({dex:w.dex,anim:w.anim,t:w.t,dir:w.dir,x:w.x,y:w.y,shadow:1});
   if(run&&['plan','augment','combat','result','loot','route','event','kshop','reward'].includes(mode)){
     if(drag||itemDrag){for(let r=4;r<ROWS;r++)for(let c=0;c<COLS;c++){const p=hexXY(c,r);hexPath(ctx,p.x,p.y,R-2,SQ);const ov=drag&&drag.over;const hov=ov&&ov.kind==='board'&&ov.c===c&&ov.r===r;ctx.fillStyle=hov?'rgba(255,230,120,.45)':'rgba(255,255,255,.12)';ctx.fill();}
       if(drag&&drag.over&&drag.over.kind==='board')drawRange(drag.u,drag.over,t);
@@ -1162,6 +1162,7 @@ function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="b
 function showGameUI(on){['hud','traits','mods','shop','bag'].forEach(id=>$(id).hidden=!on);}
 function renderUI(){
   if(run&&mode==='plan')grantGear();
+  dexLearnOwned();
   if(!run||SIM.on)return;saveRun();const f=run.floor;
   $('hpnum').textContent=run.hp;const fr=run.hp/run.maxHp,hb=$('hpbar');hb.firstElementChild.style.width=(fr*100)+'%';hb.className='hpbar'+(fr<.3?' low':fr<.6?' mid':'');
   $('goldnum').textContent=run.gold;$('teamnum').innerHTML=`${Object.keys(run.board).length}<small>/${teamCap()}</small>`;
@@ -1226,6 +1227,7 @@ $('traits').addEventListener('pointerleave',hideTip);
 $('reroll').onclick=reroll;
 $('buyxp').onclick=buyXP;
 $('fight').onclick=()=>{if(mode==='loot')openChest();else startCombat();};
+$('dexbtn').onclick=()=>{if(ov.innerHTML.trim()&&!$('dexclose'))return toast('Finish this choice first.');if($('dexclose'))return closeKitDex();showKitDex('game');};
 $('speed').onclick=()=>{speed=speed===1?2:1;$('speed').setAttribute('aria-pressed',speed===2);};
 addEventListener('keydown',e=>{if(evoOpen||!run)return;
   if(mode==='loot'&&(e.key===' '||e.key==='Enter')){e.preventDefault();openChest();return;}
@@ -1281,6 +1283,7 @@ function showTitle(){
     <div class="menu-row"><nav class="win menu" aria-label="Main menu">
       ${d?'<button class="mi" id="m-continue">Continue</button>':''}
       <button class="mi" id="m-new">New game</button>
+      <button class="mi" id="m-dex">Kit Dex</button>
       <button class="mi" id="m-options">Options</button>
       <button class="mi" id="m-credits">Credits</button>
     </nav>${sum}</div>
@@ -1288,7 +1291,7 @@ function showTitle(){
     <div class="credit">Sprites and portraits: <a href="https://sprites.pmdcollab.org/" target="_blank" rel="noopener">PMD SpriteCollab</a> contributors. Pokédex data and item sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>. Font: Pokémon Emerald glyphs via <a href="https://github.com/pret/pokeemerald" target="_blank" rel="noopener">pret/pokeemerald</a>. Fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company.</div>`;
   if(d)$('m-continue').onclick=continueRun;
   $('m-new').onclick=()=>{if(readSave())return confirmNew();showModes();};
-  $('m-options').onclick=showOptions;$('m-credits').onclick=showCredits;
+  $('m-options').onclick=showOptions;$('m-dex').onclick=()=>showKitDex('title');$('m-credits').onclick=showCredits;
   (d?$('m-continue'):$('m-new')).focus();
 }
 function confirmNew(){

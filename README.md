@@ -94,7 +94,7 @@ Pokémon can carry a mutator too: from Kecleon Shops, the shadowy lab event, or 
 
 ### Signature kits
 
-Every Generation I line now has a hand-designed signature kit (all 78) instead of the generic move, built around the Pokémon's design, and kits are being added generation by generation. The full list, with calculated numbers, is in the Kit Dex. Their shop cards show a red "Signature" tag, and the tooltip lists the role. Some highlights:
+Every Generation I and II line now has a hand-designed signature kit (78 + 51 lines) instead of the generic move, built around the Pokémon's design, and kits are being added generation by generation. Branch evolutions get their own moves, and often a different role (Gardevoir is a back-line Seer, Gallade a dueling Blade Knight; Persian a Cat Burglar, Perrserker a shielded Viking). Some Gen II kits summon helpers (Honchkrow calls a Murkrow lackey), set the weather (Politoed, Tyranitar) or revive allies (Ho-Oh). Their shop cards show a red "Signature" tag, and the tooltip lists the role. Some highlights:
 
 | Line | Role | Kit |
 |---|---|---|
@@ -135,6 +135,10 @@ Inspired by TFT's Faerie crown and Honkai: Star Rail's Day Demigod gear, some se
 - **Apex Fang (Pseudo):** the wearer becomes the Apex: +35% max HP, damage and Attack Speed; at 3 it turns Radiant (+60%).
 - **Ancient Amber (Fossil):** revive with 50% HP, then +15% to all stats and an Ancient Power blast; at 3, 70% HP and +25%.
 - **Champion Ribbon (Kanto mission):** earned by collecting all 8 Kanto Badges. +25% damage and max HP, +15% Attack Speed.
+
+### Kit Dex
+
+The Kit Dex (main menu, or the Dex button next to battle speed) lists every kit by generation, with numbers calculated at 2★. Lines are discovered by owning any member of them, through the shop, Kecleon, events or anything else, and discoveries are saved across runs. Undiscovered lines show only a blurred hint. Every starter line, plus Pikachu and Eevee, is known from the start.
 
 ### Reading tooltips and damage
 
@@ -288,6 +292,8 @@ js/forms.js         form changes and generation gimmicks
 js/route.js         route choices, events, Kecleon shops, enhancers, unit mutators
 js/kits.js          kit building blocks, set gear and the first signature kits
 js/kits_gen1.js     Generation I signature kits
+js/kits_gen2.js     Generation II signature kits (and Gen II branches of Gen I lines)
+js/kitdex.js        in-game Kit Dex and discoveries
 js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata

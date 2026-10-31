@@ -317,7 +317,7 @@ const B={
   blast:(m,o={})=>({d:(c,i)=>`${o.arc?'Lobs':'Fires'} ${o.what||'an attack'} at ${TO[o.at||'target']} that ${o.r===0?'hits it':`explodes on it and every enemy within ${o.r||1} hex${(o.r||1)>1?'es':''}`} for ${DT(c,P(m,i))}${o.r===0?'':` (${pcnt(o.splash||.7)} to the others)`}.${fxText(o.fx,i)}`,
     cast(c,tg,i,x){const t=x.t=pickT(c,tg,o.at);if(!t)return;fire(c,t,o.col||tcol(c),()=>{const r=o.r??1;for(const q of[t,...(r?near(t,r):[])]){hitAb(c,q,P(m,i)*(q===t?1:o.splash||.7));applyFx(c,q,o.fx,i);}boom(t,o.col||tcol(c),2);},
       o.arc?{arc:1,dur:.6,lift:90,side:0,retarget:1,size:5}:{sp:300,size:4});}}),
-  nova:(m,o={})=>({d:(c,i)=>`${o.say||'Unleashes a shockwave'} that hits every enemy within ${P(o.r||2,i)} hexes for ${DT(c,P(m,i))}.${fxText(o.fx,i)}`,
+  nova:(m,o={})=>({d:(c,i)=>`${o.say||'Unleashes a shockwave'} that hits every enemy within ${P(o.r||2,i)} hex${P(o.r||2,i)>1?'es':''} for ${DT(c,P(m,i))}.${fxText(o.fx,i)}`,
     cast(c,tg,i){for(const q of foesOf(c).filter(f=>hdist(f,c)<=P(o.r||2,i))){hitAb(c,q,P(m,i));applyFx(c,q,o.fx,i);}if(!SIM.on){ring(c.x,c.y-6,o.col||tcol(c));schedule(.1,()=>ring(c.x,c.y-6,'#ffffff'));}}}),
   cone:(m,o={})=>({d:(c,i)=>`${o.say||'Sweeps a cone'} through the target and enemies up to ${P(o.depth||1,i)} hex${P(o.depth||1,i)>1?'es':''} behind it for ${DT(c,P(m,i))} (70% to the others).${fxText(o.fx,i)}`,
     cast(c,tg,i){const ts=[tg,...alive(tg.team).filter(f=>f!==tg&&hdist(f,tg)<=P(o.depth||1,i)&&hdist(f,c)>=hdist(tg,c))];for(const q of ts){hitAb(c,q,P(m,i)*(q===tg?1:.7));applyFx(c,q,o.fx,i);if(!SIM.on)burst(q.x,q.y-10,o.col||tcol(c),10,1);}lineFx(c,tg,o.col||tcol(c),3,.3);}}),
@@ -347,7 +347,7 @@ const B={
   airborne:(dur)=>({d:()=>`Rises out of reach for ${dur}s (can't be targeted or hit).`,cast(c){c.airT=combatT+dur;c.busy=Math.max(c.busy,dur);c.target=null;if(!SIM.on)burst(c.x,c.y-10,'#cfe8ff',14,1);}}),
 };
 // run blocks in order, half a beat apart
-function seq(...bs){return{d:(c,i)=>bs.map(b=>b.d(c,i)).join(' Then: '),cast(c,tg,i){const x={};let t=0;for(const b of bs){const tt=t;schedule(tt,()=>{if(!c.dead)b.cast(c,x.t&&!x.t.dead?x.t:tg,i,x);});t+=b.gap??.3;}}};}
+function seq(...bs){return{d:(c,i)=>bs.map(b=>b.d(c,i)).map((t,k)=>!k||/^Then/.test(t)?t:'Then it '+t.charAt(0).toLowerCase()+t.slice(1)).join(' '),cast(c,tg,i){const x={};let t=0;for(const b of bs){const tt=t;schedule(tt,()=>{if(!c.dead)b.cast(c,x.t&&!x.t.dead?x.t:tg,i,x);});t+=b.gap??.3;}}};}
 function staged(...bs){return{d:(c,i)=>bs[Math.min(i,bs.length-1)].d(c,i),cast:(c,tg,i,x)=>bs[Math.min(i,bs.length-1)].cast(c,tg,i,x||{})};}
 // define a kit from blocks
 function kit(base,body){defSig(Object.assign(base,{d:base.d||((c,i)=>(base.lead?base.lead+' ':'')+body.d(c,i)+(base.tail?' '+base.tail(c,i):'')),cast:base.cast||((c,tg,i)=>body.cast(c,tg,i,{}))}));}
