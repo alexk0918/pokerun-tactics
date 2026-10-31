@@ -8,58 +8,10 @@ const REGCOL=['#c9483c','#b8901c','#23897d','#5a6fc0','#45454f','#2f74b5','#e07a
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX'];
 const STARTERS=[[1,4,7],[152,155,158],[252,255,258],[387,390,393],[495,498,501],[650,653,656],[722,725,728],[810,813,816],[906,909,912]]; // grass, fire, water
 
-/* ---------- Moves (placeholder kit generated from base stats) ---------- */
-const MOVES={Normal:['Body Slam','Hyper Voice'],Fire:['Flare Blitz','Flamethrower'],Water:['Waterfall','Surf'],Grass:['Leaf Blade','Energy Ball'],
-  Electric:['Wild Charge','Thunderbolt'],Ice:['Ice Punch','Ice Beam'],Fighting:['Close Combat','Aura Sphere'],Poison:['Poison Jab','Sludge Bomb'],
-  Ground:['Earthquake','Earth Power'],Flying:['Brave Bird','Air Slash'],Psychic:['Zen Headbutt','Psychic'],Bug:['X-Scissor','Bug Buzz'],
-  Rock:['Stone Edge','Power Gem'],Ghost:['Shadow Claw','Shadow Ball'],Dragon:['Dragon Claw','Dragon Pulse'],Dark:['Crunch','Dark Pulse'],
-  Steel:['Iron Head','Flash Cannon'],Fairy:['Play Rough','Moonblast']};
-const HEALNAME={Normal:'Wish',Fairy:'Moonlight',Grass:'Synthesis',Psychic:'Heal Pulse',Water:'Life Dew'};
-const GUARDNAME={Steel:'Iron Defense',Rock:'Harden',Ground:'Harden',Grass:'Ingrain',Water:'Withdraw',Bug:'Harden',Psychic:'Barrier',Ice:'Barrier',Ghost:'Protect',Normal:'Protect',Fairy:'Protect',Poison:'Acid Armor',Dragon:'Protect',Dark:'Protect',Fighting:'Bulk Up',Fire:'Protect',Electric:'Protect',Flying:'Roost'};
-const STUNTYPES=new Set(['Electric','Ice','Rock','Ground']);
-// base power per kind, multiplied by star [1,1.5,2.5] and cost (0.7 + 0.15*cost); ratio scales off Attack (phys) or Sp. Atk (spec)
-const KINDS={
-  strike:{base:90, ratio:1.5, stat:'atk'},
-  dash:  {base:80, ratio:1.8, stat:'atk'},
-  blast: {base:100,ratio:1.6, stat:'spa'},
-  guard: {base:120,ratio:.6,  stat:'auto'},
-  heal:  {base:110,ratio:1.3, stat:'spa'},
-};
+/* Move power multiplier per star level */
 const STARB=[1,1.5,2.5];
 
-/* ---------- Traits ---------- */
-const TT={
-  Normal:{e:[{hpP:.2},{hpP:.4}],d:'+20% / +40% max HP.'},
-  Fire:{e:[{dmg:.15},{dmg:.35}],d:'+15% / +35% damage.'},
-  Water:{e:[{mana:25},{mana:50}],d:'Start battle with +25 / +50 PP.'},
-  Grass:{e:[{regen:.02},{regen:.04}],d:'Restore 2% / 4% max HP per second.'},
-  Electric:{e:[{as:.15},{as:.35}],d:'+15% / +35% Attack Speed.'},
-  Ice:{e:[{crit:.15},{crit:.3}],d:'15% / 30% critical hit chance.'},
-  Fighting:{e:[{dmg:.1,as:.1},{dmg:.2,as:.2}],d:'+10% / +20% damage and Attack Speed.'},
-  Poison:{e:[{ab:.2},{ab:.45}],d:'Moves deal +20% / +45% damage.'},
-  Ground:{e:[{def:20},{def:45}],d:'+20 / +45 Defense.'},
-  Flying:{e:[{dodge:.12},{dodge:.25}],d:'12% / 25% chance to dodge attacks.'},
-  Psychic:{e:[{ab:.25,mana:10},{ab:.5,mana:20}],d:'Moves deal +25% / +50% damage. +10 / +20 starting PP.'},
-  Bug:{e:[{as:.2},{as:.4}],d:'+20% / +40% Attack Speed.'},
-  Rock:{e:[{shieldP:.2},{shieldP:.4}],d:'Start battle with a shield of 20% / 40% max HP.'},
-  Ghost:{e:[{ls:.15},{ls:.3}],d:'Heal for 15% / 30% of damage dealt.'},
-  Dragon:{e:[{hpP:.15,dmg:.1},{hpP:.3,dmg:.2}],d:'+15% / +30% max HP and +10% / +20% damage.'},
-  Dark:{e:[{crit:.2,dmg:.05},{crit:.4,dmg:.1}],d:'20% / 40% crit chance and +5% / +10% damage.'},
-  Steel:{e:[{dr:.1},{dr:.22}],d:'Take 10% / 22% less damage.'},
-  Fairy:{e:[{regen:.01,mana:15,res:15},{regen:.02,mana:30,res:30}],d:'1% / 2% HP regen per second, +15 / +30 PP and Sp. Def.'},
-};
-const RT={ // region traits, National mode only
-  Kanto:{e:[{hpP:.15},{hpP:.3}],d:'+15% / +30% max HP.'},
-  Johto:{e:[{as:.15},{as:.3}],d:'+15% / +30% Attack Speed.'},
-  Hoenn:{e:[{shieldP:.15},{shieldP:.3}],d:'Shield of 15% / 30% max HP.'},
-  Sinnoh:{e:[{def:15,res:15},{def:35,res:35}],d:'+15 / +35 Defense and Sp. Def.'},
-  Unova:{e:[{dmg:.12},{dmg:.25}],d:'+12% / +25% damage.'},
-  Kalos:{e:[{mana:20},{mana:40}],d:'Start battle with +20 / +40 PP.'},
-  Alola:{e:[{regen:.015},{regen:.03}],d:'Restore 1.5% / 3% max HP per second.'},
-  Galar:{e:[{hpP:.1,dmg:.08},{hpP:.2,dmg:.15}],d:'+10% / +20% max HP and +8% / +15% damage.'},
-  Paldea:{e:[{crit:.15},{crit:.3}],d:'15% / 30% crit chance.'},
-};
-const BP=[2,4];
+/* Sets (traits) live in sets.js */
 
 /* ---------- Strategies (Currency Wars–style run guidelines) ---------- */
 const STRATS=[

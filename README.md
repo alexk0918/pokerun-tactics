@@ -33,19 +33,37 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 Beating a rival (floors 5 and 10) lets you pick one of three relics: team-wide effects such as Exp. Share, Coin Case, Dowsing Machine or Poké Flute.
 
-### Moves and growth
+### Sets
 
-- Every Pokémon has a physical or special move. Physical moves scale with Attack and are reduced by Defense; special moves scale with Sp. Atk and are reduced by Sp. Def.
+Every Pokémon belongs to several sets, and each set activates at its breakpoints (counting different Pokémon on the field):
+
+- **Types (18):** from the Pokémon's current types. Breakpoints 2 / 4 / 6.
+- **Classes (9):** what its kit does: Vanguard, Juggernaut, Bruiser, Striker, Mystic, Artillery, Combo, Trickster, Medic. Breakpoints 2 / 4 / 6.
+- **Styles (17):** how it plays, taken from its real abilities and lineage: Sun, Rain, Sandstorm, Snow, Intimidator, Last Stand, Momentum, Ironclad, Toxic, Powerhouse, Sharpshooter, Regrowth, Phantom, Charged, Partner (starters, Pikachu, Eevee), Fossil and Pseudo. Weather styles change the battlefield.
+- **Regions (9):** National Dex only.
+
+### Scouting
+
+Once you've invested in a set (3+ different lines and ₽8+ worth of units, from floor 4), shop slots have a chance to show Pokémon from your two most-invested sets. The chance grows with investment and with every shop that misses. Scouted cards are tagged in the shop.
+
+### Kits: real moves and abilities
+
+- Every Pokémon uses a real move from its level-up learnset, chosen per evolution stage (Charmander and Charmeleon use Flamethrower, Charizard uses Flare Blitz). Moves keep their real behavior: multi-hit, spread damage, drain, recoil, status (burn, poison, paralysis, sleep, freeze, confusion), flinch, stat changes, high crit and priority.
+- Physical moves scale with Attack and are reduced by Defense; special moves scale with Sp. Atk and are reduced by Sp. Def.
+- Each Pokémon also gets its real ability as a passive (around 180 implemented), such as Intimidate, Static, Levitate, Multiscale, Speed Boost, Drought or Regenerator.
+- Some Pokémon have no active move: Juggernauts (Snorlax, Wailord) are pure HP tanks, and Strikers (fast physical attackers) fire their move as a free follow-up every third attack.
 - Some lines grow permanently over a run, such as Magikarp, Abra, Mankey, Munchlax/Snorlax, Shuckle, Feebas, Pawniard, Honedge, Wishiwashi, Skwovet, Gimmighoul, Pichu/Pikachu and Eevee. Their shop card shows a "Grows" tag.
 
 ## Project layout
 
 ```
 index.html          markup and styles
-js/data.js          balance tables: traits, items, relics, augments, levels
+js/data.js          balance tables: items, relics, augments, levels
+js/sets.js          sets, ability passives, kit tuning
 js/game.js          game logic
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata
+data/kits.json      per-species move, heal/guard move and abilities (from PokéAPI)
 assets/XXXX/        PMD sprites and portrait for National Dex #XXXX
 ```
 

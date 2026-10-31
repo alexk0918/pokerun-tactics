@@ -270,6 +270,21 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
 .pick.item .desc p{margin:0 0 4px;}
 .pick.item .recipes{text-align:left;margin-top:4px;}
 .pick.item .lbl{text-align:center;}
+
+/* --- v4: sets, kits, scouting --- */
+.chip.set{background:#24303d;}
+.card .info .chips{gap:3px;}
+.card .chip{font-size:9px;padding:1px 4px;}
+.card .scouted{position:absolute;left:6px;bottom:6px;font-family:var(--label);font-size:9px;color:#7a3fa8;background:#f1ebff;border:1.5px solid #8a6ce0;border-radius:4px;padding:1px 4px;}
+.card.scout-glow{box-shadow:0 0 0 3px #8a6ce0;}
+.mod.scout{border-color:#8a6ce0;}
+#tip .abil{margin-top:6px;padding-top:6px;border-top:1px dotted #c5d1d9;}
+#tip .ab p{margin:3px 0 0;line-height:1.35;}
+.setlist{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+.setlist div{display:flex;align-items:center;gap:6px;font-size:14px;}
+.setlist .dot{width:10px;height:10px;border-radius:3px;border:1px solid #0006;}
+.setlist b{margin-left:auto;}
+.more{cursor:help;}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
 
@@ -310,7 +325,8 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
   <div id="overlay"><div class="screen"><div class="loading" id="loadmsg">Loading Pokédex…</div></div></div>
 </div></div>
 
-<script src="js/data.js?v=3"></script>
-<script src="js/game.js?v=3"></script>
+<script src="js/data.js?v=4"></script>
+<script src="js/sets.js?v=4"></script>
+<script src="js/game.js?v=4"></script>
 </body>
 </html>

@@ -42,33 +42,56 @@ const lineOf=u=>MODE.lines[u.root];
 const nameOf=u=>D[u.dex].n;
 function finalOf(dex){let d=dex;for(let i=0;i<3;i++){const k=MODE.kids(d);if(!k.length)break;d=pick(k);}return d;}
 
-/* derived unit stats: species shape × cost tier × star */
-function kindOf(dex){
-  const s=D[dex].s,t=D[dex].t[0];
-  const special=s[3]>s[1]*1.1;
-  const bulk=(s[0]+s[2]+s[4])/3,off=(s[1]+s[3]+s[5])/3;
-  const tanky=bulk>off*1.15;
-  if(tanky&&special&&HEALNAME[t]&&s[4]>=s[2])return'heal';
-  if(tanky)return'guard';
-  if(special)return'blast';
-  if(s[5]>=90&&s[5]>=s[1]*.9)return'dash';
-  return'strike';
+/* ================= Kits: real moves + ability passives ================= */
+let KITS={},MOVEDB={},ABNAME={};
+const KITCACHE={};
+const FALLBACK_MOVE={n:'Tackle',t:'Normal',p:40,c:2,tg:10,acc:100,prio:0,st:[],ident:'tackle'};
+function ancestors(dex){const a=[];let d=dex;while(d){a.push(d);d=D[d].f;}return a;}
+function stylesOf(dex,abs){
+  const out=[],anc=ancestors(dex);
+  if(anc.some(a=>PARTNER_IDS.includes(a)))out.push('Partner');
+  if(anc.some(a=>FOSSIL_IDS.includes(a)))out.push('Fossil');
+  if(anc.some(a=>PSEUDO_IDS.includes(a)))out.push('Pseudo');
+  for(const a of abs){if(out.length>=2)break;for(const st in STYLE_ABIL)if(STYLE_ABIL[st].includes(a)&&!out.includes(st)){out.push(st);break;}}
+  return out.slice(0,2);
 }
-function moveName(dex){const k=kindOf(dex),t=D[dex].t[0];
-  if(k==='heal')return HEALNAME[t];if(k==='guard')return GUARDNAME[t];return MOVES[t][k==='blast'?1:0];}
-function roleOf(dex){return{heal:'Support',guard:'Tank',blast:'Caster',dash:'Assassin',strike:'Bruiser'}[kindOf(dex)];}
+function kitOf(dex){
+  if(KITCACHE[dex])return KITCACHE[dex];
+  const s=D[dex].s,k=KITS[dex]||{},mv=MOVEDB[k.m]||FALLBACK_MOVE;
+  const bulk=(s[0]+s[2]+s[4])/3,off=(s[1]+s[3]+s[5])/3;
+  const hm=k.h&&MOVEDB[k.h],gm=k.g&&MOVEDB[k.g];
+  let type='cast';
+  if(hm&&bulk>off*1.05&&s[3]>=s[1]*.9&&!['rest','swallow','aqua-ring','ingrain','strength-sap'].includes(hm.ident))type='heal';
+  else if(s[0]>=100&&bulk>off*1.12)type='tank';
+  else if(bulk>off*1.15)type='guard';
+  else if(s[5]>=105&&mv.c===2&&s[1]>=s[3])type='rapid';
+  const hits=mv.hmax?(mv.hmin+mv.hmax)/2:1;
+  const aoe=mv.tg===11?1:mv.tg===9?2:0;
+  let cls;
+  if(type==='heal')cls='Medic';else if(type==='tank')cls='Juggernaut';else if(type==='guard')cls='Vanguard';else if(type==='rapid')cls='Striker';
+  else if(mv.hmax>1)cls='Combo';else if(aoe)cls='Artillery';
+  else if(mv.mc===1||(mv.ail&&(mv.ailc||0)>=20)||(mv.fl||0)>=20)cls='Trickster';
+  else cls=mv.c===3?'Mystic':'Bruiser';
+  const cat=type==='heal'?'spec':type==='tank'?(s[1]>=s[3]?'phys':'spec'):(mv.c===3?'spec':'phys');
+  const range=type==='heal'?2:(cat==='spec'&&(type==='cast'))?3:1;
+  const abId=(k.a||[]).find(a=>ABILITIES[a]&&ABILITIES[a].d);
+  const mana=type==='cast'?clamp(Math.round(55+(mv.p||60)*hits*.25),60,100):type==='heal'?80:type==='guard'?85:0;
+  return KITCACHE[dex]={type,cls,mv,hm,gm,hits,aoe,cat,range,mana,start:mv.prio>0?35:type==='guard'?25:10,
+    ab:abId?{id:abId,n:ABNAME[abId]||abId,d:ABILITIES[abId].d,e:ABILITIES[abId].e}:null,styles:stylesOf(dex,k.a||[])};
+}
+const roleOf=dex=>kitOf(dex).cls;
+function moveName(dex){const k=kitOf(dex);if(k.type==='heal')return k.hm.n;if(k.type==='guard')return(k.gm||k.mv).n;if(k.type==='tank')return'No move';return k.mv.n;}
 function unitStats(dex,cost,star){
-  const sp=D[dex],s=sp.s,avg=sp.bst/6,r=x=>clamp(x/avg,.4,2),sm=STARM[star-1],k=kindOf(dex);
-  const off=(34+cost*8)*sm;
+  const sp=D[dex],s=sp.s,avg=sp.bst/6,r=x=>clamp(x/avg,.4,2),sm=STARM[star-1],K=kitOf(dex);
+  const off=(34+cost*8)*sm,cf=STARB[star-1]*(.7+.15*cost);
+  const pf=clamp((K.mv.p||60)*K.hits/80,.6,1.8);
+  const base=K.type==='heal'?KIT.healBase*cf:K.type==='guard'?KIT.guardBase*cf:KIT.castBase*pf*cf;
   return{
-    hp:(420+cost*110)*sm*(.65+.35*r(s[0])),
+    hp:(420+cost*110)*sm*(.65+.35*r(s[0]))*(K.type==='tank'?1+KIT.tankHp:1),
     atk:off*(.5+.5*r(s[1])), spa:off*(.5+.5*r(s[3])),
     def:clamp(4+30*r(s[2]),5,80), res:clamp(4+30*r(s[4]),5,80),
-    as:clamp(.5+.25*r(s[5]),.45,1.1),
-    range:k==='heal'?2:k==='blast'?3:1,
-    mana:k==='guard'?90:k==='heal'?80:70, start:k==='guard'?30:10,
-    kind:k, cat:(k==='heal'||s[3]>s[1]*1.1)?'spec':'phys',
-    base:KINDS[k].base*STARB[star-1]*(.7+.15*cost),
+    as:clamp(.5+.25*r(s[5]),.45,1.1)*(K.type==='rapid'?1.1:1),
+    range:K.range,mana:K.mana,start:K.start,kind:K.type,cat:K.cat,base,pf,
   };
 }
 
@@ -183,7 +206,7 @@ const isUse=it=>!!USE[it.k];
 function itemDef(it){if(isComp(it))return COMP[it.k];if(isCraft(it))return CRAFT[it.k];return USE[it.k];}
 function itemName(it){const d=itemDef(it);return(it.mut&&it.mut.length?it.mut.map(m=>MUTS[m].n).join(' ')+' ':'')+d.n;}
 function itemTier(it){return isComp(it)?'common':isCraft(it)?'epic':'use';}
-function addE(t,e){for(const k in e)t[k]=(t[k]||0)+e[k];return t;}
+function addE(t,e){for(const k in e){const v=e[k];if(typeof v==='number')t[k]=(t[k]||0)+v;else if(Array.isArray(v))t[k]=[...(t[k]||[]),...v];else if(v&&typeof v==='object')t[k]=Object.assign({},t[k]||{},v);else t[k]=v;}return t;}
 function itemEffects(it){
   const t={};
   if(isComp(it))addE(t,COMP[it.k].e);
@@ -235,14 +258,29 @@ const allOwned=()=>[...run.bench.filter(Boolean),...Object.values(run.board)];
 const teamCap=()=>run.level+(augIs('resolve')?1:0);
 const growthOf=u=>{const L=MODE.lines[u.root];if(!L)return null;return GROWTH.find(g=>L.mem.some(i=>g.ids.includes(i)))||null;};
 
-/* ---------- traits ---------- */
+/* ---------- sets ---------- */
+function setsOf(dex,root){const K=kitOf(dex),out=[...D[dex].t,K.cls,...K.styles];if(!MODE.gen&&MODE.lines[root])out.push(REGIONS[MODE.lines[root].region]);return out;}
+function lineSets(root){MODE.lsCache=MODE.lsCache||{};if(!MODE.lsCache[root]){const s=new Set();for(const d of MODE.lines[root].mem)for(const k of setsOf(d,root))s.add(k);MODE.lsCache[root]=[...s];}return MODE.lsCache[root];}
 function countTraits(list){const seen=new Set(),ct={};
-  for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);
-    for(const t of D[u.dex].t)ct[t]=(ct[t]||0)+1;
-    if(!MODE.gen){const rg=REGIONS[lineOf(u).region];ct[rg]=(ct[rg]||0)+1;}}
+  for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of setsOf(u.dex,u.root))ct[k]=(ct[k]||0)+1;}
   return ct;}
-const traitDef=k=>TT[k]||RT[k];
-const tierOf=(k,n)=>BP.filter(b=>n>=b).length;
+const traitDef=k=>SETS[k];
+const tierOf=(k,n)=>SETS[k]?SETS[k].bp.filter(b=>n>=b).length:0;
+function setColor(k){const S=SETS[k];if(!S)return'#55606a';if(S.cat==='type')return TYPES[k];if(S.cat==='class')return CLASSCOL[k];if(S.cat==='region')return REGCOL[REGIONS.indexOf(k)];return STYLECOL;}
+
+/* ---------- scouting (shop pity) ----------
+   Once you've put real investment into a set, shop slots can be steered toward it.
+   Unlocks from floor 4 for any set with 3+ different lines and ₽8+ of units. */
+const SCOUT={minFloor:4,minLines:3,minGold:8,base:.15,perGold:.02,perMiss:.07,cap:.55};
+function investment(){const inv={},lines={};
+  for(const u of allOwned()){const w=lineOf(u).cost*Math.pow(3,u.star-1);for(const k of setsOf(u.dex,u.root)){inv[k]=(inv[k]||0)+w;(lines[k]=lines[k]||new Set()).add(u.root);}}
+  return Object.keys(inv).map(k=>({k,gold:inv[k],lines:lines[k].size})).sort((a,b)=>b.gold-a.gold||b.lines-a.lines);}
+function scoutState(){
+  const inv=investment();
+  const ok=run.floor>=SCOUT.minFloor?inv.filter(x=>x.lines>=SCOUT.minLines&&x.gold>=SCOUT.minGold).slice(0,2):[];
+  const p=ok.length?Math.min(SCOUT.cap,SCOUT.base+SCOUT.perGold*(ok[0].gold-SCOUT.minGold)+SCOUT.perMiss*(run.pity||0)):0;
+  return{focus:ok.map(x=>x.k),p,top:inv[0]||null};
+}
 
 /* ---------- economy ---------- */
 function interestOf(){const per=run.strat.id==='verdant'?8:10,cap=(run.strat.id==='verdant'?7:5)+(hasRelic('coin-case')?3:0);return Math.min(cap,Math.floor(run.gold/per));}
@@ -255,8 +293,16 @@ function buyXP(){if(mode!=='plan'||run.gold<4||run.level>=MAXLV)return false;run
 function rollCostFor(odds){let x=Math.random(),c=0;while(c<4&&x>=odds[c]){x-=odds[c];c++;}
   for(let d=0;d<5;d++){for(const cc of[c-d,c+d])if(cc>=0&&cc<5&&MODE.byCost[cc].length)return cc+1;}return 1;}
 function rollShop(first){
-  run.shop=[];const o=LVODDS[run.level];for(let i=0;i<5;i++)run.shop.push(pick(MODE.byCost[rollCostFor(o)-1]));
+  const o=LVODDS[run.level],sc=first?{focus:[],p:0}:scoutState();
+  run.shop=[];run.scouted=[];let hit=false;
+  for(let i=0;i<5;i++){let cost=rollCostFor(o),r=null;
+    if(sc.focus.length&&Math.random()<sc.p){
+      const costs=[cost,...[1,2,3,4,5].filter(c=>c!==cost&&o[c-1]>0).sort((a,b)=>Math.abs(a-cost)-Math.abs(b-cost))];
+      for(const c of costs){const cand=MODE.byCost[c-1].filter(x=>lineSets(x).some(k=>sc.focus.includes(k)));if(cand.length){r=pick(cand);break;}}
+      if(r){run.scouted[i]=true;hit=true;}}
+    run.shop.push(r||pick(MODE.byCost[cost-1]));}
   if(first)run.shop[0]=run.featured[0];
+  if(sc.focus.length)run.pity=hit?0:(run.pity||0)+1;
   if(!SIM.on)preload(run.shop,2000);
 }
 function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{if(run.gold<2)return false;run.gold-=2;}rollShop(false);renderUI();return true;}
@@ -332,7 +378,7 @@ function buildEnemy(f){
   }else{
     const n=ECOUNT[f];
     const p2=clamp((f-3)*.065+(kind==='elite'?.12:0),0,.75),p3=clamp((f-12)*.05,0,.2);
-    const mult=(1.14+(f-4)*.025+(kind==='elite'?.06:0))*(hasRelic('town-map')?.92:1);
+    const mult=(1.14+(f-4)*.03+(kind==='elite'?.06:0))*(hasRelic('town-map')?.92:1);
     if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:b,mult:hasRelic('town-map')?.92:1,boss:1});}
     const o=LVODDS[ELEVEL(f)];
     for(let i=0;i<n;i++){const root=pick(MODE.byCost[rollCostFor(o)-1]);const x=Math.random();const u=mkEnemy(root,x<p3?3:x<p3+p2?2:1);
@@ -370,24 +416,50 @@ function startCombat(){
   autoFill();const cap=teamCap(),n=Object.keys(run.board).length;
   if(!n){toast('Put at least one Pokémon on the field.');return false;}
   if(n>cap){toast(`Too many Pokémon on the field (${n}/${cap}). Move some to the bench.`);return false;}
-  hideTip();mode='combat';units=[];events=[];combatT=0;proj=[];texts=[];battle={coin:0,flute:hasRelic('poke-flute')};
+  hideTip();mode='combat';units=[];events=[];combatT=0;proj=[];texts=[];
+  battle={coin:0,flute:hasRelic('poke-flute'),weather:null,wPow:1,wSide:-1,kills:[0,0]};
   const mine=boardUnits(),ptr=countTraits(mine.map(x=>x.u)),etr=countTraits(enemyPreview.map(e=>e.u));
   for(const b of mine)units.push(makeCombatant(b.u,0,b.c,b.r,ptr,1));
   for(const e of enemyPreview)units.push(makeCombatant(e.u,1,e.c,e.r,etr,e.mult,e.boss));
-  // start-of-battle effects
-  for(const u of units){
-    if(u.clay)for(const o of units)if(o.team===u.team&&hdist(o,u)<=1)o.shield+=o.maxHp*u.clay;
-    if(u.soothe)for(const o of units)if(o!==u&&o.team===u.team&&hdist(o,u)<=1)o.regen+=u.soothe;
-    if(u.booster){u.as*=1.4;u.dmg+=.2;schedule(6,()=>{u.as/=1.4;u.dmg-=.2;});}
-    if(u.team===0&&hasRelic('bicycle')){u.as*=1.3;schedule(6,()=>{u.as/=1.3;});}
-  }
+  startOfBattle([ptr,etr]);
   renderUI();return true;
 }
+function teamX(tr){const x={};for(const k in tr){const S=SETS[k],ti=tierOf(k,tr[k]);if(ti&&S.x)Object.assign(x,S.x[ti-1]);if(ti&&S.t)addE(x,S.t[ti-1]);}return x;}
+function startOfBattle(trs){
+  const tx=trs.map(teamX);
+  // weather: your sets first, then the enemy's, then weather abilities; Cloud Nine cancels it
+  let w=null;
+  for(const side of[0,1])if(!w&&tx[side].weather)w={k:tx[side].weather,pow:tx[side].wPow||1,side};
+  if(!w)for(const u of units)if(u.fx.weather){w={k:u.fx.weather,pow:1,side:u.team};break;}
+  if(units.some(u=>u.fx.noWeather))w=null;
+  if(w){battle.weather=w.k;battle.wPow=w.pow;battle.wSide=w.side;if(!SIM.on)texts.push({x:320,y:150,txt:{sun:'Harsh sunlight!',rain:'It started to rain!',sand:'A sandstorm kicked up!',snow:'It started to snow!'}[w.k],col:'#ffe27a',life:1.8,label:1});
+    for(const u of units){if(w.k==='snow'&&u.team===w.side&&D[u.dex].t.includes('Ice')){u.def+=20*w.pow;u.res+=20*w.pow;}
+      if(w.k==='snow'&&u.team!==w.side)u.as*=1-.1*w.pow;}}
+  for(const side of[0,1]){const x=tx[side],foes=units.filter(o=>o.team!==side);
+    if(x.intim)for(const o of foes)if(!o.fx.clear){o.atk*=1-x.intim;o.spa*=1-x.intim;}
+    if(x.enemyAS)for(const o of foes)o.as*=1-x.enemyAS;}
+  for(const u of units){
+    const F=u.fx,foes=units.filter(o=>o.team!==u.team),near=r=>foes.filter(o=>hdist(o,u)<=r);
+    if(F.intim)for(const o of near(2))if(!o.fx.clear){o.atk*=1-F.intim;}
+    if(F.pressure)for(const o of near(2))o.ppMul*=1-F.pressure;
+    if(F.aura)for(const o of units)if(o!==u&&o.team===u.team&&hdist(o,u)<=1){const a=F.aura;if(a.regen)o.regen+=a.regen;if(a.dr)o.taken*=1-a.dr;if(a.ab)o.abm+=a.ab;if(a.as)o.as*=1+a.as;if(a.aImm)o.fx.aImm=1;}
+    if(F.clay)for(const o of units)if(o.team===u.team&&hdist(o,u)<=1)o.shield+=o.maxHp*F.clay;
+    if(F.soothe)for(const o of units)if(o!==u&&o.team===u.team&&hdist(o,u)<=1)o.regen+=F.soothe;
+    if(F.booster){u.as*=1.4;u.dmg+=.2;schedule(6,()=>{u.as/=1.4;u.dmg-=.2;});}
+    if(F.boostStart&&!(F.wBoost&&battle.weather===F.wBoost)){u.dmg+=F.boostStart;schedule(8,()=>{u.dmg-=F.boostStart;});}
+    if(F.boostStart&&F.wBoost&&battle.weather===F.wBoost)u.dmg+=F.boostStart;
+    if(u.team===0&&hasRelic('bicycle')){u.as*=1.3;schedule(6,()=>{u.as/=1.3;});}
+    if(F.speedBoost){const tick=()=>{if(u.dead)return;if(u.sbN<8){u.sbN++;u.as*=1+F.speedBoost;}schedule(2,tick);};schedule(2,tick);}
+    const wk=battle.weather;
+    if(wk){if(F.wAS&&F.wAS[wk])u.as*=1+F.wAS[wk];if(F.wSpa&&F.wSpa[wk])u.spa*=1+F.wSpa[wk];if(F.wAtk&&F.wAtk[wk])u.atk*=1+F.wAtk[wk];if(F.wDmg&&F.wDmg[wk])u.dmg+=F.wDmg[wk];if(F.wRegen&&F.wRegen[wk])u.regen+=F.wRegen[wk];if(F.wDodge&&F.wDodge[wk])u.dodge+=F.wDodge[wk];}
+  }
+}
 function makeCombatant(u,team,c,r,tr,mult,boss){
-  const L=lineOf(u),st=unitStats(u.dex,L.cost,u.star),g=u.g||{};
+  const L=lineOf(u),K=kitOf(u.dex),st=unitStats(u.dex,L.cost,u.star),g=u.g||{};
   const E={};for(const it of u.items)addE(E,itemEffects(it));
-  for(const t of D[u.dex].t){const ti=tierOf(t,tr[t]||0);if(ti)addE(E,TT[t].e[ti-1]);}
-  if(!MODE.gen){const rg=REGIONS[L.region],ti=tierOf(rg,tr[rg]||0);if(ti)addE(E,RT[rg].e[ti-1]);}
+  for(const k of setsOf(u.dex,u.root)){const ti=tierOf(k,tr[k]||0);if(ti&&SETS[k].m)addE(E,SETS[k].m[ti-1]);}
+  for(const k in tr){const ti=tierOf(k,tr[k]);if(ti&&SETS[k].t)addE(E,SETS[k].t[ti-1]);}
+  if(K.ab)addE(E,K.ab.e);
   let taken=1;
   if(team===0){const s=run.strat.id,ty=D[u.dex].t;
     if(s==='ember'&&ty.includes('Fire'))addE(E,{dmg:.15});
@@ -396,21 +468,22 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
     if(augIs('tailwind'))addE(E,{as:.12});if(augIs('oran'))addE(E,{hpF:150});if(augIs('swords'))addE(E,{dmg:.18});if(augIs('champion'))addE(E,{dmg:.3,as:.15});if(augIs('endure'))E.focus=(E.focus||0)+1;
     if(hasRelic('soothe-bell'))addE(E,{regen:.015});if(hasRelic('rainbow-wing'))addE(E,{hpP:.12,dmg:.12});if(hasRelic('silver-wing'))addE(E,{shieldP:.15});
   }
-  for(const d of E.dr?[E.dr]:[])taken*=1-d;
-  const bm=boss?{hp:5,atk:1.5,def:15}:{hp:1,atk:1,def:0};
+  if(E.dr)taken*=1-Math.min(.6,E.dr);
+  const bm=boss?{hp:5.5,atk:1.55,def:15}:{hp:1,atk:1,def:0};
   let hp=(st.hp*mult+(g.hp||0))*bm.hp+(E.hpF||0);hp*=1+(E.hpP||0);
   let def=st.def+(E.def||0)+(g.def||0)+bm.def,res=st.res+(E.res||0)+(g.res||0)+bm.def;
   if(E.eviolite&&MODE.kids(u.dex).length){def*=1.5;res*=1.5;hp*=1.2;}
-  const x={u,team,c,r,boss:!!boss,cat:st.cat,kind:st.kind,base:st.base*mult*(boss?2:1),
+  const x={u,team,c,r,boss:!!boss,fx:E,kit:K,mv:K.mv,cat:st.cat,kind:st.kind,base:st.base*mult*(boss?2:1),pf:st.pf,
     hp,maxHp:hp,atk:(st.atk*mult+(g.atk||0))*bm.atk*(1+(E.atkP||0)),spa:(st.spa*mult+(g.spa||0))*bm.atk*(1+(E.spaP||0)),
-    def,res,as:st.as*(1+(E.as||0)+(g.as||0)),range:st.range+(E.range||0),maxMana:st.mana,mana:st.start+(E.mana||0),
-    dmg:1+(E.dmg||0),abm:1+(E.ab||0),physAb:E.physAb||0,specAb:E.specAb||0,crit:E.crit||0,critD:.5,abCrit:!!E.abCrit,
-    ls:E.ls||0,regen:E.regen||0,dodge:Math.min(.6,E.dodge||0),taken,shield:hp*(E.shieldP||0),
+    def,res,as:st.as*(1+(E.as||0)+(g.as||0)),range:st.range+(E.range||0),maxMana:st.mana,mana:st.mana?st.start+(E.mana||0):0,
+    dmg:1+(E.dmg||0),abm:1+(E.ab||0),physAb:E.physAb||0,specAb:E.specAb||0,crit:E.crit||0,critD:.5+(E.critD||0),abCrit:!!E.abCrit,
+    ls:E.ls||0,regen:E.regen||0,dodge:Math.min(.6,E.dodge||0),taken,shield:hp*(E.shieldP||0),healAmp:E.healAmp||0,
     focus:E.focus||0,orb:E.orb||0,giant:E.giant||0,shred:E.shred||0,extraPP:E.extraPP||0,metroAS:E.metroAS||0,metroN:0,
     bulb:!!E.bulb,burnP:E.burn||0,spray:E.spray||0,specPen:E.specPen||0,wp:E.wp||0,magnet:!!E.magnet,magN:0,double:E.double||0,
-    helmet:E.helmet||0,sitrus:E.sitrus||0,clay:E.clay||0,assault:E.assault||0,soothe:E.soothe||0,stunImm:!!E.stunImm,cloak:E.cloak||0,
-    xpEgg:E.xp||0,kee:E.kee||0,leppa:E.leppa||0,booster:!!E.booster,coin:!!E.coin,goldMut:E.gold||0,
-    kills:0,casts:0,hits:0,dealt:0,burn:null};
+    helmet:E.helmet||0,sitrus:E.sitrus||0,sitrusN:E.sitrusN||1,assault:E.assault||0,stunImm:!!E.stunImm,cloak:E.cloak||0,
+    xpEgg:E.xp||0,kee:E.kee||0,leppa:E.leppa||0,coin:!!E.coin,goldMut:E.gold||0,revive:E.revive||0,
+    ppMul:1,sbN:0,momN:0,atkN:0,enrN:0,dodgeN:E.dodgeN||0,disguise:E.disguise||0,
+    kills:0,casts:0,hits:0,dealt:0,burn:null,poison:null,slowT:0,slowP:0};
   const p=hexXY(c,r);
   return Object.assign(x,{x:p.x,y:p.y,dex:u.dex,dir:team?DIR.down:DIR.up,anim:'Idle',animT:Math.random(),loop:true,cd:rnd(.1,.5),target:null,move:null,stun:0,dead:false,deadT:0,flash:0,busy:0});
 }
@@ -421,15 +494,21 @@ const occupied=(c,r,ex)=>units.some(u=>u!==ex&&!u.dead&&((u.c===c&&u.r===r)||(u.
 function setAnim(u,a,loop=false){if(SIM.on)return;u.anim=a;u.animT=0;u.loop=loop;}
 function schedule(dt,fn){events.push({t:combatT+dt,fn});}
 const aLen=(u,a)=>SIM.on?.5:animLen(u.dex,a), hTime=(u,a)=>SIM.on?.25:hitTime(u.dex,a);
+const lowHp=(u,f)=>u.hp<u.maxHp*f;
+function effAS(u){let a=u.as*(1+(u.fx.momentum||0)*u.momN);if(u.fx.lowAS&&lowHp(u,.5))a*=1+u.fx.lowAS;if(u.slowT>0)a*=1-u.slowP;return a;}
 function stepCombat(dt){
   combatT+=dt;
   for(let i=events.length-1;i>=0;i--)if(events[i].t<=combatT){const e=events[i];events.splice(i,1);e.fn();}
+  const sand=battle.weather==='sand',sandP=.01*battle.wPow;
   for(const u of units){
     u.animT+=dt;u.flash=Math.max(0,u.flash-dt);
     if(u.dead){u.deadT+=dt;continue;}
     if(!SIM.on&&!u.loop&&u.animT>=animLen(u.dex,u.anim)&&!u.move)setAnim(u,'Idle',true);
     if(u.regen>0)heal(u,u.maxHp*u.regen*dt,true);
-    if(u.burn){u.burn.t-=dt;hurt(u,u.maxHp*u.burn.p*dt,u.burn.src);if(u.burn.t<=0)u.burn=null;if(u.dead)continue;}
+    for(const k of['burn','poison'])if(u[k]){u[k].t-=dt;if(!u.fx.mGuard)hurt(u,u.maxHp*u[k].p*dt,u[k].src);if(u[k]&&u[k].t<=0)u[k]=null;}
+    if(sand&&u.team!==battle.wSide&&!u.fx.mGuard&&!u.fx.noWeatherChip&&!D[u.dex].t.some(t=>t==='Rock'||t==='Ground'||t==='Steel'))hurt(u,u.maxHp*sandP*dt,null);
+    if(u.dead)continue;
+    if(u.slowT>0)u.slowT-=dt;
     if(u.stun>0){u.stun-=dt;continue;}
     u.cd-=dt;u.busy-=dt;
     if(u.move){u.move.t+=dt/u.move.dur;const k=Math.min(1,u.move.t);u.x=u.move.fx+(u.move.tx-u.move.fx)*k;u.y=u.move.fy+(u.move.ty-u.move.fy)*k;
@@ -438,8 +517,8 @@ function stepCombat(dt){
     if(!u.target||u.target.dead){const foes=alive(1-u.team);if(!foes.length)continue;foes.sort((a,b)=>hdist(u,a)-hdist(u,b)||Math.random()-.5);u.target=foes[0];}
     const tg=u.target,d=hdist(u,tg);
     if(d<=u.range){u.dir=dirFrom(tg.x-u.x,(tg.y-u.y)/SQ);
-      if(u.mana>=u.maxMana){cast(u,tg);continue;}
-      if(u.cd<=0){attack(u,tg);u.cd=1/u.as;}}
+      if(u.maxMana>0&&u.mana>=u.maxMana){cast(u,tg);continue;}
+      if(u.cd<=0){attack(u,tg);u.cd=1/effAS(u);}}
     else{const opts=nbrs(u.c,u.r).filter(h=>!occupied(h.c,h.r,u)).map(h=>({...h,d:hdist(h,tg)+Math.random()*.3}));opts.sort((a,b)=>a.d-b.d);
       if(opts.length&&opts[0].d<d+.2){const h=opts[0],p=hexXY(h.c,h.r);u.move={c:h.c,r:h.r,fx:u.x,fy:u.y,tx:p.x,ty:p.y,t:0,dur:.42};u.dir=dirFrom(p.x-u.x,(p.y-u.y)/SQ);setAnim(u,'Walk',true);}
       else u.target=null;}
@@ -448,79 +527,162 @@ function stepCombat(dt){
   if((!a||!b||combatT>45)&&!events.some(e=>e.end))events.push({t:combatT+(SIM.on?0:1.1),end:1,fn:()=>endCombat(a&&b?(hpFrac(0)>=hpFrac(1)):!!a)});
 }
 const hpFrac=t=>{const l=units.filter(u=>u.team===t);return l.reduce((s,u)=>s+Math.max(0,u.hp)/u.maxHp,0)/l.length;};
-const tcol=u=>TYPES[D[u.dex].t[0]];
+const tcol=u=>TYPES[(u.mv&&u.mv.t)||D[u.dex].t[0]]||'#fff';
 function stun(tg,t){if(tg.stunImm||tg.dead)return;tg.stun=Math.max(tg.stun,t);}
+function gainMana(u,n){if(u.maxMana>0)u.mana=Math.min(u.maxMana,u.mana+n*u.ppMul);}
 function autoAmt(u){return u.cat==='spec'?u.spa*.8:u.atk;}
 function attack(u,tg){
   const anim=u.range>1?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.55);
   schedule(hTime(u,anim),()=>{if(u.dead)return;
-    const hit=()=>{if(tg.dead)return;damage(u,tg,autoAmt(u),{cat:u.cat});onHitFx(u,tg);};
+    const hit=()=>{if(tg.dead)return;if(u.fx.miss&&Math.random()<u.fx.miss){if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Miss',col:'#cfe0ff',life:.7});return;}
+      damage(u,tg,autoAmt(u),{cat:u.cat,auto:1});onHitFx(u,tg);};
     if(u.range>1&&!SIM.on)shoot(u,tg,tcol(u),hit);else{hit();if(!SIM.on)spark(tg.x,tg.y-10,'#ffffff',5);}
     if(u.double&&Math.random()<u.double)schedule(.12,hit);
-    u.mana=Math.min(u.maxMana,u.mana+10+u.extraPP);
+    gainMana(u,10+u.extraPP);u.atkN++;
     if(u.orb)u.hp=Math.max(1,u.hp-u.maxHp*u.orb);
     if(u.metroAS&&u.metroN<12){u.metroN++;u.as*=(1+u.metroAS*u.metroN)/(1+u.metroAS*(u.metroN-1));}
-    if(u.magnet&&++u.magN%3===0){alive(1-u.team).sort((a,b)=>hdist(u,a)-hdist(u,b)).slice(0,3).forEach(o=>{damage(u,o,60+.3*u.spa,{cat:'spec',ab:false,noCrit:1});if(!SIM.on)burst(o.x,o.y-10,'#ffe14d',6,.6);});}
+    if(u.magnet&&++u.magN%3===0)zap(u,60+.3*u.spa,'#ffe14d');
+    if(u.fx.zap&&u.atkN%3===0)zap(u,u.fx.zap*(u.u.star>1?1+.5*(u.u.star-1):1),'#ffe14d');
+    if(u.kind==='rapid'&&u.atkN%KIT.rapidEvery===0&&!tg.dead)useMove(u,tg,KIT.rapidPow,true);
   });
 }
+function zap(u,amt,col){alive(1-u.team).sort((a,b)=>hdist(u,a)-hdist(u,b)).slice(0,3).forEach(o=>{damage(u,o,amt,{cat:'spec',noCrit:1});if(!SIM.on)burst(o.x,o.y-10,col,6,.6);});}
 function onHitFx(u,tg){
-  if(u.shred)tg.def=Math.max(0,tg.def-u.shred);
-  if(u.burnP)tg.burn={p:Math.max(u.burnP,tg.burn?tg.burn.p:0),t:4,src:u};
+  if(u.shred&&!tg.fx.clear)tg.def=Math.max(0,tg.def-u.shred);
+  if(u.burnP)setDot(tg,'burn',u.burnP,4,u);
+  if(u.fx.poisonHit)setDot(tg,'poison',u.fx.poisonHit,3,u);
+  if(u.fx.hitAil&&Math.random()<u.fx.hitAil.c)applyAil(u,tg,u.fx.hitAil.ail);
+  if(u.fx.flinch&&Math.random()<u.fx.flinch&&!tg.fx.fImm)stun(tg,.35);
+  // contact abilities on the target
+  const T=tg.fx.touch;if(T&&(u.range===1||T.any)&&!u.dead&&Math.random()<T.c){if(T.slow){u.slowT=3;u.slowP=Math.max(u.slowP,T.slow);}else applyAil(tg,u,T.ail===-1?pick([1,2,5]):T.ail);}
+}
+function setDot(t,k,p,dur,src){if(t.dead||t.fx.mGuard||t.fx.aImm&&k!=='burn'&&false)return;t[k]={p:Math.max(p,t[k]?t[k].p:0),t:Math.max(dur,t[k]?t[k].t:0),src};}
+function applyAil(src,t,id){
+  const a=AIL[id];if(!a||t.dead||t.fx.aImm)return;
+  if(a.stun)stun(t,a.stun);
+  if(a.slow){t.slowT=a.t;t.slowP=Math.max(t.slowP,a.slow);}
+  if(a.dot)setDot(t,id===4?'burn':'poison',a.dot,a.t,src);
+  if(!SIM.on)texts.push({x:t.x,y:t.y-30,txt:a.n,col:'#d8c7ff',life:.8,label:1});
 }
 function shoot(u,tg,col,onHit,size=2){proj.push({x:u.x,y:u.y-10,tg,col,onHit,size,trail:[]});}
-function hurt(tg,d,src){ // raw HP loss (burn, helmet); can faint
-  if(tg.dead)return;let left=d;if(tg.shield>0){const s=Math.min(tg.shield,left);tg.shield-=s;left-=s;}tg.hp-=left;checkHp(tg,src);
-}
+function hurt(tg,d,src){if(tg.dead)return;let left=d;if(tg.shield>0){const s=Math.min(tg.shield,left);tg.shield-=s;left-=s;}tg.hp-=left;checkHp(tg,src);}
 function checkHp(tg,src){
-  if(tg.sitrus&&tg.hp>0&&tg.hp<tg.maxHp*.5){heal(tg,tg.maxHp*tg.sitrus);tg.sitrus=0;}
+  if(tg.sitrus&&tg.sitrusN>0&&tg.hp>0&&tg.hp<tg.maxHp*.5){heal(tg,tg.maxHp*tg.sitrus);tg.sitrusN--;}
   if(tg.kee&&tg.hp>0&&tg.hp<tg.maxHp*.4){tg.def+=tg.kee;tg.res+=tg.kee;tg.kee=0;}
+  if(tg.fx.lowDef&&!tg.lowDefOn&&lowHp(tg,.5)){tg.lowDefOn=1;tg.def+=tg.fx.lowDef;}
+  if(tg.fx.lowAtk&&!tg.lowAtkOn&&lowHp(tg,.5)){tg.lowAtkOn=1;tg.atk*=1+tg.fx.lowAtk;}
+  if(tg.fx.lowSpa&&!tg.lowSpaOn&&lowHp(tg,.5)){tg.lowSpaOn=1;tg.spa*=1+tg.fx.lowSpa;}
   if(tg.hp>0)return;
   if(tg.focus>0){tg.focus--;tg.hp=1;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Hung on!',col:'#ff8a7a',life:1.2});return;}
+  if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;tg.burn=tg.poison=null;if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
   if(tg.team===0&&battle.flute){battle.flute=false;tg.hp=tg.maxHp*.35;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Woke up!',col:'#c6b3ff',life:1.2});return;}
   tg.dead=true;tg.hp=0;setAnim(tg,'Faint');tg.move=null;if(!SIM.on)burst(tg.x,tg.y-8,'#ffffff',10,.7);
-  if(src&&!src.dead){src.kills++;if(src.coin&&src.team===0&&battle.coin<2){battle.coin++;run.gold++;if(!SIM.on)texts.push({x:src.x,y:src.y-30,txt:'+₽1',col:'#ffd34d',life:1});}}
+  battle.kills[1-tg.team]++;
+  for(const o of units)if(!o.dead&&o.team!==tg.team&&o.fx.momentum)o.momN++;
+  if(tg.fx.aftermath&&src&&!src.dead&&!src.fx.mGuard)hurt(src,src.maxHp*tg.fx.aftermath,null);
+  if(src&&!src.dead&&src.team!==tg.team){src.kills++;
+    if(src.fx.moxie){src.atk*=1+src.fx.moxie;src.spa*=1+src.fx.moxie;}
+    if(src.coin&&src.team===0&&battle.coin<2){battle.coin++;run.gold++;if(!SIM.on)texts.push({x:src.x,y:src.y-30,txt:'+₽1',col:'#ffd34d',life:1});}}
 }
+function dmgMult(src,tg){let m=src.dmg;
+  if(src.fx.pinch&&lowHp(src,1/3))m+=src.fx.pinch;
+  if(src.fx.lowDmg&&lowHp(src,.5))m+=src.fx.lowDmg;
+  if(src.fx.momentum)m+=src.fx.momentum*src.momN;
+  if(src.fx.execute&&lowHp(tg,.5))m+=src.fx.execute;
+  return m;}
 function damage(src,tg,amt,o={}){
   if(!tg||tg.dead)return 0;
-  if(!o.ab&&tg.dodge&&Math.random()<tg.dodge){if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Miss',col:'#cfe0ff',life:.7});return 0;}
-  const crit=!o.noCrit&&(!o.ab||src.abCrit)&&Math.random()<src.crit;
-  let d=amt*src.dmg*(crit?1+src.critD:1);
-  if(o.ab)d*=src.abm*(1+(o.cat==='phys'?src.physAb:src.specAb));
+  if(o.type&&tg.fx.immune&&tg.fx.immune.includes(o.type)){
+    if(tg.fx.absorb)heal(tg,tg.maxHp*.08);if(tg.fx.absorbBuff){tg.atk*=1.08;tg.spa*=1.08;tg.as*=1.05;}
+    if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Immune',col:'#cfe0ff',life:.8});return 0;}
+  if(!o.ab&&!src.fx.noGuard){if(tg.dodgeN>0){tg.dodgeN--;if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Miss',col:'#cfe0ff',life:.7});return 0;}
+    if(tg.dodge&&Math.random()<tg.dodge){if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Miss',col:'#cfe0ff',life:.7});return 0;}}
+  const canCrit=!o.noCrit&&!tg.fx.noCrit&&(!o.ab||src.abCrit||o.cr);
+  const crit=canCrit&&(Math.random()<src.crit+(o.cr||0)||(src.fx.merciless&&tg.poison));
+  let d=amt*dmgMult(src,tg)*(crit?1+src.critD:1);
+  if(o.ab){d*=src.abm*(1+(o.cat==='phys'?src.physAb:src.specAb));if(o.type&&src.fx.typeBoost&&src.fx.typeBoost[o.type])d*=1+src.fx.typeBoost[o.type];}
+  if(o.type&&battle.weather){const w=battle.weather,p=battle.wPow;if(w==='sun'){if(o.type==='Fire')d*=1+(p>1?.35:.2);if(o.type==='Water')d*=.85;}if(w==='rain'){if(o.type==='Water')d*=1+(p>1?.35:.2);if(o.type==='Fire')d*=.85;}}
   if(src.giant&&tg.maxHp>1500)d*=1+src.giant;
-  if(o.cat==='phys')d*=100/(100+tg.def);else if(o.cat==='spec')d*=100/(100+tg.res*(1-src.specPen));
+  const pen=src.fx.pen||0;
+  if(o.cat==='phys')d*=100/(100+tg.def*(1-pen));else if(o.cat==='spec')d*=100/(100+tg.res*(1-src.specPen)*(1-pen));
   if(o.cat==='spec')d*=1-tg.assault;
+  if(o.cat==='phys'&&tg.fx.physDr)d*=1-tg.fx.physDr;
+  if(!o.ab&&src.range===1&&tg.fx.meleeDr)d*=1-tg.fx.meleeDr;
   if(o.ab)d*=1-tg.cloak;
+  if(tg.fx.multiscale&&tg.hp>=tg.maxHp-.5)d*=1-tg.fx.multiscale;
   d*=tg.taken;
+  if(tg.disguise>0){tg.disguise--;d=0;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Disguise!',col:'#ffe27a',life:1});}
   tg.hits++;src.dealt+=d;
-  if(!SIM.on){tg.flash=.15;texts.push({x:tg.x+rnd(-6,6),y:tg.y-22,txt:Math.round(d)+(crit?'!':''),col:o.ab?(o.cat==='spec'?'#b9a4ff':'#ffd34d'):crit?'#ffb08a':'#ffffff',big:o.ab||crit,life:.9});}
-  tg.mana=Math.min(tg.maxMana,tg.mana+Math.min(12,d*.04));
+  if(!SIM.on&&d>0){tg.flash=.15;texts.push({x:tg.x+rnd(-6,6),y:tg.y-22,txt:Math.round(d)+(crit?'!':''),col:o.ab?(o.cat==='spec'?'#b9a4ff':'#ffd34d'):crit?'#ffb08a':'#ffffff',big:o.ab||crit,life:.9});}
+  gainMana(tg,Math.min(12,d*.04));
   if(src.ls&&!src.dead)heal(src,d*src.ls,true);
-  if(!o.ab&&src.range===1&&tg.helmet&&!src.dead)hurt(src,tg.maxHp*tg.helmet,tg);
-  if(o.ab&&tg.bulb){tg.mana=Math.min(tg.maxMana,tg.mana+20);tg.spa*=1.1;}
-  if(o.ab&&tg.wp){tg.atk*=1+tg.wp;tg.spa*=1+tg.wp;tg.wp=0;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Policy!',col:'#ffd34d',life:1});}
+  if(src.fx.lowLs&&lowHp(src,.5)&&!src.dead)heal(src,d*src.fx.lowLs,true);
+  if(!o.ab&&src.range===1&&tg.helmet&&!src.dead&&!src.fx.mGuard)hurt(src,tg.maxHp*tg.helmet,tg);
+  if(o.ab){
+    if(tg.bulb){gainMana(tg,20);tg.spa*=1.1;}
+    if(tg.wp){tg.atk*=1+tg.wp;tg.spa*=1+tg.wp;tg.wp=0;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Policy!',col:'#ffd34d',life:1});}
+    if(tg.fx.enrage&&tg.enrN<5){tg.enrN++;tg.atk*=1+tg.fx.enrage;tg.spa*=1+tg.fx.enrage;}
+    if(tg.fx.rattled&&tg.enrN<5){tg.enrN++;tg.as*=1+tg.fx.rattled;}
+    if(tg.fx.weakArmor&&o.cat==='phys'&&tg.enrN<3){tg.enrN++;tg.def=Math.max(0,tg.def-5);tg.as*=1.12;}
+  }
+  if(tg.fx.stamina&&tg.hits<=20)tg.def+=tg.fx.stamina/4;
+  if(crit&&tg.fx.angerPoint&&!tg.angered){tg.angered=1;tg.atk*=1+tg.fx.angerPoint;}
+  if(tg.fx.ignoreShield&&false){}
   hurt(tg,d,src);
   if(!tg.dead&&!SIM.on&&!tg.move&&tg.busy<=0&&Math.random()<.3){setAnim(tg,'Hurt');tg.busy=.2;}
   return d;
 }
 function heal(u,amt,quiet){if(u.dead)return;if(u.burn)amt*=.5;const h=Math.min(u.maxHp-u.hp,amt);u.hp+=h;if(!quiet&&h>1&&!SIM.on)texts.push({x:u.x,y:u.y-24,txt:'+'+Math.round(h),col:'#7dff7a',life:.9});}
-function moveValue(c){const K=KINDS[c.kind];const stat=K.stat==='auto'?(c.cat==='spec'?c.spa:c.atk):c[K.stat];return{base:c.base,ratio:K.ratio,stat,total:c.base+K.ratio*stat};}
+function moveValue(c){
+  if(c.kind==='heal')return{base:c.base,ratio:KIT.healRatio,stat:c.spa,statN:'Sp. Atk',total:(c.base+KIT.healRatio*c.spa)*(1+c.healAmp)};
+  if(c.kind==='guard')return{base:c.base*1.3,ratio:.12,stat:c.maxHp,statN:'max HP',total:c.base*1.3+.12*c.maxHp};
+  const ratio=KIT.castRatio*c.pf,stat=c.cat==='spec'?c.spa:c.atk;
+  return{base:c.base,ratio,stat,statN:c.cat==='spec'?'Sp. Atk':'Attack',total:c.base+ratio*stat};
+}
+function applyStat(t,stat,ch){const k=STATKEY[stat];if(!k)return;
+  if(k==='def'||k==='res')t[k]=Math.max(0,t[k]+8*ch);else if(k==='as')t.as*=Math.max(.5,1+.08*ch);else t[k]*=Math.max(.5,1+.08*ch);}
+function hitsFor(u){const mv=u.mv;if(!mv.hmax||mv.hmax<=1)return 1;let n=u.fx.skillLink?mv.hmax:Math.round((mv.hmin+mv.hmax)/2);return n+(u.fx.hitsB||0);}
+function useMove(u,tg,pow=1,free=false){
+  const mv=u.mv,cat=u.cat,col=tcol(u);
+  let total=moveValue(u).total*pow;if(u.fx.technician&&mv.p&&mv.p<=60)total*=1+u.fx.technician;
+  const baseHits=mv.hmax>1?(mv.hmin+mv.hmax)/2:1,n=hitsFor(u),per=total/baseHits;
+  const spl=(u.kit.aoe===2?.5:.6)+(u.fx.splash||0);
+  const targets=()=>{if(tg.dead)return[];if(!u.kit.aoe)return[tg];const r=u.kit.aoe===2?2:1,c=u.kit.aoe===2?u:tg;return[tg,...alive(tg.team).filter(o=>o!==tg&&hdist(o,c)<=r)];};
+  const go=()=>{const ts=targets();let dealt=0;
+    for(let i=0;i<n;i++)schedule(i*.09,()=>{for(const t of ts){if(t.dead)continue;const amt=per*(t===tg?1:spl);dealt+=damage(u,t,amt,{ab:1,cat,type:mv.t,cr:(mv.cr||0)*.25});applyMoveFx(u,t,mv);}
+      if(i===n-1)afterMove(u,mv,dealt);});
+    if(!SIM.on)for(const t of ts)burst(t.x,t.y-10,col,u.kit.aoe?12:14,1);};
+  if(!SIM.on&&u.range>1&&!u.kit.aoe)shoot(u,tg,col,go,3);else go();
+  if(!free&&!SIM.on)texts.push({x:u.x,y:u.y-34,txt:mv.n,col:'#ffffff',life:1.1,label:1});
+  else if(free&&!SIM.on)texts.push({x:u.x,y:u.y-34,txt:mv.n,col:'#ffe9a8',life:.8,label:1});
+}
+function afterMove(u,mv,dealt){
+  if(u.dead)return;
+  if(mv.dr>0)heal(u,dealt*mv.dr/100*(1+u.healAmp));
+  if(mv.dr<0&&!u.fx.noRecoil&&!u.fx.mGuard)hurt(u,dealt*(-mv.dr)/100*.5,null);
+  if(mv.st&&mv.st.length&&(mv.mc===7||mv.mc===2)&&Math.random()<((mv.sc||100)/100)*(u.fx.serene?2:1))for(const[s,ch]of mv.st)if(!(ch<0&&u.fx.clear))applyStat(u,s,ch);
+}
+function applyMoveFx(u,t,mv){
+  if(t.dead)return;const ser=u.fx.serene?2:1;
+  if(mv.ail&&!u.fx.noAil){const c=(mv.ailc||(mv.mc===1?100:0))/100;if(c>0&&Math.random()<Math.min(1,c*ser*(1+(u.fx.ailP||0))))applyAil(u,t,mv.ail);}
+  if(mv.fl&&!u.fx.noAil&&!t.fx.fImm&&Math.random()<mv.fl/100*ser)stun(t,.35);
+  if(mv.mc===6&&mv.st&&!t.fx.clear&&Math.random()<((mv.sc||100)/100)*ser)for(const[s,ch]of mv.st)if(ch<0)applyStat(t,s,ch);
+}
 function cast(u,tg){
-  u.mana=0;u.casts++;const k=u.kind,stunT=STUNTYPES.has(D[u.dex].t[0]);
-  const anim=k==='strike'||k==='dash'?'Attack':'Shoot';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);
-  if(!SIM.on)texts.push({x:u.x,y:u.y-34,txt:moveName(u.dex),col:'#ffffff',life:1.1,label:1});
-  const col=tcol(u),adj=t=>alive(t.team).filter(o=>o!==t&&hdist(o,t)<=1);
+  u.mana=0;u.casts++;const K=u.kit;
+  const anim=K.type==='heal'||K.type==='guard'||u.range>1?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);
   schedule(hTime(u,anim),()=>{if(u.dead)return;
-    const v=moveValue(u).total;
-    const fxb=(t,c,n,p)=>{if(!SIM.on)burst(t.x,t.y-10,c,n,p);};
-    switch(k){
-      case'strike':damage(u,tg,v,{ab:1,cat:'phys'});onHitFx(u,tg);if(stunT)stun(tg,.75);fxb(tg,col,14,1);break;
-      case'dash':{const w=alive(1-u.team).sort((a,b)=>a.hp-b.hp)[0];if(w){const go=()=>{damage(u,w,v,{ab:1,cat:'phys'});onHitFx(u,w);fxb(w,col,14,1);};SIM.on?go():shoot(u,w,col,go,3);}break;}
-      case'blast':{const go=()=>{damage(u,tg,v,{ab:1,cat:'spec'});onHitFx(u,tg);if(stunT)stun(tg,.75);adj(tg).forEach(o=>damage(u,o,v*.5,{ab:1,cat:'spec'}));fxb(tg,col,20,1.2);};SIM.on?go():shoot(u,tg,col,go,3);break;}
-      case'guard':u.shield+=u.base*1.3+u.maxHp*.12;if(!SIM.on)ring(u.x,u.y-8,'#dfe8ff');damage(u,tg,u.base*.3+v-u.base,{ab:1,cat:u.cat});break;
-      case'heal':{const al=alive(u.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];if(al){heal(al,v);if(!SIM.on){ring(al.x,al.y-8,'#c6ff8a');burst(al.x,al.y-12,'#e9ffb0',12,.6);}}break;}
-    }
+    if(K.type==='heal'){const hm=K.hm,v=moveValue(u).total;
+      const al=hm.tg===7?u:alive(u.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+      if(al){heal(al,v);if(!SIM.on){ring(al.x,al.y-8,'#c6ff8a');burst(al.x,al.y-12,'#e9ffb0',12,.6);texts.push({x:u.x,y:u.y-34,txt:hm.n,col:'#ffffff',life:1.1,label:1});}}
+      if(hm.st)for(const[s,ch]of hm.st)if(ch>0)applyStat(u,s,ch);}
+    else if(K.type==='guard'){const gm=K.gm,v=moveValue(u).total;
+      u.shield+=gm&&gm.st&&gm.st.length?v:v*1.4;
+      if(gm&&gm.st)for(const[s,ch]of gm.st)if(ch>0)applyStat(u,s,ch);
+      if(!SIM.on){ring(u.x,u.y-8,'#dfe8ff');texts.push({x:u.x,y:u.y-34,txt:(gm||u.mv).n,col:'#ffffff',life:1.1,label:1});}}
+    else useMove(u,tg);
     if(u.spray)u.spa*=1+u.spray;
-    if(u.leppa)u.mana=Math.min(u.maxMana,u.mana+u.leppa);
+    if(u.leppa)gainMana(u,u.leppa);
   });
 }
 function endCombat(win){
@@ -528,7 +690,7 @@ function endCombat(win){
   // growth, lucky eggs, golden items
   const grew=[];let xp=0,gold=0;
   for(const c of units){if(c.team!==0)continue;const u=c.u;
-    xp+=c.xpEgg;if(win)gold+=c.goldMut;
+    xp+=c.xpEgg;if(win)gold+=c.goldMut;if(c.fx.pickup&&Math.random()<c.fx.pickup)gold++;
     for(const it of u.items)if((it.mut||[]).includes('growing'))it.gs=(it.gs||0)+.02;
     const G=growthOf(u);if(!G)continue;
     let n=G.on==='battle'?1:G.on==='win'?(win?1:0):G.on==='kill'?c.kills:G.on==='cast'?c.casts:G.on==='hit'?Math.floor(c.hits/G.every):0;
@@ -736,26 +898,38 @@ addEventListener('pointerup',e=>{
 const chip=(txt,col)=>`<span class="chip" style="background:${col}">${txt}</span>`;
 const typeChips=dex=>D[dex].t.map(t=>chip(t,TYPES[t])).join('');
 const pct=v=>Math.round(v*100)+'%';
-function moveText(kind,mv,cat,stunT){
-  const r=`<span class="sc">(${Math.round(mv.base)} + ${pct(mv.ratio)} ${KINDS[kind].stat==='spa'||(KINDS[kind].stat==='auto'&&cat==='spec')?'Sp. Atk':'Attack'})</span>`,T=Math.round(mv.total);
-  switch(kind){
-    case'strike':return`Strikes the target for <b>${T}</b> physical damage ${r}${stunT?' and stuns it for 0.75s':''}.`;
-    case'dash':return`Dashes at the weakest enemy for <b>${T}</b> physical damage ${r}.`;
-    case'blast':return`Blasts the target for <b>${T}</b> special damage ${r} and adjacent enemies for <b>${Math.round(T*.5)}</b>${stunT?'. Stuns the target for 0.75s':''}.`;
-    case'guard':return`Gains a shield of <b>${Math.round(mv.base*1.3)}</b> + 12% max HP, then hits for <b>${Math.round(mv.base*.3+mv.ratio*mv.stat)}</b> ${cat==='spec'?'special':'physical'} damage.`;
-    case'heal':return`Restores <b>${T}</b> HP ${r} to the most injured ally.`;
-  }
+const STATN={2:'Attack',3:'Defense',4:'Sp. Atk',5:'Sp. Def',6:'Speed'};
+const setChip=k=>`<span class="chip set" style="background:${setColor(k)}">${k}</span>`;
+function moveDesc(c){
+  const K=c.kit,v=moveValue(c),T=Math.round(v.total),r=`<span class="sc">(${Math.round(v.base)} + ${pct(v.ratio)} ${v.statN})</span>`;
+  if(K.type==='tank')return`<p><b>Passive.</b> Has no move; fights with basic attacks and +${pct(KIT.tankHp)} max HP.</p>`;
+  if(K.type==='heal'){const hm=K.hm;return`<p><b>${hm.n}</b> <span class="sc">${hm.t} · ${c.maxMana} PP</span></p><p>Restores <b>${T}</b> HP ${r} to ${hm.tg===7?'itself':'the most injured ally'}${hm.st&&hm.st.some(x=>x[1]>0)?' and raises its '+hm.st.filter(x=>x[1]>0).map(x=>STATN[x[0]]).join(', '):''}.</p>`;}
+  if(K.type==='guard'){const gm=K.gm||c.mv,ups=(gm.st||[]).filter(x=>x[1]>0);return`<p><b>${gm.n}</b> <span class="sc">${gm.t} · ${c.maxMana} PP</span></p><p>Gains a shield of <b>${Math.round(ups.length?v.total:v.total*1.4)}</b> <span class="sc">(${Math.round(v.base*(ups.length?1:1.4))} + ${ups.length?12:17}% max HP)</span>${ups.length?` and raises its ${ups.map(x=>STATN[x[0]]+(x[1]>1?' sharply':'')).join(' and ')}`:''}.</p>`;}
+  const mv=c.mv,bits=[];
+  const hits=mv.hmax>1?`${mv.hmin===mv.hmax?mv.hmax:mv.hmin+'–'+mv.hmax} hits`:'';
+  const who=K.aoe===2?'all enemies within 2 hexes (50%)':K.aoe===1?'the target and adjacent enemies (60%)':'the target';
+  bits.push(`${c.kind==='rapid'?`Every ${KIT.rapidEvery}rd attack also uses it at ${pct(KIT.rapidPow)} power. `:''}Hits ${who} for <b>${T}</b> ${c.cat==='spec'?'special':'physical'} damage ${r}${hits?` over ${hits}`:''}.`);
+  if(mv.ail&&AIL[mv.ail]){const ch=mv.ailc||(mv.mc===1?100:0);if(ch)bits.push(`${ch}% chance to inflict ${AIL[mv.ail].n}.`);}
+  if(mv.fl)bits.push(`${mv.fl}% chance to make the target flinch.`);
+  if(mv.dr>0)bits.push(`Heals for ${mv.dr}% of the damage dealt.`);
+  if(mv.dr<0)bits.push(`Takes recoil (${Math.round(-mv.dr/2)}% of damage dealt).`);
+  if(mv.cr)bits.push('High critical-hit chance; can crit.');
+  if(mv.st&&mv.st.length&&mv.mc===6)bits.push(`${mv.sc||100}% chance to lower the target's ${mv.st.map(x=>STATN[x[0]]).join(' and ')}.`);
+  if(mv.st&&mv.st.length&&(mv.mc===7||mv.mc===2))bits.push(`${mv.st.some(x=>x[1]<0)?'Changes':'Raises'} its own ${mv.st.map(x=>STATN[x[0]]+(x[1]<0?' (−)':' (+)')).join(', ')}.`);
+  if(mv.prio>0)bits.push('Priority move: starts battle with extra PP.');
+  return`<p><b>${mv.n}</b> <span class="sc">${mv.t} · ${mv.p||'—'} power · ${c.kind==='rapid'?'follow-up':c.maxMana+' PP'}</span></p><p>${bits.join(' ')}</p>`;
 }
 function showTip(u,e,hit={}){
   const L=lineOf(u),tip=$('tip'),enemy=hit.enemy||(hit.cu&&hit.cu.team);
   const c=hit.cu||makeCombatant(u,enemy?1:0,0,0,{},hit.mult||1,hit.boss||(hit.cu&&hit.cu.boss));
-  const mv=moveValue(c),G=growthOf(u),evo=MODE.kids(u.dex).map(k=>D[k].n);
+  const K=c.kit,G=growthOf(u),evo=MODE.kids(u.dex).map(k=>D[k].n);
   const hp=hit.cu?`${Math.round(c.hp)}/${Math.round(c.maxHp)}`:Math.round(c.maxHp);
-  tip.innerHTML=`<div class="top"><img src="${por(u.dex)}" alt=""><div><div class="lbl">${enemy?'Opponent':`Cost ₽${L.cost} · ${roleOf(u.dex)}`}</div><h3>${esc(D[u.dex].n)}</h3>
-    <div class="stars">${'★'.repeat(u.star)}</div><div class="chips">${typeChips(u.dex)}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div></div></div>
+  const sets=setsOf(u.dex,u.root);
+  tip.innerHTML=`<div class="top"><img src="${por(u.dex)}" alt=""><div><div class="lbl">${enemy?'Opponent':`Cost ₽${L.cost}`} · ${K.cls}</div><h3>${esc(D[u.dex].n)}</h3>
+    <div class="stars">${'★'.repeat(u.star)}</div><div class="chips">${sets.map(k=>SETS[k]&&SETS[k].cat==='type'?chip(k,TYPES[k]):setChip(k)).join('')}</div></div></div>
     <div class="stats"><div><span class="lbl">HP</span><b>${hp}</b></div><div><span class="lbl">Atk</span><b>${Math.round(c.atk)}</b></div><div><span class="lbl">Sp.Atk</span><b>${Math.round(c.spa)}</b></div><div><span class="lbl">Speed</span><b>${c.as.toFixed(2)}</b></div>
-    <div><span class="lbl">Def</span><b>${Math.round(c.def)}</b></div><div><span class="lbl">Sp.Def</span><b>${Math.round(c.res)}</b></div><div><span class="lbl">Range</span><b>${c.range}</b></div><div><span class="lbl">PP</span><b>${Math.round(c.mana)}/${c.maxMana}</b></div></div>
-    <div class="ab"><b>${moveName(u.dex)}</b> <span class="sc">${c.cat==='spec'?'Special':'Physical'}</span><p>${moveText(c.kind,mv,c.cat,STUNTYPES.has(D[u.dex].t[0]))}</p></div>
+    <div><span class="lbl">Def</span><b>${Math.round(c.def)}</b></div><div><span class="lbl">Sp.Def</span><b>${Math.round(c.res)}</b></div><div><span class="lbl">Range</span><b>${c.range}</b></div><div><span class="lbl">PP</span><b>${c.maxMana?Math.round(c.mana)+'/'+c.maxMana:'—'}</b></div></div>
+    <div class="ab">${moveDesc(c)}${K.ab?`<p class="abil"><b>${esc(K.ab.n)}</b> <span class="sc">Ability</span><br>${K.ab.d}</p>`:''}</div>
     ${u.items&&u.items.length?`<div class="items">${u.items.map(it=>`<div><img src="${iconOf(itemDef(it).id)}" alt=""><span><b>${esc(itemName(it))}</b></span></div>`).join('')}</div>`:''}
     ${G?`<div class="grow"><b>${G.n}</b>: ${G.d}${u.gs?`<br>Grown ${u.gs} time${u.gs>1?'s':''} this run.`:''}</div>`:''}
     ${!enemy&&u.star<3&&evo.length?`<div class="lbl" style="margin-top:8px">${u.star===1?'At 2★':'At 3★'}: ${evo.length>1?'choose '+esc(evo.join(' / ')):'evolves into '+esc(evo[0])}</div>`:''}`;
@@ -792,23 +966,26 @@ function renderUI(){
     tr+=`${i>1?'<span class="link"></span>':''}<span class="${cls}" title="Floor ${i}: ${k==='wild'?'Wild Pokémon':k==='boss'?'Boss: '+esc(D[run.boss.dex].n):k==='elite'?'Rival (relic reward)':'Trainer'}${i===2?' · Augment':''}">${inner}</span>`;}
   $('track').innerHTML=tr;
   const ct=countTraits(Object.values(run.board));
-  const keys=Object.keys(ct).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||ct[b]-ct[a]||a.localeCompare(b));
+  const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||(ct[b]/SETS[b].bp[0])-(ct[a]/SETS[a].bp[0])||a.localeCompare(b));
   const MAXT=5,shown=keys.slice(0,MAXT);
-  $('traits').innerHTML=keys.length?shown.map(k=>{const n=ct[k],ti=tierOf(k,n),T=traitDef(k),isType=!!TT[k];
-    const col=isType?TYPES[k]:REGCOL[REGIONS.indexOf(k)];
-    return`<div class="trait ${ti?'t'+ti:'off'}" data-trait="${k}"><div class="hex"><span class="in" style="background:${col}">${k.slice(0,3).toUpperCase()}</span></div><div><div class="nm">${k}</div><div class="bp">${BP.map(b=>n>=b?`<b>${b}</b>`:b).join(' › ')}</div></div><div class="ct">${n}</div></div>`;}).join('')+(keys.length>MAXT?`<div class="more">+${keys.length-MAXT} more</div>`:'')
-    :`<div class="hint">Place Pokémon on the field to activate type${MODE.gen?'':' and region'} bonuses.</div>`;
+  const tr1=k=>{const n=ct[k],ti=tierOf(k,n),S=SETS[k];
+    return`<div class="trait ${ti?'t'+ti:'off'}" data-trait="${k}"><div class="hex"><span class="in" style="background:${setColor(k)}">${k.replace(/ /g,'').slice(0,3).toUpperCase()}</span></div><div><div class="nm">${k}</div><div class="bp">${S.bp.map(b=>n>=b?`<b>${b}</b>`:b).join(' › ')}</div></div><div class="ct">${n}</div></div>`;};
+  $('traits').innerHTML=keys.length?shown.map(tr1).join('')+(keys.length>MAXT?`<div class="more" data-more="1">+${keys.length-MAXT} more sets</div>`:'')
+    :`<div class="hint">Place Pokémon on the field to activate sets: types, classes, styles${MODE.gen?'':' and regions'}.</div>`;
   const s=run.strat,inc=incomePreview();
   let mh=`<div class="mod"><div class="k">Strategy</div><div class="v">${s.name}</div><p>${s.guide}</p></div>`;
   if(run.aug)mh+=`<div class="mod ${run.augTier}"><div class="k">${run.augTier} augment</div><div class="v">${run.aug.name}</div><p>${run.aug.d}</p></div>`;
   if(run.relics.length)mh+=`<div class="mod"><div class="k">Relics</div><div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" data-relic="${r}">`).join('')}</div></div>`;
   mh+=`<div class="mod"><div class="k">Next floor income</div><div class="v inc">₽${inc.base+inc.interest+inc.streak+inc.extra}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}</p></div>`;
+  {const sc=scoutState();
+    if(sc.focus.length)mh+=`<div class="mod scout"><div class="k">Scouting</div><div class="v">${sc.focus.join(' · ')}</div><p>Each shop slot has a ${pct(sc.p)} chance to show these sets. Rises after shops that miss.</p></div>`;
+    else if(sc.top)mh+=`<div class="mod"><div class="k">Scouting</div><div class="v">${sc.top.k}: ${Math.min(sc.top.lines,SCOUT.minLines)}/${SCOUT.minLines} lines · ₽${Math.min(sc.top.gold,SCOUT.minGold)}/${SCOUT.minGold}</div><p>${run.floor<SCOUT.minFloor?`Unlocks on floor ${SCOUT.minFloor}. `:''}Invest in a set and the shop starts favoring it.</p></div>`;}
   if(mode!=='loot')mh+=`<div class="mod"><div class="k">Next opponent</div><div class="v">${esc(trainerName(f))}</div><p>Hover their Pokémon to scout them.</p></div>`;
   $('mods').innerHTML=mh;
   const plan=mode==='plan',owned=new Set(allOwned().filter(u=>u.star<3).map(u=>u.root));
   $('cards').innerHTML=run.shop.map((r,i)=>{if(!r)return`<div class="card empty" aria-hidden="true"></div>`;const L=MODE.lines[r];const G=growthOf({root:r});
     return`<button class="card c${L.cost}${run.gold<L.cost?' poor':''}${owned.has(r)?' owned':''}" data-i="${i}" ${plan?'':'disabled'} aria-label="Buy ${esc(D[r].n)} for ${L.cost}"><div class="band"><span class="name">${esc(D[r].n)}</span><span class="cost">₽${L.cost}</span></div>
-      <div class="body"><img class="por" src="${por(r)}" alt=""><div class="info"><span class="role">${roleOf(r)} · Range ${unitStats(r,1,1).range}</span><div class="chips">${typeChips(r)}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div><span class="role">${moveName(r)}</span></div></div>${G?'<span class="grows">Grows</span>':''}</button>`;}).join('');
+      <div class="body"><img class="por" src="${por(r)}" alt=""><div class="info"><span class="role" style="color:${CLASSCOL[roleOf(r)]}">${roleOf(r)} · ${moveName(r)}</span><div class="chips">${typeChips(r)}${kitOf(r).styles.map(setChip).join('')}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div></div></div>${G?'<span class="grows">Grows</span>':''}${run.scouted&&run.scouted[i]?'<span class="scouted">Scouted</span>':''}</button>`;}).join('');
   $('reroll').disabled=!plan||(run.gold<2&&run.freeRerolls<=0);$('rerollcost').textContent=run.freeRerolls>0?`Free ×${run.freeRerolls}`:'₽2';
   $('buyxp').disabled=!plan||run.gold<4||run.level>=MAXLV;
   $('fight').disabled=!plan;$('fight').textContent=mode==='combat'?'Battling…':mode==='loot'?'Open chest':'Battle!';
@@ -823,8 +1000,12 @@ $('cards').addEventListener('pointermove',e=>{const c=e.target.closest('.card');
 $('cards').addEventListener('pointerleave',hideTip);
 $('mods').addEventListener('pointermove',e=>{const r=e.target.dataset&&e.target.dataset.relic;if(r)showInfoTip(`<div class="top"><img src="${iconOf(r)}" alt="" style="width:48px;height:48px"><div><div class="lbl">Relic</div><h3 style="font-size:19px">${RELICS[r].n}</h3></div></div><div class="ab"><p>${RELICS[r].d}</p></div>`,e);else hideTip();});
 $('mods').addEventListener('pointerleave',hideTip);
-$('traits').addEventListener('pointermove',e=>{const el=e.target.closest('.trait');if(!el){hideTip();return;}const k=el.dataset.trait,T=traitDef(k),n=countTraits(Object.values(run.board))[k]||0;
-  showInfoTip(`<div class="lbl">${TT[k]?'Type':'Region'} bonus</div><h3 style="font-size:20px;margin:2px 0 6px">${k}</h3><p style="margin:0;line-height:1.4">${T.d}</p><p class="sc" style="margin:6px 0 0">Active at ${BP.join(' and ')} different Pokémon. You have ${n}.</p>`,e);});
+$('traits').addEventListener('pointermove',e=>{const ct=countTraits(Object.values(run.board));
+  if(e.target.closest('[data-more]')){const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||ct[b]-ct[a]);
+    showInfoTip(`<div class="lbl">All sets on the field</div><div class="setlist">${keys.map(k=>`<div><span class="dot" style="background:${setColor(k)}"></span>${k}<b>${ct[k]}</b><span class="sc">/ ${SETS[k].bp.join(', ')}</span></div>`).join('')}</div>`,e);return;}
+  const el=e.target.closest('.trait');if(!el){hideTip();return;}const k=el.dataset.trait,S=SETS[k],n=ct[k]||0;
+  const mem=[...new Set(Object.values(run.board).filter(u=>setsOf(u.dex,u.root).includes(k)).map(u=>u.dex))];
+  showInfoTip(`<div class="lbl">${SETCAT_LABEL[S.cat]} set</div><h3 style="font-size:20px;margin:2px 0 6px">${k}</h3><p style="margin:0;line-height:1.4">${S.d}</p><p class="sc" style="margin:6px 0 0">Active at ${S.bp.join(' / ')} different Pokémon. You have ${n}.</p>${mem.length?`<div class="por3" style="display:flex;gap:4px;margin-top:6px">${mem.map(d=>`<img src="${por(d)}" alt="" style="width:30px;height:30px;border:2px solid var(--ink);border-radius:4px">`).join('')}</div>`:''}`,e);});
 $('traits').addEventListener('pointerleave',hideTip);
 $('reroll').onclick=reroll;
 $('buyxp').onclick=buyXP;
@@ -940,7 +1121,8 @@ function showEnd(won){
 /* ================= Boot ================= */
 (async()=>{
   try{await document.fonts.load('700 20px "Pixelify Sans"');}catch(e){}
-  const[dex,spr]=await Promise.all([fetch('data/pokedex.json').then(r=>r.json()),fetch('data/sprites.json').then(r=>r.json())]);
+  const[dex,spr,kit]=await Promise.all([fetch('data/pokedex.json?v=4').then(r=>r.json()),fetch('data/sprites.json?v=4').then(r=>r.json()),fetch('data/kits.json?v=4').then(r=>r.json())]);
+  KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);
   for(const k in spr)SM[+k]=spr[k];
