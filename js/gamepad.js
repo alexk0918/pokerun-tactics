@@ -83,7 +83,7 @@ function padPoll(dt){
   if(padEdge(gp,BTN.B))padBack();
   if(padEdge(gp,BTN.X)&&run&&mode==='plan')reroll();
   if(padEdge(gp,BTN.Y)&&run&&mode==='plan')buyXP();
-  if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #m-continue, #overlay #m-new, #overlay #start, #overlay #again');if(s)s.click();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
+  if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #m-continue, #overlay #m-new, #overlay #start, #overlay #again, #overlay #evgo');if(s)s.click();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
   if(padEdge(gp,BTN.SELECT))$('speed').click();
   if(padEdge(gp,BTN.RB)&&run&&(mode==='plan'||mode==='loot')){const r=padStageRect(),p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const o=ownedAt(q.x,q.y);if(o)sell(o.u);}
   PAD.prev=gp.buttons.map(b=>b.pressed);

@@ -12,9 +12,68 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 ## How a run works
 
 - Pick a region, then a team strategy (Ember Gambit, Tidal Fortress or Verdant Investment).
-- Act I has 15 floors: wild Pokémon on floors 1–3, trainers after that, rivals on floors 5 and 10, and a legendary boss on floor 15.
+- Act I has 15 floors: wild Pokémon on floors 1–2, rivals on floors 5 and 10, a legendary boss on floor 15, and a route choice for every other floor (see below).
 - On floor 2 you pick an augment. The tier rolls Silver (25%), Gold (50%) or Prismatic (25%).
 - The shop sells the first stage of each evolution line, priced ₽1–₽5 (₽5 is legendaries and mythicals). Three copies combine into the next star level and evolve; branching lines let you choose the evolution. National Dex runs draw a 100-line pool from all 541 so copies are findable.
+
+### Routes
+
+After each floor you choose where to go next from two or three paths. One is usually a regular battle and another a harder option with better rewards:
+
+| Path | What happens | Reward |
+|---|---|---|
+| Trainer Battle | A regular battle | Chest |
+| Challenge | One extra enemy, stronger stats, some mutated enemies | Better chest (4 choices, more completed items) and +₽3 |
+| Alpha Pokémon | A huge Alpha Pokémon (2.8× HP, +30% damage) with escorts | Enhancer pick, rich chest, 25% chance of a relic |
+| Endurance | Wild waves arrive every 7 seconds and whenever the field is cleared. Survive 15s to win | +₽2 / ₽4 / ₽7 and better loot at 15 / 25 / 40 seconds |
+| Time Attack | Knock out a giant target within 40 seconds; its guards don't count | +₽2 / ₽4 / ₽7 and better loot under 40 / 25 / 15 seconds |
+| Mystery | A random event (below) | Varies |
+| Pokémon Center | No battle: rest (25% HP), train (+6 XP) or take two consumables | |
+| Kecleon Shop | Buy Pokémon, components, completed items, enhancers, relics and consumables | |
+
+Each act guarantees a Kecleon Shop among the options on three floors, and there's a small chance of one on any other floor. When your HP is low, a Pokémon Center is more likely to appear. The floor track shows the paths you took, with "?" for floors still to choose.
+
+### Events
+
+Mystery paths draw one of 14 events, each at most once per run. Each offers choices with different risks:
+
+- **A Snorlax blocks the path:** sneak around it, leave it a berry, or wake it up and fight it as an Alpha.
+- **A Mysterious Egg:** hatch it into a ₽3–4 Pokémon, or return it.
+- **A Berry Tree:** pick berries, shake it, or take a cutting.
+- **A traveling trader:** trade up your cheapest 1★ Pokémon.
+- **The Move Tutor:** pay for a stat boost on one Pokémon or the whole team.
+- **The Day Care:** pay to raise a 1★ Pokémon to 2★.
+- **Game Corner:** gamble Pokédollars.
+- **Unown Ruins:** trade HP for an enhancer or a relic.
+- **A forest shrine:** bless a Pokémon's items or heal.
+- **Team Rocket ambush:** fight a Challenge battle for bonus money, pay them off, or run.
+- **A fossil lab:** revive a fossil Pokémon or sell the fossil.
+- **A hidden grotto:** pick one of three Poké Balls.
+- **A shadowy lab:** turn a Pokémon Shadow, or take a Shadow component.
+- **A glowing stone:** dig up an item for your generation gimmick.
+
+### Kecleon Shops
+
+The stock: two Pokémon, two components, one completed item, two enhancers, a relic and a consumable. Prices are ₽cost+2 for Pokémon, ₽4 for components, ₽9 for completed items, ₽7 for enhancers, ₽12 for relics and ₽3 for consumables, plus ₽2 for anything mutated.
+
+35% of Kecleon are mutated (Shadow Kecleon, Golden Kecleon and so on). A mutated Kecleon is tinted and gives about 70% of its stock that mutator, including the Pokémon.
+
+### Enhancers
+
+Enhancers work like The Last Flame's recipes. Drop one onto a completed item, either in your bag or on a Pokémon, to add an effect. Each item takes one, and enhanced items show a "+" and a teal frame. There are 20 enhancers:
+
+- **Stat boosts:** Quick Powder, Metal Coat, Thick Club, Light Ball, Lucky Punch, Soul Dew, Big Root, Starf Berry.
+- **On-hit effects:** Black Sludge (poison), Electric Seed (paralysis), Spell Tag (bonus damage to weakened enemies).
+- **Passives:** Smoke Ball, Loaded Dice, Ability Shield.
+- **Triggered effects:** Red Card (shield at half HP), Adrenaline Orb (speed when an ally faints), Room Service (slows nearby enemies at the start of battle), Sacred Ash (revive), Rare Bone (heals and grows on knockouts), Enigma Berry (heal at half HP).
+
+Enhancers come from Alpha Pokémon, rivals, Kecleon Shops and some events.
+
+### Mutated Pokémon
+
+Pokémon can carry a mutator too: from Kecleon Shops, the shadowy lab event, or enemies on later floors and Challenge paths. A mutated Pokémon glows in its mutator's color, keeps the mutator when it combines into a higher star, and gets the same bonus a mutated item would.
+
+**Shadow** is a new mutator for both items and Pokémon: +15% damage, but the holder takes 6% more damage.
 
 ### Economy
 
@@ -24,14 +83,14 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 ### Items
 
-- A chest appears after every floor. Open it and pick one of three items, or skip for ₽2.
+- A chest appears after every battle. Open it and pick one of three items, or skip for ₽2.
 - Items work like TFT: 8 components (Protein, Calcium, Carbos, Iron, Zinc, HP Up, PP Up, Dire Hit) combine into 36 completed items. Put two components on the same Pokémon, or drop one on another in your bag. Each Pokémon holds up to 3 items, and selling it returns them to the bag.
-- Items can roll mutators (Shiny, Blazing, Vampiric, Swift, Sturdy, Charged, Lucky, Golden, Growing, Thorny, Blessed) that carry over when components combine.
+- Items can roll mutators (Shiny, Blazing, Vampiric, Swift, Sturdy, Charged, Lucky, Golden, Growing, Thorny, Blessed, Shadow) that carry over when components combine.
 - Consumables: Rare Candy (copy a Pokémon), Potion, Nugget, Honey.
 
 ### Relics
 
-Beating a rival (floors 5 and 10) lets you pick one of three relics: team-wide effects such as Exp. Share, Coin Case, Dowsing Machine or Poké Flute.
+Beating a rival (floors 5 and 10) lets you pick one of three relics, then one of three enhancers. Relics are team-wide effects such as Exp. Share, Coin Case, Dowsing Machine or Poké Flute. Alpha Pokémon have a 25% chance to drop a relic, and Kecleon Shops sell them.
 
 ### Sets
 
@@ -104,6 +163,7 @@ js/data.js          balance tables: items, relics, augments, levels
 js/sets.js          sets, ability passives, kit tuning
 js/game.js          game logic
 js/forms.js         form changes and generation gimmicks
+js/route.js         route choices, events, Kecleon shops, enhancers, unit mutators
 js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata

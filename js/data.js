@@ -92,6 +92,7 @@ const MUTS={
   growing:{n:'Growing',d:'Gains +2% damage permanently after every battle',e:{}},
   thorny:{n:'Thorny',d:'Melee attackers take 3% of the holder\'s max HP',e:{helmet:.03}},
   blessed:{n:'Blessed',d:'Start battle with a shield of 10% max HP',e:{shieldP:.1}},
+  shadow:{n:'Shadow',d:'+15% damage, but takes 6% more damage',e:{dmg:.15,dr:-.06}},
 };
 
 /* Consumables */
