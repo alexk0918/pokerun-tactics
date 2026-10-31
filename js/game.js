@@ -86,7 +86,7 @@ function moveLine(dex){if(!KITS[dex]||!KITS[dex].lad)return null;
   const chain=[...up,...down].filter(x=>KITS[x]&&KITS[x].lad);if(chain.length<2)return null;
   return chain.map(x=>({dex:x,n:(MOVEDB[KITS[x].m]||FALLBACK_MOVE).n}));}
 const roleOf=dex=>kitOf(dex).cls;
-function moveName(dex){const k=kitOf(dex);if(k.type==='heal')return k.hm.n;if(k.type==='guard')return(k.gm||k.mv).n;if(k.type==='tank')return'No move';return k.mv.n;}
+function moveName(dex){const k=kitOf(dex);if(k.type==='heal')return k.hm.n;if(k.type==='tank')return'No move';return k.mv.n;}
 function unitStats(dex,cost,star){
   const sp=D[dex],s=sp.s,avg=sp.bst/6,r=x=>clamp(x/avg,.4,2),sm=STARM[star-1],K=kitOf(dex);
   const off=(34+cost*8)*sm,cf=STARB[star-1]*(.7+.15*cost);
