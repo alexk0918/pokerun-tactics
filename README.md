@@ -56,6 +56,28 @@ Once you've invested in a set (3+ different lines and ₽8+ worth of units, from
 - Some Pokémon have no active move: Juggernauts (Snorlax, Wailord) are pure HP tanks, and Strikers (fast physical attackers) fire their move as a free follow-up every third attack.
 - Some lines grow permanently over a run, such as Magikarp, Abra, Mankey, Munchlax/Snorlax, Shuckle, Feebas, Pawniard, Honedge, Wishiwashi, Skwovet, Gimmighoul, Pichu/Pikachu and Eevee. Their shop card shows a "Grows" tag.
 
+### Form changes
+
+Form-change Pokémon transform the way they do in the games:
+
+- **By ability:** Aegislash (Stance Change), Mimikyu (Disguise), Wishiwashi (Schooling), Darmanitan (Zen Mode), Minior (Shields Down), Meloetta (Relic Song), Palafin (Zero to Hero, permanent after its first battle), Morpeko (Hunger Switch), Castform (Forecast), Cherrim (Flower Gift), Eiscue (Ice Face), Zygarde (Power Construct), Terapagos (Tera Shift).
+- **By held item** (drops from chests when you own the Pokémon): Red Orb and Blue Orb (Primal Groudon and Kyogre), Griseous Core, Adamant Crystal, Lustrous Globe, Rusted Sword and Shield, Gracidea, Prison Bottle, Reveal Glass and Ogerpon's masks.
+
+### Generation gimmicks
+
+On floor 4 of each act you choose one key item. The others become available in later acts.
+
+- **Mega Bracelet (Gen VI):** Mega Stones drop only for Pokémon you own (96 Megas, including Legends: Z-A). Pick which Pokémon is your Mega; it Mega Evolves early in each battle with its real Mega stats and ability.
+- **Z-Power Ring (Gen VII):** Z-Crystals let a Pokémon with a matching move type turn its first move each battle into a Z-Move.
+- **Dynamax Band (Gen VIII):** Max Mushrooms raise a Pokémon's Dynamax Level (up to 10). Your Dynamax pick grows huge for 10 seconds with Max Moves that change the battlefield. Pokémon with a Gigantamax form unlock it at 3 mushrooms and use their G-Max Move.
+- **Tera Orb (Gen IX):** Tera Shards work like emblems: the holder counts as that type for sets. Your Tera pick Terastallizes each battle, counting twice toward its Tera type.
+
+Rivals and the boss use a gimmick of their own.
+
+### Saving
+
+Runs save automatically in your browser. Continue from the main menu, which also has Options (battle speed, damage numbers, delete save) and Credits.
+
 ## Controller
 
 Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a browser that supports the Gamepad API:
@@ -69,7 +91,7 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 | X | Reroll |
 | Y | Level up |
 | RB | Release the Pokémon under the cursor |
-| Start | Start / battle / open chest |
+| Start | Continue or new game / battle / open chest |
 | Select | Toggle battle speed |
 
 ## Project layout
@@ -79,17 +101,20 @@ index.html          markup and styles
 js/data.js          balance tables: items, relics, augments, levels
 js/sets.js          sets, ability passives, kit tuning
 js/game.js          game logic
+js/forms.js         form changes and generation gimmicks
 js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata
 data/kits.json      per-species move, heal/guard move and abilities (from PokéAPI)
-assets/XXXX/        PMD sprites and portrait for National Dex #XXXX
+data/forms.json     Mega, Gigantamax, battle and item forms (from PokéAPI)
+assets/fonts/       Pokémon Emerald font built from pret/pokeemerald glyphs
+assets/XXXX/        PMD sprites and portrait for National Dex #XXXX (form ids above 10000)
 ```
 
 Run locally with any static server, for example `python3 -m http.server`, then open http://localhost:8000.
 
 ## Credits
 
-Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/).
+Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
 
 This is a non-commercial fan project and is not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon is a trademark of Nintendo, Game Freak and Creatures.

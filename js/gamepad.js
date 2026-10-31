@@ -26,7 +26,7 @@ function padDraw(){PAD.el.style.left=PAD.x+'px';PAD.el.style.top=PAD.y+'px';PAD.
 /* targets for D-pad snapping, in stage coordinates */
 function padTargets(){
   const r=padStageRect(),k=r.width/1280,out=[];
-  const sel=document.querySelector('#overlay .screen')?'#overlay button, #overlay .pick, #overlay .mode':'#shop button:not(:disabled), #shop .card, #slots .slot:not(.empty), #hud button, #traits .trait, #mods [data-relic], #overlay button';
+  const sel=document.querySelector('#overlay .screen')?'#overlay button, #overlay .pick, #overlay .mode':'#shop button:not(:disabled), #shop .card, #slots .slot:not(.empty), #hud button, #traits .trait, #mods [data-relic], #mods button, #overlay button';
   document.querySelectorAll(sel).forEach(el=>{if(el.closest('[hidden]'))return;const b=el.getBoundingClientRect();if(!b.width)return;out.push({x:(b.left+b.width/2-r.left)/k,y:(b.top+b.height/2-r.top)/k});});
   if(!document.querySelector('#overlay .screen')&&typeof run!=='undefined'&&run&&['plan','loot','combat','result'].includes(mode)){
     const toStage=(px,py)=>({x:px*2,y:(py-10)*2});
@@ -83,7 +83,7 @@ function padPoll(dt){
   if(padEdge(gp,BTN.B))padBack();
   if(padEdge(gp,BTN.X)&&run&&mode==='plan')reroll();
   if(padEdge(gp,BTN.Y)&&run&&mode==='plan')buyXP();
-  if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #start, #overlay #again');if(s)s.click();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
+  if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #m-continue, #overlay #m-new, #overlay #start, #overlay #again');if(s)s.click();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
   if(padEdge(gp,BTN.SELECT))$('speed').click();
   if(padEdge(gp,BTN.RB)&&run&&(mode==='plan'||mode==='loot')){const r=padStageRect(),p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const o=ownedAt(q.x,q.y);if(o)sell(o.u);}
   PAD.prev=gp.buttons.map(b=>b.pressed);

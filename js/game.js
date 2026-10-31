@@ -78,7 +78,7 @@ function kitOf(dex){
   else cls=mv.c===3?'Mystic':'Bruiser';
   const cat=type==='heal'?'spec':type==='tank'?(s[1]>=s[3]?'phys':'spec'):(mv.c===3?'spec':'phys');
   const range=type==='heal'?2:(cat==='spec'&&(type==='cast'))?3:1;
-  const abId=(k.a||[]).find(a=>ABILITIES[a]&&ABILITIES[a].d);
+  const abs=k.a||[],abId=abs.find(a=>typeof FORM_ABIL!=='undefined'&&FORM_ABIL[a])||abs.find(a=>ABILITIES[a]&&ABILITIES[a].d);
   const mana=type==='cast'?clamp(Math.round(55+(mv.p||60)*hits*.25),60,100):type==='heal'?80:type==='guard'?85:0;
   return KITCACHE[dex]={type,cls,mv,hm,gm,hits,aoe,cat,range,mana,ladder:moveLine(dex),start:mv.prio>0?35:type==='guard'?25:10,
     ab:abId?{id:abId,n:ABNAME[abId]||abId,d:ABILITIES[abId].d,e:ABILITIES[abId].e}:null,styles:stylesOf(dex,k.a||[])};
@@ -208,15 +208,15 @@ const ITEMIMG={};
 const iconOf=id=>`assets/items/${id}.png`;
 function loadItemImages(){const ids=new Set([...Object.values(COMP).map(c=>c.id),...Object.values(CRAFT).map(c=>c.id),...Object.keys(USE),...Object.keys(RELICS)]);
   for(const id of ids){const i=new Image();i.src=iconOf(id);ITEMIMG[id]=i;}}
-const isComp=it=>it.k.length===1&&COMP[it.k];
+const isComp=it=>it.k.length===1&&!!COMP[it.k];
 const isCraft=it=>!!CRAFT[it.k];
 const isUse=it=>!!USE[it.k];
-function itemDef(it){if(isComp(it))return COMP[it.k];if(isCraft(it))return CRAFT[it.k];return USE[it.k];}
+function itemDef(it){if(isGim(it))return gimDef(it);if(isFormItem(it))return formItemDef(it);if(isComp(it))return COMP[it.k];if(isCraft(it))return CRAFT[it.k];return USE[it.k];}
 function itemName(it){const d=itemDef(it);return(it.mut&&it.mut.length?it.mut.map(m=>MUTS[m].n).join(' ')+' ':'')+d.n;}
-function itemTier(it){return isComp(it)?'common':isCraft(it)?'epic':'use';}
+function itemTier(it){return isGim(it)?'gim':isFormItem(it)?'formi':isComp(it)?'common':isCraft(it)?'epic':'use';}
 function addE(t,e){for(const k in e){const v=e[k];if(typeof v==='number')t[k]=(t[k]||0)+v;else if(Array.isArray(v))t[k]=[...(t[k]||[]),...v];else if(v&&typeof v==='object')t[k]=Object.assign({},t[k]||{},v);else t[k]=v;}return t;}
 function itemEffects(it){
-  const t={};
+  const t={};if(isGim(it)||isFormItem(it))return t;
   if(isComp(it))addE(t,COMP[it.k].e);
   if(isCraft(it)){addE(t,COMP[it.k[0]].e);addE(t,COMP[it.k[1]].e);addE(t,CRAFT[it.k].e);}
   for(const m of it.mut||[])addE(t,MUTS[m].e);
@@ -269,8 +269,10 @@ const growthOf=u=>{const L=MODE.lines[u.root];if(!L)return null;return GROWTH.fi
 /* ---------- sets ---------- */
 function setsOf(dex,root){const K=kitOf(dex),out=[...D[dex].t,K.cls,...K.styles];if(!MODE.gen&&MODE.lines[root])out.push(REGIONS[MODE.lines[root].region]);return out;}
 function lineSets(root){MODE.lsCache=MODE.lsCache||{};if(!MODE.lsCache[root]){const s=new Set();for(const d of MODE.lines[root].mem)for(const k of setsOf(d,root))s.add(k);MODE.lsCache[root]=[...s];}return MODE.lsCache[root];}
+function unitSets(u){const s=setsOf(u.dex,u.root);if(u.shard&&!s.includes(u.shard))s.push(u.shard);return s;}
 function countTraits(list){const seen=new Set(),ct={};
-  for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of setsOf(u.dex,u.root))ct[k]=(ct[k]||0)+1;}
+  for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of unitSets(u))ct[k]=(ct[k]||0)+1;
+    if(run&&run.gimmick==='tera'&&u.shard&&u.uid===run.gimTarget)ct[u.shard]=(ct[u.shard]||0)+1;}
   return ct;}
 const traitDef=k=>SETS[k];
 const tierOf=(k,n)=>SETS[k]?SETS[k].bp.filter(b=>n>=b).length:0;
@@ -357,9 +359,10 @@ function equipRaw(it,u){
   if(isComp(it)){const j=u.items.findIndex(isComp);if(j>=0){u.items[j]=combineItems(u.items[j],it);return{crafted:u.items[j]};}}
   if(u.items.length>=3)return false;u.items.push(it);return'equipped';
 }
-function canEquip(it,u){if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
+function canEquip(it,u){if(isGim(it))return true;if(isFormItem(it))return u.items.length<3;if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
 function useItem(bi,u){
   const it=run.bag[bi];if(!it)return false;
+  if(isGim(it)){if(!u)return false;return equipGim(bi,u);}
   if(isUse(it)){
     if(USE[it.k].target){if(!u)return false;if(!addCopy(u.root)){toast('Your bench is full.');return false;}}
     else if(it.k==='potion')run.hp=Math.min(run.maxHp,run.hp+12);
@@ -411,6 +414,7 @@ async function startFloor(){
   mode='plan';if(SIM.on)return;
   showGameUI(true);renderUI();
   if(f===2&&!run.aug)showAugment();
+  else if(f===GIMMICK_FLOOR&&!run.gimmick)showGimmickChoice();
   else{banner(`Floor ${f}`,trainerName(f),1400);if(run.lastIncome&&f>1){const i=run.lastIncome;toast(`+₽${i.total} income: ₽${i.base} base${i.interest?` + ₽${i.interest} interest`:''}${i.streak?` + ₽${i.streak} streak`:''}${i.extra?` + ₽${i.extra} Pay Day`:''}`);}}
 }
 function autoFill(){
@@ -429,7 +433,10 @@ function startCombat(){
   const mine=boardUnits(),ptr=countTraits(mine.map(x=>x.u)),etr=countTraits(enemyPreview.map(e=>e.u));
   for(const b of mine)units.push(makeCombatant(b.u,0,b.c,b.r,ptr,1));
   for(const e of enemyPreview)units.push(makeCombatant(e.u,1,e.c,e.r,etr,e.mult,e.boss));
+  for(const c of units)formsOnStart(c);
   startOfBattle([ptr,etr]);
+  for(const c of units)formsOnWeather(c);
+  applyGimmicks();
   renderUI();return true;
 }
 function teamX(tr){const x={};for(const k in tr){const S=SETS[k],ti=tierOf(k,tr[k]);if(ti&&S.x)Object.assign(x,S.x[ti-1]);if(ti&&S.t)addE(x,S.t[ti-1]);}return x;}
@@ -465,7 +472,7 @@ function startOfBattle(trs){
 function makeCombatant(u,team,c,r,tr,mult,boss){
   const L=lineOf(u),K=kitOf(u.dex),st=unitStats(u.dex,L.cost,u.star),g=u.g||{};
   const E={};for(const it of u.items)addE(E,itemEffects(it));
-  for(const k of setsOf(u.dex,u.root)){const ti=tierOf(k,tr[k]||0);if(ti&&SETS[k].m)addE(E,SETS[k].m[ti-1]);}
+  for(const k of unitSets(u)){const ti=tierOf(k,tr[k]||0);if(ti&&SETS[k].m)addE(E,SETS[k].m[ti-1]);}
   for(const k in tr){const ti=tierOf(k,tr[k]);if(ti&&SETS[k].t)addE(E,SETS[k].t[ti-1]);}
   if(K.ab)addE(E,K.ab.e);
   let taken=1;
@@ -551,7 +558,7 @@ function attack(u,tg){
     if(u.metroAS&&u.metroN<12){u.metroN++;u.as*=(1+u.metroAS*u.metroN)/(1+u.metroAS*(u.metroN-1));}
     if(u.magnet&&++u.magN%3===0)zap(u,60+.3*u.spa,'#ffe14d');
     if(u.fx.zap&&u.atkN%3===0)zap(u,u.fx.zap*(u.u.star>1?1+.5*(u.u.star-1):1),'#ffe14d');
-    if(u.kind==='rapid'&&u.atkN%KIT.rapidEvery===0&&!tg.dead)useMove(u,tg,KIT.rapidPow,true);
+    if(u.kind==='rapid'&&u.atkN%KIT.rapidEvery===0&&!tg.dead)useMove(u,tg,KIT.rapidPow,!(u.zReady||u.dmaxOn));
   });
 }
 function zap(u,amt,col){alive(1-u.team).sort((a,b)=>hdist(u,a)-hdist(u,b)).slice(0,3).forEach(o=>{damage(u,o,amt,{cat:'spec',noCrit:1});if(!SIM.on)burst(o.x,o.y-10,col,6,.6);});}
@@ -580,7 +587,7 @@ function checkHp(tg,src){
   if(tg.fx.lowDef&&!tg.lowDefOn&&lowHp(tg,.5)){tg.lowDefOn=1;tg.def+=tg.fx.lowDef;}
   if(tg.fx.lowAtk&&!tg.lowAtkOn&&lowHp(tg,.5)){tg.lowAtkOn=1;tg.atk*=1+tg.fx.lowAtk;}
   if(tg.fx.lowSpa&&!tg.lowSpaOn&&lowHp(tg,.5)){tg.lowSpaOn=1;tg.spa*=1+tg.fx.lowSpa;}
-  if(tg.hp>0)return;
+  if(tg.hp>0){formsOnHp(tg);return;}
   if(tg.focus>0){tg.focus--;tg.hp=1;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Hung on!',col:'#ff8a7a',life:1.2});return;}
   if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;tg.burn=tg.poison=null;if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
   if(tg.team===0&&battle.flute){battle.flute=false;tg.hp=tg.maxHp*.35;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Woke up!',col:'#c6b3ff',life:1.2});return;}
@@ -619,9 +626,10 @@ function damage(src,tg,amt,o={}){
   if(o.ab)d*=1-tg.cloak;
   if(tg.fx.multiscale&&tg.hp>=tg.maxHp-.5)d*=1-tg.fx.multiscale;
   d*=tg.taken;
-  if(tg.disguise>0){tg.disguise--;d=0;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Disguise!',col:'#ffe27a',life:1});}
+  if(tg.disguise>0&&d>0){tg.disguise--;d=0;formsOnDisguiseBroken(tg);if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Disguise!',col:'#ffe27a',life:1});}
+  if(tg.iceFace&&o.cat==='phys'&&d>0){tg.iceFace=0;d=0;formsOnIceFace(tg);}
   tg.hits++;src.dealt+=d;
-  if(!SIM.on&&d>0){tg.flash=.15;texts.push({x:tg.x+rnd(-6,6),y:tg.y-22,txt:Math.round(d)+(crit?'!':''),col:o.ab?(o.cat==='spec'?'#b9a4ff':'#ffd34d'):crit?'#ffb08a':'#ffffff',big:o.ab||crit,life:.9});}
+  if(!SIM.on&&d>0){tg.flash=.15;if(OPTS.dmg)texts.push({x:tg.x+rnd(-6,6),y:tg.y-22,txt:Math.round(d)+(crit?'!':''),col:o.ab?(o.cat==='spec'?'#b9a4ff':'#ffd34d'):crit?'#ffb08a':'#ffffff',big:o.ab||crit,life:.9});}
   gainMana(tg,Math.min(12,d*.04));
   if(src.ls&&!src.dead)heal(src,d*src.ls,true);
   if(src.fx.lowLs&&lowHp(src,.5)&&!src.dead)heal(src,d*src.fx.lowLs,true);
@@ -653,15 +661,17 @@ function hitsFor(u){const mv=u.mv;if(!mv.hmax||mv.hmax<=1)return 1;let n=u.fx.sk
 function useMove(u,tg,pow=1,free=false){
   const mv=u.mv,cat=u.cat,col=tcol(u);
   u.strike=1;let total=moveValue(u).total*pow;u.strike=0;if(u.fx.technician&&mv.p&&mv.p<=60)total*=1+u.fx.technician;
+  const G=free?null:gimmickMove(u,mv);if(G)total*=G.mult;
+  const aoeK=G&&G.aoe?Math.max(1,u.kit.aoe):u.kit.aoe;
   const baseHits=mv.hmax>1?(mv.hmin+mv.hmax)/2:1,n=hitsFor(u),per=total/baseHits;
   const spl=(u.kit.aoe===2?.5:.6)+(u.fx.splash||0);
-  const targets=()=>{if(tg.dead)return[];if(!u.kit.aoe)return[tg];const r=u.kit.aoe===2?2:1,c=u.kit.aoe===2?u:tg;return[tg,...alive(tg.team).filter(o=>o!==tg&&hdist(o,c)<=r)];};
+  const targets=()=>{if(tg.dead)return[];if(!aoeK)return[tg];const r=aoeK===2?2:1,c=aoeK===2?u:tg;return[tg,...alive(tg.team).filter(o=>o!==tg&&hdist(o,c)<=r)];};
   const go=()=>{const ts=targets();let dealt=0;
-    for(let i=0;i<n;i++)schedule(i*.09,()=>{for(const t of ts){if(t.dead)continue;const amt=per*(t===tg?1:spl);dealt+=damage(u,t,amt,{ab:1,cat,type:mv.t,cr:(mv.cr||0)*.25});applyMoveFx(u,t,mv);}
-      if(i===n-1)afterMove(u,mv,dealt);});
+    for(let i=0;i<n;i++)schedule(i*.09,()=>{for(const t of ts){if(t.dead)continue;const amt=per*(t===tg?1:spl);dealt+=damage(u,t,G&&G.aoe&&t!==tg?per*.8:amt,{ab:1,cat,type:mv.t,cr:(mv.cr||0)*.25});applyMoveFx(u,t,mv);}
+      if(i===n-1){afterMove(u,mv,dealt);if(G&&G.after)G.after();}});
     if(!SIM.on)for(const t of ts)burst(t.x,t.y-10,col,u.kit.aoe?12:14,1);};
   if(!SIM.on&&u.range>1&&!u.kit.aoe)shoot(u,tg,col,go,3);else go();
-  if(!free&&!SIM.on)texts.push({x:u.x,y:u.y-34,txt:mv.n,col:'#ffffff',life:1.1,label:1});
+  if(!free&&!SIM.on){texts.push({x:u.x,y:u.y-34,txt:G&&G.name?G.name:mv.n,col:G&&G.col?G.col:'#ffffff',life:G&&G.big?1.8:1.1,label:1,big:G&&G.big});if(G&&G.big)for(const t of targets())burst(t.x,t.y-10,G.col,30,1.6);}
   else if(free&&!SIM.on)texts.push({x:u.x,y:u.y-34,txt:mv.n,col:'#ffe9a8',life:.8,label:1});
 }
 function afterMove(u,mv,dealt){
@@ -677,9 +687,10 @@ function applyMoveFx(u,t,mv){
   if(mv.mc===6&&mv.st&&!t.fx.clear&&Math.random()<((mv.sc||100)/100)*ser)for(const[s,ch]of mv.st)if(ch<0)applyStat(t,s,ch);
 }
 function cast(u,tg){
-  u.mana=0;u.casts++;const K=u.kit;
+  u.mana=0;u.casts++;const K=u.kit;formsOnCast(u);
   const anim=K.type==='heal'||K.type==='guard'||u.range>1?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);
   schedule(hTime(u,anim),()=>{if(u.dead)return;
+    if((u.zReady||u.dmaxOn)&&K.type!=='cast'&&!tg.dead){useMove(u,tg);if(u.spray)u.spa*=1+u.spray;if(u.leppa)gainMana(u,u.leppa);return;}
     if(K.type==='heal'){const hm=K.hm,v=moveValue(u).total;
       const al=hm.tg===7?u:alive(u.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
       if(al){heal(al,v);if(!SIM.on){ring(al.x,al.y-8,'#c6ff8a');burst(al.x,al.y-12,'#e9ffb0',12,.6);texts.push({x:u.x,y:u.y-34,txt:hm.n,col:'#ffffff',life:1.1,label:1});}}
@@ -699,7 +710,7 @@ function endCombat(win){
   mode='result';const f=run.floor,kind=floorKind(f);
   // growth, lucky eggs, golden items
   const grew=[];let xp=0,gold=0;
-  for(const c of units){if(c.team!==0)continue;const u=c.u;
+  for(const c of units){if(c.team!==0)continue;const u=c.u;formsAfterBattle(u);
     xp+=c.xpEgg;if(win)gold+=c.goldMut;if(c.fx.pickup&&Math.random()<c.fx.pickup)gold++;
     for(const it of u.items)if((it.mut||[]).includes('growing'))it.gs=(it.gs||0)+.02;
     const G=growthOf(u);if(!G)continue;
@@ -739,6 +750,9 @@ function rollLoot(lost){
     else if(x<pCraft+pUse&&!elite)out.push({k:pick(Object.keys(USE)),mut:[]});
     else out.push(mkComp(randComp(),rollMut(.12+f*.01)));}
   if(hasRelic('super-rod')&&!out.some(isCraft))out[0]={k:randCraft(),mut:rollMut(.3)};
+  if(run.gimmick&&Math.random()<({dmax:.4,mega:.5,zmove:.35,tera:.35}[run.gimmick])*(lost?.6:1)){const g=gimLootItem();if(g)out[out.length-1]=g;}
+  if(run.megaPity&&run.gimmick==='mega'){const g=gimLootItem();if(g){out[0]=g;run.megaPity=0;}}
+  {const fi=ownedFormItems().filter(x=>!run.bag.some(b=>b.k==='form:'+x)&&!allOwned().some(u=>u.items.some(i=>i.k==='form:'+x)));if(fi.length&&Math.random()<.15)out[1]={k:'form:'+pick(fi),mut:[]};}
   return out;
 }
 function takeLoot(i){
@@ -787,15 +801,22 @@ function draw(t){
   if(run&&['plan','augment','combat','result','loot'].includes(mode)){
     if(drag||itemDrag){for(let r=4;r<ROWS;r++)for(let c=0;c<COLS;c++){const p=hexXY(c,r);hexPath(ctx,p.x,p.y,R-2,SQ);const ov=drag&&drag.over;const hov=ov&&ov.kind==='board'&&ov.c===c&&ov.r===r;ctx.fillStyle=hov?'rgba(255,230,120,.45)':'rgba(255,255,255,.12)';ctx.fill();}
       if(drag&&drag.over&&drag.over.kind==='bench'){const p=benchXY(drag.over.i);ctx.fillStyle='rgba(255,230,120,.5)';ctx.beginPath();ctx.ellipse(p.x,p.y,12,5,0,0,7);ctx.fill();}}
-    if(mode==='combat'||mode==='result'){for(const u of units){if(u.dead&&u.deadT>1.2)continue;list.push({dex:u.dex,anim:u.anim,t:u.animT,dir:u.dir,x:u.x,y:u.y,loop:u.loop,alpha:u.dead?Math.max(0,1-u.deadT/1.2):1,cu:u,shadow:1,sc:(u.boss?1.25:starScale(u.u.star))});}}
-    else{for(const b of boardUnits()){if(drag&&drag.u===b.u)continue;const p=hexXY(b.c,b.r);list.push({dex:b.u.dex,anim:'Idle',t:t+b.u.uid*.37,dir:DIR.up,x:p.x,y:p.y,pu:b.u,shadow:1,sc:starScale(b.u.star)});}
+    if(mode==='combat'||mode==='result'){for(const u of units){if(u.dead&&u.deadT>1.2)continue;list.push({dex:u.dex,anim:u.anim,t:u.animT,dir:u.dir,x:u.x,y:u.y,loop:u.loop,alpha:u.dead?Math.max(0,1-u.deadT/1.2):1,cu:u,shadow:1,sc:(u.boss?1.25:starScale(u.u.star))*(u.scaleMul||1)});}}
+    else{for(const b of boardUnits()){if(drag&&drag.u===b.u)continue;const p=hexXY(b.c,b.r);list.push({dex:shownDex(b.u),anim:'Idle',t:t+b.u.uid*.37,dir:DIR.up,x:p.x,y:p.y,pu:b.u,shadow:1,sc:starScale(b.u.star)});}
       if(mode!=='loot')for(const e of enemyPreview){const p=hexXY(e.c,e.r);list.push({dex:e.u.dex,anim:'Idle',t:t+e.u.uid*.29,dir:DIR.down,x:p.x,y:p.y,pu:e.u,enemy:1,shadow:1,sc:e.boss?1.25:starScale(e.u.star)});}}
     run.bench.forEach((u,i)=>{if(!u||(drag&&drag.u===u))return;const p=benchXY(i);list.push({dex:u.dex,anim:'Idle',t:t+u.uid*.41,dir:DIR.down,x:p.x,y:p.y-2,pu:u,bench:1});});
   }
   list.sort((a,b)=>a.y-b.y);
   for(const s of list)if(s.shadow){ctx.fillStyle=`rgba(10,30,10,${.35*(s.alpha??1)})`;ctx.beginPath();ctx.ellipse(s.x,s.y+1,9*(s.sc||1),3.2,0,0,7);ctx.fill();}
   if(chest)drawChest(chest,t);
-  for(const s of list){const o={loop:s.loop!==false,alpha:s.alpha??1,scale:s.sc||1};drawSprite(s.dex,s.anim,s.t,s.dir,s.x,s.y-6,o);
+  for(const s of list){const o={loop:s.loop!==false,alpha:s.alpha??1,scale:s.sc||1};
+    const cu=s.cu,F=FORMS[s.dex];
+    if(cu&&!cu.dead&&(cu.dmaxOn||cu.mega||(F&&!F.ownSprite))){const col=cu.dmaxOn?'255,60,80':cu.mega?'255,150,230':'255,230,150',pulse=.25+.12*Math.sin(t*6);
+      ctx.fillStyle=`rgba(${col},${pulse})`;ctx.beginPath();ctx.ellipse(s.x,s.y-10*(s.sc||1),14*(s.sc||1),18*(s.sc||1),0,0,7);ctx.fill();}
+    drawSprite(s.dex,s.anim,s.t,s.dir,s.x,s.y-6,o);
+    if(cu&&cu.teraOn&&!cu.dead){const sp=SPR[s.dex],top=s.y-6+(sp?sp.top*(s.sc||1)*sp.k:-20)-12,cx=Math.round(s.x),c2=TYPES[cu.tera]||'#7fe7ff';
+      ctx.fillStyle='#1b2430';ctx.beginPath();ctx.moveTo(cx,top-6);ctx.lineTo(cx+5,top);ctx.lineTo(cx,top+4);ctx.lineTo(cx-5,top);ctx.closePath();ctx.fill();
+      ctx.fillStyle=c2;ctx.beginPath();ctx.moveTo(cx,top-4);ctx.lineTo(cx+3,top);ctx.lineTo(cx,top+2);ctx.lineTo(cx-3,top);ctx.closePath();ctx.fill();}
     if(s.cu&&s.cu.flash>0){ctx.globalCompositeOperation='lighter';drawSprite(s.dex,s.anim,s.t,s.dir,s.x,s.y-6,{...o,alpha:.6});ctx.globalCompositeOperation='source-over';}}
   for(const p of proj){p.trail.forEach((q,i)=>{ctx.globalAlpha=(i+1)/p.trail.length*.6;ctx.fillStyle=p.col;ctx.fillRect(Math.round(q.x)-1,Math.round(q.y)-1,p.size,p.size);});
     ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.fillRect(Math.round(p.x)-p.size/2-1,Math.round(p.y)-p.size/2-1,p.size+2,p.size+2);ctx.fillStyle=p.col;ctx.fillRect(Math.round(p.x)-p.size/2,Math.round(p.y)-p.size/2,p.size,p.size);}
@@ -805,9 +826,9 @@ function draw(t){
   for(const l of leaves){ctx.fillStyle=l.col;ctx.fillRect(Math.round(l.x),Math.round(l.y),2,1);ctx.fillRect(Math.round(l.x)+1,Math.round(l.y)+1,1,1);}
   if(drag)drawSprite(drag.u.dex,'Walk',t,DIR.down,drag.x,drag.y-6);
   ctx.setTransform(1,0,0,1,0,0);
-  if(chest&&!chest.open){const bob=Math.sin(t*3)*3;ctx.font='700 18px "Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#1b2430';const txt=chest.kind==='relic'?'Open the rival\'s chest':'Open the chest';
+  if(chest&&!chest.open){const bob=Math.sin(t*3)*3;ctx.font='24px PokeEmerald,"Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#1b2430';const txt=chest.kind==='relic'?'Open the rival\'s chest':'Open the chest';
     ctx.strokeText(txt,chest.x*2,chest.y*2-46+bob);ctx.fillStyle='#ffe27a';ctx.fillText(txt,chest.x*2,chest.y*2-46+bob);}
-  for(const tx of texts){ctx.globalAlpha=Math.min(1,tx.life*2.5);ctx.font=tx.label?'600 16px "Pixelify Sans",sans-serif':tx.big?'700 22px "Pixelify Sans",sans-serif':'700 17px "Pixelify Sans",sans-serif';
+  for(const tx of texts){ctx.globalAlpha=Math.min(1,tx.life*2.5);ctx.font=tx.big?'24px PokeEmerald,"Pixelify Sans",sans-serif':'16px PokeEmerald,"Pixelify Sans",sans-serif';
     ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#1b2430';ctx.strokeText(tx.txt,tx.x*2,tx.y*2);ctx.fillStyle=tx.col;ctx.fillText(tx.txt,tx.x*2,tx.y*2);}
   ctx.globalAlpha=1;
 }
@@ -837,7 +858,7 @@ function drawBar(s){
 function drawItems(s){
   const u=s.cu?s.cu.u:s.pu;if(!u||!u.items||!u.items.length)return;
   const n=u.items.length,z=9,x0=Math.round(s.x-(n*(z+1))/2),y=Math.round(s.y+3);
-  u.items.forEach((it,i)=>{const im=ITEMIMG[itemDef(it).id];const x=x0+i*(z+1);ctx.fillStyle=isCraft(it)?'#c9961d':'#1b2430';ctx.fillRect(x-1,y-1,z+2,z+2);ctx.fillStyle='#f7f6ee';ctx.fillRect(x,y,z,z);if(im&&im.complete)ctx.drawImage(im,x,y,z,z);});
+  u.items.forEach((it,i)=>{const id=itemDef(it).id;if(!ITEMIMG[id]){const im0=new Image();im0.src=iconOf(id);ITEMIMG[id]=im0;}const im=ITEMIMG[id];const x=x0+i*(z+1);ctx.fillStyle=isCraft(it)?'#c9961d':'#1b2430';ctx.fillRect(x-1,y-1,z+2,z+2);ctx.fillStyle='#f7f6ee';ctx.fillRect(x,y,z,z);if(im&&im.complete)ctx.drawImage(im,x,y,z,z);});
 }
 function star3(x,y,c){ctx.fillStyle='#1b2430';ctx.fillRect(x-2,y-1,5,3);ctx.fillRect(x-1,y-2,3,5);ctx.fillStyle=c;ctx.fillRect(x-1,y,3,1);ctx.fillRect(x,y-1,1,3);}
 
@@ -941,22 +962,34 @@ function showTip(u,e,hit={}){
     <div><span class="lbl">Def</span><b>${Math.round(c.def)}</b></div><div><span class="lbl">Sp.Def</span><b>${Math.round(c.res)}</b></div><div><span class="lbl">Range</span><b>${c.range}</b></div><div><span class="lbl">PP</span><b>${c.maxMana?Math.round(c.mana)+'/'+c.maxMana:'—'}</b></div></div>
     <div class="ab">${moveDesc(c)}${K.ladder?`<p class="ladder">${K.ladder.map(x=>x.dex===u.dex?`<b>${esc(x.n)}</b>`:esc(x.n)).join(' → ')}</p>`:''}${K.ab?`<p class="abil"><b>${esc(K.ab.n)}</b> <span class="sc">Ability</span><br>${K.ab.d}</p>`:''}</div>
     ${u.items&&u.items.length?`<div class="items">${u.items.map(it=>`<div><img src="${iconOf(itemDef(it).id)}" alt=""><span><b>${esc(itemName(it))}</b></span></div>`).join('')}</div>`:''}
+    ${gimLines(u,enemy)}
     ${G?`<div class="grow"><b>${G.n}</b>: ${G.d}${u.gs?`<br>Grown ${u.gs} time${u.gs>1?'s':''} this run.`:''}</div>`:''}
     ${!enemy&&u.star<3&&evo.length?`<div class="lbl" style="margin-top:8px">${u.star===1?'At 2★':'At 3★'}: ${evo.length>1?'choose '+esc(evo.join(' / ')):'evolves into '+esc(evo[0])}</div>`:''}`;
   placeTip(e);
+}
+function gimLines(u,enemy){
+  if(enemy||!u.uid)return'';const out=[];
+  if(u.stone){const f=megaFor(u.dex,u.stone);out.push(`<div><img src="${iconOf(u.stone)}" alt=""><span><b>${esc(gimDef({k:'g:stone:'+u.stone}).n)}</b>${f?` → ${esc(D[f].n)}`:' (evolve it first)'}</span></div>`);}
+  if(u.crystal){const ok=ZTYPE[u.crystal]===kitOf(u.dex).mv.t;out.push(`<div><img src="${iconOf(u.crystal)}" alt=""><span><b>${esc(ZNAME[ZTYPE[u.crystal]])}</b>${ok?'':' (needs a '+ZTYPE[u.crystal]+' move)'}</span></div>`);}
+  if(u.shard)out.push(`<div><img src="${iconOf(u.shard.toLowerCase()+'-tera-shard')}" alt=""><span><b>Tera ${u.shard}</b>: counts as ${u.shard} type</span></div>`);
+  if(u.mush)out.push(`<div><img src="${iconOf('max-mushrooms')}" alt=""><span><b>Dynamax Level ${u.mush}</b>${u.gmax?' · Gigantamax factor':''}</span></div>`);
+  if(run&&run.gimmick==='mega'&&!u.stone){const ms=MODE.lines[u.root].mem.flatMap(m=>(FORMS_BY_BASE[m]||[]).filter(f=>FORMS[f].kind==='mega'));if(ms.length)out.push(`<div><span class="sc">Can Mega Evolve: ${ms.map(f=>esc(D[f].n)).join(', ')}</span></div>`);}
+  if(run&&run.gimmick==='dmax'&&!u.gmax&&gmaxFor(u.dex))out.push(`<div><span class="sc">Has a Gigantamax form (${GMAX_MUSH} Max Mushrooms)</span></div>`);
+  const fi=MODE.lines[u.root].mem.flatMap(m=>(FORMS_BY_BASE[m]||[]).filter(f=>FORMS[f].kind==='item'));if(fi.length)out.push(`<div><span class="sc">Form item: ${[...new Set(fi.map(f=>FORMS[f].itemName))].join(', ')}</span></div>`);
+  return out.length?`<div class="items gimrow">${out.join('')}</div>`:'';
 }
 function itemBody(it,compact){
   const lines=[];
   if(isComp(it)){lines.push(`<p>${COMP[it.k].d}.</p>`);
     lines.push(`<div class="lbl" style="margin:8px 0 4px">Combines into</div><div class="recipes${compact?' compact':''}">${CORDER.split('').map(o=>{const c=CRAFT[recipeKey(it.k,o)];return compact?`<div title="+ ${COMP[o].n} → ${c.n}"><img src="${iconOf(COMP[o].id)}" alt=""><img src="${iconOf(c.id)}" alt="${c.n}"></div>`:`<div><img src="${iconOf(COMP[o].id)}" alt=""><span>→</span><img src="${iconOf(c.id)}" alt=""><span>${c.n}</span></div>`;}).join('')}</div>`);}
   else if(isCraft(it)){lines.push(`<p>${CRAFT[it.k].d}</p><p class="sc">Also: ${COMP[it.k[0]].d}, ${COMP[it.k[1]].d}.</p>`);}
-  else lines.push(`<p>${USE[it.k].d}</p>`);
+  else lines.push(`<p>${itemDef(it).d}</p>`);
   for(const m of it.mut||[])lines.push(`<p class="mut"><b>${MUTS[m].n}:</b> ${MUTS[m].d}${m==='growing'&&it.gs?` (now +${pct(it.gs)})`:''}.</p>`);
   return lines.join('');
 }
 function showItemTip(it,e){const tip=$('tip');const t=itemTier(it);
-  tip.innerHTML=`<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='common'?'Component':t==='epic'?'Completed item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
-  <div class="lbl" style="margin-top:8px">${isUse(it)?(USE[it.k].target?'Drag onto a Pokémon':'Click to use'):isComp(it)?'Drag onto a Pokémon or another component':'Drag onto a Pokémon'}</div>`;placeTip(e);}
+  tip.innerHTML=`<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='common'?'Component':t==='epic'?'Completed item':t==='gim'?(run&&run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick item'):t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
+  <div class="lbl" style="margin-top:8px">${isUse(it)?(USE[it.k].target?'Drag onto a Pokémon':'Click to use'):isComp(it)?'Drag onto a Pokémon or another component':isGim(it)?'Drag onto a Pokémon (own slot)':'Drag onto a Pokémon'}</div>`;placeTip(e);}
 function showInfoTip(html,e){$('tip').innerHTML=html;placeTip(e);}
 function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.width/1280;let x=(e.clientX-sr.left)/sc+18,y=(e.clientY-sr.top)/sc-40;
   tip.style.display='block';const th=tip.offsetHeight;if(x>1280-306)x-=330;y=clamp(y,80,720-th-10);tip.style.left=x+'px';tip.style.top=y+'px';}
@@ -965,7 +998,7 @@ let toastT=0;function toast(m){if(SIM.on)return;const t=$('toast');t.textContent
 function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="banner win">${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</div>`;setTimeout(()=>{if(h.firstChild&&h.firstChild.textContent.startsWith(title))h.innerHTML='';},ms);}
 function showGameUI(on){['hud','traits','mods','shop','bag'].forEach(id=>$(id).hidden=!on);}
 function renderUI(){
-  if(!run||SIM.on)return;const f=run.floor;
+  if(!run||SIM.on)return;saveRun();const f=run.floor;
   $('hpnum').textContent=run.hp;const fr=run.hp/run.maxHp,hb=$('hpbar');hb.firstElementChild.style.width=(fr*100)+'%';hb.className='hpbar'+(fr<.3?' low':fr<.6?' mid':'');
   $('goldnum').textContent=run.gold;$('teamnum').innerHTML=`${Object.keys(run.board).length}<small>/${teamCap()}</small>`;
   $('lvl').textContent=run.level;$('xpbar').firstElementChild.style.width=run.level>=MAXLV?'100%':(run.xp/XPNEXT[run.level]*100)+'%';$('xpbar').title=run.level>=MAXLV?'Max level':`${run.xp}/${XPNEXT[run.level]} XP`;
@@ -983,14 +1016,17 @@ function renderUI(){
   $('traits').innerHTML=keys.length?shown.map(tr1).join('')+(keys.length>MAXT?`<div class="more" data-more="1">+${keys.length-MAXT} more sets</div>`:'')
     :`<div class="hint">Place Pokémon on the field to activate sets: types, classes, styles${MODE.gen?'':' and regions'}.</div>`;
   const s=run.strat,inc=incomePreview();
-  let mh=`<div class="mod"><div class="k">Strategy</div><div class="v">${s.name}</div><p>${s.guide}</p></div>`;
-  if(run.aug)mh+=`<div class="mod ${run.augTier}"><div class="k">${run.augTier} augment</div><div class="v">${run.aug.name}</div><p>${run.aug.d}</p></div>`;
+  let mh=`<div class="mod mini"><div class="k">Strategy</div><div class="v">${s.name}</div></div>`;
+  if(run.aug)mh+=`<div class="mod mini ${run.augTier}" title="${esc(run.aug.d)}"><div class="k">${run.augTier} augment</div><div class="v">${run.aug.name}</div></div>`;
+  if(run.gimmick){const GM=GIMMICKS[run.gimmick],el=allOwned().filter(gimEligible);
+    const tgt=allOwned().find(u=>u.uid===run.gimTarget&&gimEligible(u));const onField=tgt&&Object.values(run.board).includes(tgt);
+    mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${u===tgt?' on':''}" data-cap="${u.uid}" aria-label="Use ${esc(GM.n)} with ${esc(nameOf(u))}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Put a Pokémon on the field to Dynamax it.',tera:'Give a Tera Shard to a Pokémon.'}[run.gimmick]}</p>`}</div>`;}
   if(run.relics.length)mh+=`<div class="mod"><div class="k">Relics</div><div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" data-relic="${r}">`).join('')}</div></div>`;
-  mh+=`<div class="mod"><div class="k">Next floor income</div><div class="v inc">₽${inc.base+inc.interest+inc.streak+inc.extra}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}</p></div>`;
+  mh+=`<div class="mod mini"><div class="k">Next floor income</div><div class="v inc">₽${inc.base+inc.interest+inc.streak+inc.extra}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}</p></div>`;
   {const sc=scoutState();
     if(sc.focus.length)mh+=`<div class="mod scout"><div class="k">Scouting</div><div class="v">${sc.focus.join(' · ')}</div><p>Each shop slot has a ${pct(sc.p)} chance to show these sets. Rises after shops that miss.</p></div>`;
     else if(sc.top)mh+=`<div class="mod"><div class="k">Scouting</div><div class="v">${sc.top.k}: ${Math.min(sc.top.lines,SCOUT.minLines)}/${SCOUT.minLines} lines · ₽${Math.min(sc.top.gold,SCOUT.minGold)}/${SCOUT.minGold}</div><p>${run.floor<SCOUT.minFloor?`Unlocks on floor ${SCOUT.minFloor}. `:''}Invest in a set and the shop starts favoring it.</p></div>`;}
-  if(mode!=='loot')mh+=`<div class="mod"><div class="k">Next opponent</div><div class="v">${esc(trainerName(f))}</div><p>Hover their Pokémon to scout them.</p></div>`;
+  if(mode!=='loot')mh+=`<div class="mod mini"><div class="k">Next opponent</div><div class="v">${esc(trainerName(f))}</div></div>`;
   $('mods').innerHTML=mh;
   const plan=mode==='plan',owned=new Set(allOwned().filter(u=>u.star<3).map(u=>u.root));
   $('cards').innerHTML=run.shop.map((r,i)=>{if(!r)return`<div class="card empty" aria-hidden="true"></div>`;const L=MODE.lines[r];const G=growthOf({root:r});
@@ -1002,7 +1038,7 @@ function renderUI(){
   if(mode==='loot')$('fight').disabled=false;
   // bag
   $('bagct').textContent=`${run.bag.length}/${BAGMAX}`;
-  let sl='';for(let i=0;i<BAGMAX;i++){const it=run.bag[i];sl+=it?`<button class="slot t-${itemTier(it)==='epic'?'epic':itemTier(it)==='use'?'use':'common'}" data-i="${i}" aria-label="${esc(itemName(it))}"><img src="${iconOf(itemDef(it).id)}" alt="">${it.mut&&it.mut.length?'<i class="mutdot"></i>':''}</button>`:`<div class="slot empty"></div>`;}
+  let sl='';for(let i=0;i<BAGMAX;i++){const it=run.bag[i];sl+=it?`<button class="slot t-${{epic:'epic',use:'use',gim:'gim',formi:'relic'}[itemTier(it)]||'common'}" data-i="${i}" aria-label="${esc(itemName(it))}"><img src="${iconOf(itemDef(it).id)}" alt="">${it.mut&&it.mut.length?'<i class="mutdot"></i>':''}</button>`:`<div class="slot empty"></div>`;}
   $('slots').innerHTML=sl;
 }
 $('cards').addEventListener('click',e=>{const c=e.target.closest('.card');if(c&&c.dataset.i)buy(+c.dataset.i);});
@@ -1010,6 +1046,7 @@ $('cards').addEventListener('pointermove',e=>{const c=e.target.closest('.card');
 $('cards').addEventListener('pointerleave',hideTip);
 $('mods').addEventListener('pointermove',e=>{const r=e.target.dataset&&e.target.dataset.relic;if(r)showInfoTip(`<div class="top"><img src="${iconOf(r)}" alt="" style="width:48px;height:48px"><div><div class="lbl">Relic</div><h3 style="font-size:19px">${RELICS[r].n}</h3></div></div><div class="ab"><p>${RELICS[r].d}</p></div>`,e);else hideTip();});
 $('mods').addEventListener('pointerleave',hideTip);
+$('mods').addEventListener('click',e=>{const b=e.target.closest('[data-cap]');if(!b)return;const id=+b.dataset.cap;run.gimTarget=run.gimTarget===id?0:id;renderUI();});
 $('traits').addEventListener('pointermove',e=>{const ct=countTraits(Object.values(run.board));
   if(e.target.closest('[data-more]')){const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||ct[b]-ct[a]);
     showInfoTip(`<div class="lbl">All sets on the field</div><div class="setlist">${keys.map(k=>`<div><span class="dot" style="background:${setColor(k)}"></span>${k}<b>${ct[k]}</b><span class="sc">/ ${SETS[k].bp.join(', ')}</span></div>`).join('')}</div>`,e);return;}
@@ -1025,18 +1062,88 @@ addEventListener('keydown',e=>{if(evoOpen||!run)return;
   if(mode==='loot'&&(e.key===' '||e.key==='Enter')){e.preventDefault();openChest();return;}
   if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key===' '){e.preventDefault();startCombat();}});
 
+/* ================= Options & saving ================= */
+const OPTS={speed:1,dmg:1};
+try{Object.assign(OPTS,JSON.parse(localStorage.getItem('pokerun.opts')||'{}'));}catch(e){}
+function saveOpts(){try{localStorage.setItem('pokerun.opts',JSON.stringify(OPTS));}catch(e){}}
+const SAVEKEY='pokerun.save.v1';
+let saveT=0;
+function saveRun(){
+  if(!run||SIM.on||!MODE||!['plan','loot','augment'].includes(mode))return;
+  clearTimeout(saveT);saveT=setTimeout(()=>{try{
+    const r={...run,strat:run.strat.id,aug:run.aug?run.aug.id:null};
+    localStorage.setItem(SAVEKEY,JSON.stringify({v:1,t:Date.now(),mode:MODE.id,pool:MODE.gen?null:MODE.byCost,run:r,uidc,
+      enemy:enemyPreview.map(e=>({u:e.u,c:e.c,r:e.r,mult:e.mult,boss:e.boss})),state:mode==='loot'?'loot':'plan'}));}catch(e){}},120);
+}
+function readSave(){try{const d=JSON.parse(localStorage.getItem(SAVEKEY)||'null');return d&&d.v===1?d:null;}catch(e){return null;}}
+function clearSave(){try{localStorage.removeItem(SAVEKEY);}catch(e){}}
+async function continueRun(){
+  const d=readSave();if(!d)return showTitle();
+  MODE=buildMode(d.mode);if(d.pool)MODE.byCost=d.pool;
+  run=d.run;run.strat=STRATS.find(x=>x.id===run.strat)||STRATS[0];
+  run.aug=run.aug?Object.values(AUGS).flat().find(a=>a.id===run.aug)||null:null;
+  enemyPreview=d.enemy||[];uidc=d.uidc||1000;ov.innerHTML='';
+  await preload([...enemyPreview.map(e=>e.u.dex),...allOwned().map(u=>shownDex(u)),run.boss.dex,...run.shop.filter(Boolean)]);
+  showGameUI(true);
+  if(d.state==='loot'&&run.loot){mode='loot';chest={x:hexXY(3,2).x,y:hexXY(3,2).y,t:0,open:false,kind:run.pendingRelic?'relic':'item'};}
+  else{mode='plan';chest=null;if(run.floor===2&&!run.aug)return showAugment();if(run.floor===GIMMICK_FLOOR&&!run.gimmick)return showGimmickChoice();}
+  renderUI();banner(`Floor ${run.floor}`,mode==='loot'?'Open the chest':trainerName(run.floor),1400);
+}
+
 /* ================= Screens ================= */
 const ov=$('overlay');
 function bestOf(id){try{return localStorage.getItem('pokerun.best.'+id);}catch(e){return null;}}
 function setBest(id,v){try{const b=+(localStorage.getItem('pokerun.best.'+id)||0);if(v>b)localStorage.setItem('pokerun.best.'+id,v);}catch(e){}}
 function setWander(dexes){wander=dexes.map((d,i)=>({dex:d,x:200+(i%5)*60+rnd(-10,10),y:110+Math.floor(i/5)*70+rnd(-10,10),dir:0,anim:'Idle',t:rnd(0,2),wait:rnd(0,2)}));preload(dexes);}
 function showTitle(){
-  mode='title';showGameUI(false);run=null;MODE=null;chest=null;
-  setWander(shuffle(ROOTS.filter(r=>SM[r])).slice(0,10));
-  ov.innerHTML=`<div class="screen"><div class="logo">PokéRun<small>Tactics</small></div><div class="tag">Autobattler roguelike · ${ROOTS.length} evolution lines · Act I</div>
-    <button class="btn go" id="start" style="font-size:26px;padding:12px 36px;margin-top:10px">Start Run</button></div>
-    <div class="credit">Sprites and portraits from the <a href="https://sprites.pmdcollab.org/" target="_blank" rel="noopener">PMD SpriteCollab</a> contributors. Item sprites and Pokédex data from <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>. Fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company.</div>`;
-  $('start').onclick=showModes;$('start').focus();
+  mode='title';showGameUI(false);run=null;MODE=null;chest=null;speed=OPTS.speed;$('speed').setAttribute('aria-pressed',speed===2);
+  if(!wander.length||wander.length<14)setWander(shuffle(ROOTS.filter(r=>SM[r])).slice(0,16));
+  const d=readSave();
+  const sum=d?(()=>{const r=d.run,team=Object.values(r.board).concat(r.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,6);
+    const st=STRATS.find(x=>x.id===r.strat);const m=d.mode==='nat'?'National Dex':`Gen ${ROMAN[+d.mode.slice(3)-1]} · ${REGIONS[+d.mode.slice(3)-1]}`;
+    return`<div class="win save"><div class="lbl">Saved run</div><h3>${m}</h3><p>Floor ${r.floor} / ${FLOORS} · Trainer HP ${r.hp} · ₽${r.gold}</p><p>${st?st.name:''}${r.gimmick?' · '+GIMMICKS[r.gimmick].n:''}</p>
+      <div class="team">${team.map(u=>`<img src="${por(shownDex(u))}" alt="${esc(D[u.dex].n)}" title="${esc(D[u.dex].n)} ${'★'.repeat(u.star)}">`).join('')}</div></div>`;})():'';
+  ov.innerHTML=`<div class="screen title"><div class="logo">PokéRun<small>Tactics</small></div>
+    <div class="menu-row"><nav class="win menu" aria-label="Main menu">
+      ${d?'<button class="mi" id="m-continue">Continue</button>':''}
+      <button class="mi" id="m-new">New game</button>
+      <button class="mi" id="m-options">Options</button>
+      <button class="mi" id="m-credits">Credits</button>
+    </nav>${sum}</div>
+    <div class="tag">Autobattler roguelike · ${ROOTS.length} evolution lines</div></div>
+    <div class="credit">Sprites and portraits: <a href="https://sprites.pmdcollab.org/" target="_blank" rel="noopener">PMD SpriteCollab</a> contributors. Pokédex data and item sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>. Font: Pokémon Emerald glyphs via <a href="https://github.com/pret/pokeemerald" target="_blank" rel="noopener">pret/pokeemerald</a>. Fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company.</div>`;
+  if(d)$('m-continue').onclick=continueRun;
+  $('m-new').onclick=()=>{if(readSave())return confirmNew();showModes();};
+  $('m-options').onclick=showOptions;$('m-credits').onclick=showCredits;
+  (d?$('m-continue'):$('m-new')).focus();
+}
+function confirmNew(){
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="win dialog"><p>Starting a new game will erase your saved run. Continue?</p>
+    <div class="row"><button class="btn" id="c-yes">Erase and start</button><button class="btn" id="back">Keep my run</button></div></div></div>`;
+  $('c-yes').onclick=()=>{clearSave();showModes();};$('back').onclick=showTitle;$('back').focus();
+}
+function showOptions(){
+  const row=(id,label,val)=>`<button class="mi opt" id="${id}"><span>${label}</span><b>${val}</b></button>`;
+  const d=readSave();
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Options</h1><nav class="win menu wide">
+    ${row('o-speed','Battle speed',OPTS.speed===2?'Fast':'Normal')}${row('o-dmg','Damage numbers',OPTS.dmg?'On':'Off')}
+    ${d?'<button class="mi opt danger" id="o-del"><span>Delete saved run</span><b>›</b></button>':''}
+    <button class="mi" id="back">Back</button></nav>
+    <p class="sub">Controller: stick or D-pad to move · A select · B back · X reroll · Y level up · Start battle</p></div>`;
+  $('o-speed').onclick=()=>{OPTS.speed=OPTS.speed===2?1:2;saveOpts();showOptions();};
+  $('o-dmg').onclick=()=>{OPTS.dmg=OPTS.dmg?0:1;saveOpts();showOptions();};
+  if(d)$('o-del').onclick=()=>{const b=$('o-del');if(b.dataset.sure){clearSave();showOptions();}else{b.dataset.sure=1;b.querySelector('span').textContent='Press again to delete';}};
+  $('back').onclick=showTitle;$('o-speed').focus();
+}
+function showCredits(){
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Credits</h1><div class="win dialog wide">
+    <p><b>PokéRun Tactics</b> by alexk0918.</p>
+    <p>Pokémon sprites and portraits: the artists of the <a href="https://sprites.pmdcollab.org/" target="_blank" rel="noopener">PMD SpriteCollab</a>.</p>
+    <p>Pokédex, moves, abilities, forms and item sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>.</p>
+    <p>Font: Pokémon Emerald's glyphs, from the <a href="https://github.com/pret/pokeemerald" target="_blank" rel="noopener">pret/pokeemerald</a> decompilation.</p>
+    <p class="sc">Non-commercial fan project. Pokémon is © Nintendo, Game Freak and Creatures.</p>
+    <div class="row"><button class="btn" id="back">Back</button></div></div></div>`;
+  $('back').onclick=showTitle;$('back').focus();
 }
 function showModes(){
   mode='modes';
@@ -1084,7 +1191,7 @@ function showAugment(){
 function itemCard(it,i,cls=''){const t=isRelicId(it)?'relic':itemTier(it);
   const id=isRelicId(it)?it:itemDef(it).id,name=isRelicId(it)?RELICS[it].n:itemName(it);
   const body=isRelicId(it)?`<p>${RELICS[it].d}</p>`:itemBody(it,true);
-  const tl=t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':'Relic';
+  const tl=t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick'):t==='formi'?'Form item':'Relic';
   return`<button class="pick win item p-${t==='common'?'common':t} ${cls}" data-i="${i}"><div class="icon"><img src="${iconOf(id)}" alt=""></div><span class="tier ${t==='common'?'common':t}">${tl}</span><h2 style="font-size:20px">${esc(name)}</h2><div class="desc">${body}</div></button>`;}
 const isRelicId=x=>typeof x==='string'&&RELICS[x];
 function openChest(){
@@ -1098,6 +1205,13 @@ function openChest(){
   $('skip').onclick=()=>chooseLoot(-1);
 }
 function chooseLoot(i){const r=takeLoot(i);if(r===false)return;ov.innerHTML='';if(r==='relic')showRelics();}
+function showGimmickChoice(){
+  mode='augment';$('bannerhost').innerHTML='';
+  const opts=GIM_ORDER.filter(g=>!(run.gimmicks||[]).includes(g));
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">ACT ${ROMAN[0]} · GENERATION GIMMICK</div><h1 class="h1">Choose your key item</h1><p class="sub">You get one generation gimmick for this act. The others can be chosen in later acts.</p>
+    <div class="picks gims">${opts.map(g=>{const G=GIMMICKS[g];return`<button class="pick win item gim" data-g="${g}" style="--gc:${G.col}"><div class="icon"><img src="${iconOf(G.key)}" alt=""></div><span class="tier" style="background:${G.col}">${G.gen}</span><h2 style="font-size:24px">${G.n}</h2><div class="desc"><p>${G.d}</p><p class="sc">${G.start}</p></div></button>`;}).join('')}</div></div>`;
+  ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ov.innerHTML='';mode='plan';chooseGimmick(b.dataset.g);const G=GIMMICKS[run.gimmick];toast(`You received the ${G.keyN}!`);banner(`Floor ${run.floor}`,trainerName(run.floor),1400);});
+}
 function showRelics(){
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">RIVAL DEFEATED</div><h1 class="h1">Choose a relic</h1><p class="sub">Relics affect your whole team for the rest of the run.</p>
     <div class="picks">${run.relicChoices.map((r,i)=>itemCard(r,i)).join('')}</div></div>`;
@@ -1112,7 +1226,7 @@ function showEvoChoice(){
     toast(`${job.before} evolved into ${D[job.u.dex].n}!`);combine();renderUI();if(evoQueue.length)showEvoChoice();});
 }
 function showEnd(won){
-  mode='over';showGameUI(false);setBest(MODE.id,run.wins);chest=null;
+  mode='over';showGameUI(false);setBest(MODE.id,run.wins);chest=null;clearSave();
   const team=Object.values(run.board).concat(run.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,7);
   const where=MODE.gen?MODE.region:'National Dex';
   ov.innerHTML=`<div class="scrim"></div><div class="screen">
@@ -1130,12 +1244,13 @@ function showEnd(won){
 
 /* ================= Boot ================= */
 (async()=>{
-  try{await document.fonts.load('700 20px "Pixelify Sans"');}catch(e){}
-  const[dex,spr,kit]=await Promise.all([fetch('data/pokedex.json?v=5').then(r=>r.json()),fetch('data/sprites.json?v=5').then(r=>r.json()),fetch('data/kits.json?v=6').then(r=>r.json())]);
+  try{await Promise.all([document.fonts.load('16px PokeEmerald'),document.fonts.load('700 20px "Pixelify Sans"')]);}catch(e){}
+  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=6').then(r=>r.json()),fetch('data/sprites.json?v=6').then(r=>r.json()),fetch('data/kits.json?v=7').then(r=>r.json()),fetch('data/forms.json?v=6').then(r=>r.json())]);
   KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);
   for(const k in spr)SM[+k]=spr[k];
+  loadForms(frm);
   loadItemImages();
   BG=renderForest();initLeaves();
   showTitle();
