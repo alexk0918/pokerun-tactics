@@ -1128,7 +1128,7 @@ function showEnd(won){
 /* ================= Boot ================= */
 (async()=>{
   try{await document.fonts.load('700 20px "Pixelify Sans"');}catch(e){}
-  const[dex,spr,kit]=await Promise.all([fetch('data/pokedex.json?v=5').then(r=>r.json()),fetch('data/sprites.json?v=5').then(r=>r.json()),fetch('data/kits.json?v=5').then(r=>r.json())]);
+  const[dex,spr,kit]=await Promise.all([fetch('data/pokedex.json?v=5').then(r=>r.json()),fetch('data/sprites.json?v=5').then(r=>r.json()),fetch('data/kits.json?v=6').then(r=>r.json())]);
   KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);
