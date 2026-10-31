@@ -95,7 +95,7 @@ Pokémon can carry a mutator too: from Kecleon Shops, the shadowy lab event, or 
 
 ### Signature kits
 
-Every Generation I, II and III line now has a hand-designed signature kit (78 + 51 + 73 lines) instead of the generic move, built around the Pokémon's design, and kits are being added generation by generation. Branch evolutions get their own moves, and often a different role (Gardevoir is a back-line Seer, Gallade a dueling Blade Knight; Persian a Cat Burglar, Perrserker a shielded Viking). Some Gen II kits summon helpers (Honchkrow calls a Murkrow lackey), set the weather (Politoed, Tyranitar) or revive allies (Ho-Oh). Gen III adds weather setters (Kyogre, Groudon, Pelipper, Torkoal), Castform's weather-reading Weather Ball, partner bonuses (Plusle and Minun, Volbeat and Illumise, Lunatone and Solrock, Latias and Latios), Dusclops' Pain Split and Shedinja's Wonder Guard. Their shop cards show a red "Signature" tag, and the tooltip lists the role. Some highlights:
+Every Generation I–IV line now has a hand-designed signature kit (78 + 51 + 73 + 45 lines) instead of the generic move, built around the Pokémon's design, and kits are being added generation by generation. Branch evolutions get their own moves, and often a different role (Gardevoir is a back-line Seer, Gallade a dueling Blade Knight; Persian a Cat Burglar, Perrserker a shielded Viking). Some Gen II kits summon helpers (Honchkrow calls a Murkrow lackey), set the weather (Politoed, Tyranitar) or revive allies (Ho-Oh). Gen III adds weather setters (Kyogre, Groudon, Pelipper, Torkoal), Castform's weather-reading Weather Ball, partner bonuses (Plusle and Minun, Volbeat and Illumise, Lunatone and Solrock, Latias and Latios), Dusclops' Pain Split and Shedinja's Wonder Guard. Gen IV kits lean on the status system: Luxray paralyzes the enemy with the most PP, Drapion and Toxicroak stack Poison, Abomasnow chills, Carnivine plants Leech Seed, Rotom changes appliance (and status) every cast, Regigigas has Slow Start, and Arceus's Judgment leaves a random status on every enemy. Their shop cards show a red "Signature" tag, and the tooltip lists the role. Some highlights:
 
 | Line | Role | Kit |
 |---|---|---|
@@ -358,6 +358,8 @@ js/kits.js          kit building blocks, set gear and the first signature kits
 js/kits_gen1.js     Generation I signature kits
 js/kits_gen2.js     Generation II signature kits (and Gen II branches of Gen I lines)
 js/kits_gen3.js     Generation III signature kits (and Gen III branches)
+js/kits_gen4.js     Generation IV signature kits
+js/status.js        stacking status conditions and weather
 js/kitdex.js        in-game Kit Dex and discoveries
 js/fx.js            PMD particle player, beams, PMD chests
 js/fx_manifest.js   frame layout of every particle sheet
