@@ -217,6 +217,59 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
 .evo .pick img{width:80px;height:80px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#e8efe2;}
 .evo .pick h2{font-size:20px;}
 .back{position:absolute;top:18px;left:18px;font-size:15px;padding:6px 12px;}
+
+/* --- v3: items, bag, chests, levels --- */
+#shop .side{gap:6px;}
+.btn.sm{font-size:16px;padding:6px 10px;}
+.btn.go{padding:8px 12px;}
+#teambox{min-width:96px;}
+.xpbar{width:72px;height:6px;border:2px solid var(--ink);border-radius:4px;background:#3a3f45;overflow:hidden;margin-top:2px;}
+.xpbar i{display:block;height:100%;background:linear-gradient(#9fd4ff,#3d8be0);transition:width .3s;}
+#traits{max-height:282px;}
+#bag{position:absolute;left:14px;top:378px;width:196px;padding:8px 10px 6px;display:flex;flex-direction:column;gap:6px;}
+.baghead{display:flex;justify-content:space-between;}
+.slots{display:grid;grid-template-columns:repeat(5,32px);gap:4px;justify-content:space-between;}
+.slot{width:32px;height:32px;box-sizing:border-box;border:2px solid #c5d1d9;border-radius:6px;background:#eef2f4;display:grid;place-items:center;padding:0;cursor:grab;touch-action:none;}
+.slot img{width:28px;height:28px;image-rendering:pixelated;pointer-events:none;}
+.slot.empty{cursor:default;background:repeating-linear-gradient(135deg,#eef0ea 0 4px,#e3e7df 4px 8px);}
+.t-common{border-color:#98a4ae;} .t-rare{border-color:#3d79d6;background:#e7f0ff;} .t-epic{border-color:#c9961d;background:#fff4d6;} .t-use{border-color:#4d9a3a;background:#e9f7e3;} .t-relic{border-color:#8a6ce0;background:#f1ebff;}
+.baghint{font-family:var(--label);font-size:9px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;}
+#ghost{position:absolute;width:44px;height:44px;image-rendering:pixelated;pointer-events:none;z-index:40;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 0 #0006);}
+.relics{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.relics img{width:26px;height:26px;image-rendering:pixelated;background:#f1ebff;border:2px solid #8a6ce0;border-radius:6px;}
+.pick.item{width:230px;align-items:center;text-align:center;}
+.pick.item .icon{width:76px;height:76px;display:grid;place-items:center;border:3px solid var(--ink);border-radius:12px;background:#eef2f4;}
+.pick.item .icon img{width:60px;height:60px;image-rendering:pixelated;}
+.pick.item .tier{font-family:var(--label);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:4px;color:#fff;}
+.tier.common{background:#7d8892;} .tier.rare{background:#3d79d6;} .tier.epic{background:#c9961d;} .tier.use{background:#4d9a3a;} .tier.relic{background:#8a6ce0;}
+.pick.item.p-rare .icon{background:#e7f0ff;border-color:#3d79d6;} .pick.item.p-epic .icon{background:#fff4d6;border-color:#c9961d;} .pick.item.p-relic .icon{background:#f1ebff;border-color:#8a6ce0;} .pick.item.p-use .icon{background:#e9f7e3;border-color:#4d9a3a;}
+.skip{margin-top:4px;}
+#tip .recipes img{width:20px;height:20px;border:0;border-radius:0;background:none;}
+#tip .items{display:flex;flex-direction:column;gap:4px;margin-top:8px;border-top:2px dashed #c5d1d9;padding-top:8px;}
+#tip .items div{display:flex;gap:6px;align-items:center;font-size:13px;line-height:1.25;}
+#tip .items img{width:24px;height:24px;image-rendering:pixelated;flex:none;}
+#tip .grow{margin-top:8px;padding:6px 8px;border-radius:6px;background:#eef7e8;border:2px solid #5fae45;font-size:13px;line-height:1.35;}
+#tip .grow b{color:#2f7a22;}
+#tip .sc{color:var(--muted);font-size:12px;}
+#tip .stats{grid-template-columns:repeat(4,1fr);}
+.card .grows{position:absolute;right:6px;bottom:6px;font-family:var(--label);font-size:9px;color:#2f7a22;background:#eef7e8;border:1.5px solid #5fae45;border-radius:4px;padding:1px 4px;}
+.inc{font-variant-numeric:tabular-nums;}
+
+.recipes{display:grid;grid-template-columns:1fr;gap:2px;}
+.recipes.compact{grid-template-columns:repeat(4,auto);justify-content:center;gap:4px 10px;}
+.recipes.compact div{gap:0;}
+.recipes.compact img{width:22px;height:22px;}
+.recipes.compact img:first-child{opacity:.55;width:16px;height:16px;}
+.recipes div{display:flex;align-items:center;gap:3px;font-size:12px;line-height:1.1;}
+.recipes img{width:20px;height:20px;image-rendering:pixelated;}
+.recipes span:first-of-type{color:var(--muted);}
+.mut{color:#7a3fa8;}
+.slot{position:relative;}
+.mutdot{position:absolute;top:1px;right:1px;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#ff8de1,#8ad8ff);border:1px solid var(--ink);}
+.pick.item .desc{font-size:14px;line-height:1.35;}
+.pick.item .desc p{margin:0 0 4px;}
+.pick.item .recipes{text-align:left;margin-top:4px;}
+.pick.item .lbl{text-align:center;}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
 
@@ -234,17 +287,20 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
       <div class="act"><span id="modelbl">Gen I</span><span>Act I</span><b id="actname">Verdant Clearing</b><span id="floorlbl">Floor 1 / 15</span></div>
       <div id="track"></div>
     </div>
-    <div class="win" id="teambox"><div><div class="lbl">Team</div><div class="num" id="teamnum">0<small>/2</small></div></div></div>
+    <div class="win" id="teambox"><div><div class="lbl">Level <b id="lvl">2</b></div><div class="num" id="teamnum">0<small>/2</small></div><div class="xpbar" id="xpbar" title="XP"><i></i></div></div></div>
     <div class="win" id="goldbox"><div class="coin">₽</div><div><div class="lbl">Pokédollars</div><div class="num" id="goldnum">0</div></div></div>
     <div class="win"><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button></div>
   </div>
   <div id="traits" hidden></div>
   <div id="mods" hidden></div>
+  <div id="bag" class="win" hidden><div class="baghead"><span class="lbl">Bag</span><span class="lbl" id="bagct">0/10</span></div><div class="slots" id="slots"></div><div class="baghint" id="baghint">Drag items onto a Pokémon</div></div>
+  <img id="ghost" alt="" hidden>
   <div id="shop" class="win" hidden>
     <div class="sellzone" id="sellzone">Release for ₽0</div>
     <div class="cards" id="cards"></div>
     <div class="side">
-      <button class="btn" id="reroll">Reroll <span class="lbl" style="color:inherit">₽2</span></button>
+      <button class="btn sm" id="buyxp">Level up <span class="lbl" style="color:inherit">₽4</span></button>
+      <button class="btn sm" id="reroll">Reroll <span class="lbl" style="color:inherit" id="rerollcost">₽2</span></button>
       <button class="btn go" id="fight">Battle!</button>
     </div>
   </div>
@@ -254,6 +310,7 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
   <div id="overlay"><div class="screen"><div class="loading" id="loadmsg">Loading Pokédex…</div></div></div>
 </div></div>
 
+<script src="js/data.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>
