@@ -48,7 +48,7 @@ Once you've invested in a set (3+ different lines and ₽8+ worth of units, from
 
 ### Kits: real moves and abilities
 
-- Every Pokémon uses a real move from its level-up learnset, chosen per evolution stage (Charmander and Charmeleon use Flamethrower, Charizard uses Flare Blitz). Moves keep their real behavior: multi-hit, spread damage, drain, recoil, status (burn, poison, paralysis, sleep, freeze, confusion), flinch, stat changes, high crit and priority.
+- Every Pokémon uses a real move from its level-up learnset, chosen per evolution stage (Squirtle uses Hydro Pump, Blastoise uses Wave Crash, Gyarados uses Aqua Tail). Moves keep their real behavior: multi-hit, spread damage, drain, recoil, status (burn, poison, paralysis, sleep, freeze, confusion), flinch, stat changes, high crit and priority.
 - Physical moves scale with Attack and are reduced by Defense; special moves scale with Sp. Atk and are reduced by Sp. Def.
 - Each Pokémon also gets its real ability as a passive (around 180 implemented), such as Intimidate, Static, Levitate, Multiscale, Speed Boost, Drought or Regenerator.
 - Some Pokémon have no active move: Juggernauts (Snorlax, Wailord) are pure HP tanks, and Strikers (fast physical attackers) fire their move as a free follow-up every third attack.
