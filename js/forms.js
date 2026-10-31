@@ -96,7 +96,7 @@ function formsOnHp(c){
 function formsOnDisguiseBroken(c){if(baseOf(c.dex)===778){const f=formOf(778,'battle');if(f)transform(c,f,{label:'Its disguise was busted!',col:'#ffe27a'});}}
 function formsOnIceFace(c){if(baseOf(c.dex)===875){const f=formOf(875,'battle');if(f)transform(c,f,{label:'Ice Face melted!',col:'#c6f4ff'});}}
 function formsAfterBattle(u){if(baseOf(u.dex)===964&&(KITS[964].a||[]).includes('zero-to-hero')&&!u.hero){u.hero=1;if(!SIM.on)setTimeout(()=>toast('Palafin became Hero Palafin for the rest of the run!'),1400);}}
-const shownDex=u=>{if(u.hero){const f=formOf(baseOf(u.dex),'battle');if(f)return f;}return u.dex;};
+const shownDex=u=>{if(u.hero){const f=formOf(baseOf(u.dex),'battle');if(f)return f;}if(u.app&&typeof rotomDex==='function')return rotomDex(u);return u.dex;};
 
 /* ---------- generation gimmicks ---------- */
 const GIMMICKS={

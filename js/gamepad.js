@@ -36,6 +36,7 @@ function padTargets(){
     run.bench.forEach((u,i)=>{if(u){const p=benchXY(i);out.push(toStage(p.x,p.y));}});
     if(mode==='plan')for(const e of enemyPreview){const p=hexXY(e.c,e.r);out.push(toStage(p.x,p.y));}
     if(chest&&!chest.open)out.push(toStage(chest.x,chest.y+4));
+    if(mode==='plan')for(const r of rotomOwned())out.push(toStage(r.x,r.y+10));
     if(mode==='carousel'&&run.car)for(const o of run.car.opts)if(o.pos)out.push(toStage(o.pos.x,o.pos.y));
     // while dragging, empty field hexes and bench slots are valid targets too
     if(drag||itemDrag){for(let rr=4;rr<ROWS;rr++)for(let c=0;c<COLS;c++){const p=hexXY(c,rr);out.push(toStage(p.x,p.y+6));}for(let i=0;i<BENCH_N;i++){const p=benchXY(i);out.push(toStage(p.x,p.y+8));}}

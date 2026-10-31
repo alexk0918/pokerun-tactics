@@ -295,7 +295,7 @@ const growthOf=u=>{const L=MODE.lines[u.root];if(!L)return null;return GROWTH.fi
 /* ---------- sets ---------- */
 function setsOf(dex,root){const K=kitOf(dex),out=[...D[dex].t,K.cls,...K.styles];if(!MODE.gen&&MODE.lines[root])out.push(REGIONS[MODE.lines[root].region]);return out;}
 function lineSets(root){MODE.lsCache=MODE.lsCache||{};if(!MODE.lsCache[root]){const s=new Set();for(const d of MODE.lines[root].mem)for(const k of setsOf(d,root))s.add(k);MODE.lsCache[root]=[...s];}return MODE.lsCache[root];}
-function unitSets(u){const s=setsOf(u.dex,u.root);if(u.shard&&!s.includes(u.shard))s.push(u.shard);return s;}
+function unitSets(u){const s=setsOf(shownDex(u),u.root);if(u.shard&&!s.includes(u.shard))s.push(u.shard);return s;}
 function countTraits(list){const seen=new Set(),ct={};
   for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of unitSets(u))ct[k]=(ct[k]||0)+1;
     if(run&&run.gimmick==='tera'&&u.shard&&u.uid===run.gimTarget)ct[u.shard]=(ct[u.shard]||0)+1;}
@@ -973,7 +973,7 @@ function draw(t){
     if(mode==='combat'||mode==='result'){for(const u of units){if(u.dead&&u.deadT>1.2)continue;u.scaleShown=(u.scaleShown||1)+((u.scaleMul||1)-(u.scaleShown||1))*.12;list.push({dex:u.dex,anim:u.anim,t:u.animT,dir:u.dir,x:u.x,y:u.y,loop:u.loop,alpha:u.dead?Math.max(0,1-u.deadT/1.2):u.airT>combatT?.3:1,cu:u,shadow:1,sc:(u.boss?1.25:starScale(u.u.star))*u.scaleShown});}}
     else{for(const b of boardUnits()){if(drag&&drag.u===b.u)continue;const p=hexXY(b.c,b.r);list.push({dex:shownDex(b.u),anim:'Idle',t:t+b.u.uid*.37,dir:DIR.up,x:p.x,y:p.y,pu:b.u,shadow:1,sc:starScale(b.u.star)});}
       if(mode!=='loot'&&mode!=='carousel')for(const e of enemyPreview){const p=hexXY(e.c,e.r);list.push({dex:e.u.dex,anim:'Idle',t:t+e.u.uid*.29,dir:DIR.down,x:p.x,y:p.y,pu:e.u,enemy:1,shadow:1,sc:e.boss?1.25:e.big?1.4:starScale(e.u.star)});}}
-    run.bench.forEach((u,i)=>{if(!u||(drag&&drag.u===u))return;const p=benchXY(i);list.push({dex:u.dex,anim:'Idle',t:t+u.uid*.41,dir:DIR.down,x:p.x,y:p.y-2,pu:u,bench:1});});
+    run.bench.forEach((u,i)=>{if(!u||(drag&&drag.u===u))return;const p=benchXY(i);list.push({dex:shownDex(u),anim:'Idle',t:t+u.uid*.41,dir:DIR.down,x:p.x,y:p.y-2,pu:u,bench:1});});
     carouselSprites(list,t);
   }
   list.sort((a,b)=>a.y-b.y);
@@ -997,7 +997,8 @@ function draw(t){
   ctx.globalAlpha=1;
   for(const s of list){if(s.bench&&mode!=='plan'&&mode!=='loot')continue;drawBar(s);drawItems(s);}
   for(const l of leaves){ctx.fillStyle=l.col;ctx.fillRect(Math.round(l.x),Math.round(l.y),2,1);ctx.fillRect(Math.round(l.x)+1,Math.round(l.y)+1,1,1);}
-  if(drag)drawSprite(drag.u.dex,'Walk',t,DIR.down,drag.x,drag.y-6);
+  drawRotomChips(t);
+  if(drag)drawSprite(shownDex(drag.u),'Walk',t,DIR.down,drag.x,drag.y-6);
   ctx.setTransform(1,0,0,1,0,0);
   drawWeather(t);
   if(chest&&!chest.open){const bob=Math.sin(t*3)*3;ctx.font='24px PokeEmerald,"Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#1b2430';const txt=chest.kind==='relic'?'Open the rival\'s chest':'Open the chest';
@@ -1080,6 +1081,7 @@ cv.addEventListener('pointerdown',e=>{const p=toInternal(e);
   if(e.button===1||e.button===2){camDrag={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
   if(mode==='carousel'){carouselClick(p);return;}
   if(mode==='loot'&&chest&&!chest.open&&Math.abs(p.x-chest.x)<22&&Math.abs(p.y-chest.y)<20){openChest();return;}
+  {const rc=!drag&&rotomChipAt(p.x,p.y);if(rc){showRotomCatalog(rc.u);return;}}
   if(drag&&drag.sticky){drag.x=p.x;drag.y=p.y;drag.over=dropTarget(p.x,p.y);finishDrag();swallowClick();return;}
   if((mode!=='plan'&&mode!=='loot')||evoOpen)return;const hit=ownedAt(p.x,p.y);if(!hit)return;
   drag={u:hit.u,from:hit.from,x:p.x,y:p.y,sx:p.x,sy:p.y,moved:false,over:dropTarget(p.x,p.y)};hideTip();try{cv.setPointerCapture(e.pointerId);}catch(_){} });
@@ -1476,7 +1478,7 @@ function showEnd(won){
 /* ================= Boot ================= */
 (async()=>{
   try{await Promise.all([document.fonts.load('16px PokeEmerald'),document.fonts.load('700 20px "Pixelify Sans"')]);}catch(e){}
-  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=6').then(r=>r.json()),fetch('data/sprites.json?v=6').then(r=>r.json()),fetch('data/kits.json?v=7').then(r=>r.json()),fetch('data/forms.json?v=6').then(r=>r.json())]);
+  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=6').then(r=>r.json()),fetch('data/sprites.json?v=7').then(r=>r.json()),fetch('data/kits.json?v=8').then(r=>r.json()),fetch('data/forms.json?v=7').then(r=>r.json())]);
   KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);

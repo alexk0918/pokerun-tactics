@@ -92,11 +92,38 @@ kit({ids:[459,460],role:'Frost Tree',cls:'Vanguard',type:'guard',cat:'spec',rang
    begin(c){schedule(.1,()=>setWeather(c,'snow'));},
    cast(c,tg,i){c.shield+=c.maxHp*(i?.2:.15);schedule(.3,()=>{if(c.dead)return;if(!i){if(!tg.dead){hitAb(c,tg,.9);addStatus(tg,'chill',2,c);}return;}
      for(const q of foesOf(c).filter(f=>hdist(f,c)<=2)){hitAb(c,q,.95);addStatus(q,'chill',3,c);}if(!SIM.on)pfx('Icy_Wind',c.x,c.y-14,{sc:1.6,force:1});});}});
-kit({ids:[479],role:'Appliance Ghost',cls:'Mystic',cat:'spec',range:3,mana:60,pf:1.1,names:['Thunderbolt'],mvType:'Electric'},
-  {d:c=>`Possesses a random appliance each cast and attacks the target for ${DT(c,1.1)}: oven (4 Burn), washer (knocks it back), fridge (4 Chill), fan (also hits enemies behind it), mower (4 Leech Seed), or plain Thunderbolt (4 Paralysis).`,
-   cast(c,tg){const f=pick(['heat','wash','frost','fan','mow','bolt']);const ty={heat:'Fire',wash:'Water',frost:'Ice',fan:'Flying',mow:'Grass',bolt:'Electric'}[f];
-     fire(c,tg,TYPES[ty],()=>{hitAb(c,tg,1.1,{type:ty});if(f==='heat')addStatus(tg,'burn',4,c);if(f==='wash')knock(c,tg);if(f==='frost')addStatus(tg,'chill',4,c);if(f==='mow')addStatus(tg,'seed',4,c);if(f==='bolt')addStatus(tg,'para',4,c);
-       if(f==='fan')for(const q of alive(tg.team).filter(q=>q!==tg&&hdist(q,tg)<=1&&hdist(q,c)>hdist(tg,c)))hitAb(c,q,.77,{type:ty});typeHit(tg,ty,1.1);},{type:ty,size:4});}});
+// Rotom: the player picks its appliance with the Rotom Catalog (any time while planning) and can swap freely.
+const ROTOM_APP={
+  heat:{fid:10008,n:'Heat Rotom',obj:'Oven',ty:'Fire',d:'adds 4 Burn'},
+  wash:{fid:10009,n:'Wash Rotom',obj:'Washing machine',ty:'Water',d:'knocks it back and adds 2 Confusion'},
+  frost:{fid:10010,n:'Frost Rotom',obj:'Fridge',ty:'Ice',d:'adds 4 Chill'},
+  fan:{fid:10011,n:'Fan Rotom',obj:'Fan',ty:'Flying',d:'also blows through every enemy behind it for 70%'},
+  mow:{fid:10012,n:'Mow Rotom',obj:'Lawn mower',ty:'Grass',d:'plants 4 Leech Seed'},
+};
+const rotomDex=u=>u&&u.app&&ROTOM_APP[u.app]?ROTOM_APP[u.app].fid:u.dex;
+function rotomHit(c,tg,f){const A=ROTOM_APP[f],ty=A?A.ty:'Electric';
+  fire(c,tg,TYPES[ty],()=>{hitAb(c,tg,1.1,{type:ty});
+    if(f==='heat')addStatus(tg,'burn',4,c);if(f==='wash'){knock(c,tg);addStatus(tg,'conf',2,c);}if(f==='frost')addStatus(tg,'chill',4,c);if(f==='mow')addStatus(tg,'seed',4,c);if(!A)addStatus(tg,'para',4,c);
+    if(f==='fan')for(const q of alive(tg.team).filter(q=>q!==tg&&hdist(q,tg)<=2&&hdist(q,c)>hdist(tg,c)))hitAb(c,q,.77,{type:ty});typeHit(tg,ty,1.1);},{type:ty,size:4});}
+kit({ids:[479],role:'Appliance Ghost',cls:'Mystic',cat:'spec',range:3,mana:60,pf:1.1,names:['Thunderbolt'],mvType:'Electric',
+  tail:c=>'<b>Rotom Catalog:</b> tap the catalog icon over Rotom while planning to choose its appliance; you can change it any time. Each appliance also changes its type (and sets) and raises its stats.'},
+  {d:c=>{const a=c&&c.u&&c.u.app,A=ROTOM_APP[a];return A?`${A.n}: possesses the ${A.obj.toLowerCase()} and attacks the target for ${DT(c,1.1)} (${A.ty}), which ${A.d}.`:
+     `Unplugged: possesses a random appliance each cast and attacks the target for ${DT(c,1.1)}: oven (4 Burn), washer (knock back, 2 Confusion), fridge (4 Chill), fan (hits enemies behind), mower (4 Leech Seed), or a plain Thunderbolt (4 Paralysis).`;},
+   begin(c){const A=ROTOM_APP[c.u&&c.u.app];if(A){transform(c,A.fid,{label:A.n+'!',col:TYPES[A.ty]});c.app=c.u.app;}},
+   cast(c,tg){rotomHit(c,tg,c.app||pick(['heat','wash','frost','fan','mow','bolt']));}});
+// catalog icon over owned Rotom while planning
+const CATIMG=Object.assign(new Image(),{src:'assets/items/rotom-catalog.png'});
+function rotomOwned(){if(!run)return[];const out=[];for(const b of boardUnits())if(b.u.root===479){const p=hexXY(b.c,b.r);out.push({u:b.u,x:p.x+10,y:p.y-30});}
+  run.bench.forEach((u,i)=>{if(u&&u.root===479){const p=benchXY(i);out.push({u,x:p.x+10,y:p.y-30});}});return out;}
+function drawRotomChips(t){if(mode!=='plan'||drag||itemDrag)return;for(const r of rotomOwned()){const y=r.y+Math.sin(t*3)*1.5;ctx.fillStyle='#1b2430';ctx.fillRect(r.x-6,y-6,12,12);ctx.fillStyle='#f7f6ee';ctx.fillRect(r.x-5,y-5,10,10);if(CATIMG.complete&&CATIMG.naturalWidth)ctx.drawImage(CATIMG,r.x-5,y-5,10,10);}}
+function rotomChipAt(x,y){if(mode!=='plan')return null;return rotomOwned().find(r=>Math.abs(x-r.x)<8&&Math.abs(y-r.y)<8)||null;}
+function showRotomCatalog(u){hideTip();
+  const opts=[[null,479,'Unplugged','Electric','A random appliance every cast']].concat(Object.entries(ROTOM_APP).map(([k,A])=>[k,A.fid,A.n,A.ty,`${A.obj}: ${A.d}`]));
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Rotom Catalog</h1><p class="sub">Pick an appliance for ${esc(nameOf(u))}. You can switch any time while planning.</p>
+    <div class="evo">${opts.map(([k,fid,n,ty,d])=>`<button class="pick win${(u.app||null)===k?' cur':''}" data-k="${k||''}"><img src="${por(fid)}" alt=""><h2>${esc(n)}</h2><div class="chips">${typeChips(fid)}</div><div class="lbl">${esc(d)}</div></button>`).join('')}</div>
+    <button class="btn" id="back">Keep it as it is</button></div>`;
+  ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{u.app=b.dataset.k||null;if(u.app)ensure(ROTOM_APP[u.app].fid);ov.innerHTML='';toast(u.app?`Rotom possessed the ${ROTOM_APP[u.app].obj.toLowerCase()}!`:'Rotom left its appliance.');renderUI();});
+  $('back').onclick=()=>{ov.innerHTML='';};ov.querySelector('.pick').focus();}
 
 // --- Sinnoh legends ---
 kit({ids:[480],role:'Being of Knowledge',cls:'Medic',type:'heal',cat:'spec',range:3,mana:70,pf:1.1,names:['Yawn'],mvType:'Psychic'},
