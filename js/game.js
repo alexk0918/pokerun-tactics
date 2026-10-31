@@ -46,6 +46,8 @@ function finalOf(dex){let d=dex;for(let i=0;i<3;i++){const k=MODE.kids(d);if(!k.
 let KITS={},MOVEDB={},ABNAME={};
 const KITCACHE={};
 const FALLBACK_MOVE={n:'Tackle',t:'Normal',p:40,c:2,tg:10,acc:100,prio:0,st:[],ident:'tackle'};
+// the stage a line grows into: the only evolution, or the first one when every branch keeps the same primary type
+function nextStage(d){const k=KIDS[d];if(!k||!k.length)return d;if(k.length===1)return k[0];const t=D[d].t[0];return k.every(x=>D[x].t[0]===t)?k[0]:d;}
 function ancestors(dex){const a=[];let d=dex;while(d){a.push(d);d=D[d].f;}return a;}
 function stylesOf(dex,abs){
   const out=[],anc=ancestors(dex);
@@ -58,7 +60,7 @@ function stylesOf(dex,abs){
 function kitOf(dex){
   if(KITCACHE[dex])return KITCACHE[dex];
   // A line keeps one play style: unbranched lines use their final form's stats to decide the kit
-  let ref=dex;while(KIDS[ref]&&KIDS[ref].length===1)ref=KIDS[ref][0];
+  let ref=nextStage(dex);while(ref!==dex&&nextStage(ref)!==ref)ref=nextStage(ref);
   const s=D[ref].s,k=KITS[dex]||{},kr=KITS[ref]||{},mv=MOVEDB[k.m]||FALLBACK_MOVE;
   const bulk=(s[0]+s[2]+s[4])/3,off=(s[1]+s[3]+s[5])/3;
   const hm=MOVEDB[k.h]||MOVEDB[kr.h],gm=MOVEDB[k.g]||MOVEDB[kr.g];
@@ -82,7 +84,7 @@ function kitOf(dex){
     ab:abId?{id:abId,n:ABNAME[abId]||abId,d:ABILITIES[abId].d,e:ABILITIES[abId].e}:null,styles:stylesOf(dex,k.a||[])};
 }
 function moveLine(dex){if(!KITS[dex]||!KITS[dex].lad)return null;
-  const up=ancestors(dex).reverse();let d=dex;const down=[];while(KIDS[d]&&KIDS[d].length===1){d=KIDS[d][0];down.push(d);}
+  const up=ancestors(dex).reverse();let d=dex;const down=[];while(nextStage(d)!==d){d=nextStage(d);down.push(d);}
   const chain=[...up,...down].filter(x=>KITS[x]&&KITS[x].lad);if(chain.length<2)return null;
   return chain.map(x=>({dex:x,n:(MOVEDB[KITS[x].m]||FALLBACK_MOVE).n}));}
 const roleOf=dex=>kitOf(dex).cls;
@@ -640,7 +642,7 @@ function damage(src,tg,amt,o={}){
 }
 function heal(u,amt,quiet){if(u.dead)return;if(u.burn)amt*=.5;const h=Math.min(u.maxHp-u.hp,amt);u.hp+=h;if(!quiet&&h>1&&!SIM.on)texts.push({x:u.x,y:u.y-24,txt:'+'+Math.round(h),col:'#7dff7a',life:.9});}
 function moveValue(c){
-  if(c.kind==='heal')return{base:c.base,ratio:KIT.healRatio,stat:c.spa,statN:'Sp. Atk',total:(c.base+KIT.healRatio*c.spa)*(1+c.healAmp)};
+  if(c.kind==='heal'&&!c.strike)return{base:c.base,ratio:KIT.healRatio,stat:c.spa,statN:'Sp. Atk',total:(c.base+KIT.healRatio*c.spa)*(1+c.healAmp)};
   if(c.kind==='guard'&&!c.strike)return{base:c.base*1.3,ratio:.12,stat:c.maxHp,statN:'max HP',total:c.base*1.3+.12*c.maxHp};
   const ratio=KIT.castRatio*c.pf,stat=c.cat==='spec'?c.spa:c.atk;
   return{base:c.base,ratio,stat,statN:c.cat==='spec'?'Sp. Atk':'Attack',total:c.base+ratio*stat};
@@ -681,7 +683,8 @@ function cast(u,tg){
     if(K.type==='heal'){const hm=K.hm,v=moveValue(u).total;
       const al=hm.tg===7?u:alive(u.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
       if(al){heal(al,v);if(!SIM.on){ring(al.x,al.y-8,'#c6ff8a');burst(al.x,al.y-12,'#e9ffb0',12,.6);texts.push({x:u.x,y:u.y-34,txt:hm.n,col:'#ffffff',life:1.1,label:1});}}
-      if(hm.st)for(const[s,ch]of hm.st)if(ch>0)applyStat(u,s,ch);}
+      if(hm.st)for(const[s,ch]of hm.st)if(ch>0)applyStat(u,s,ch);
+      if(!tg.dead&&hdist(u,tg)<=u.range)schedule(.35,()=>{if(!u.dead&&!tg.dead)useMove(u,tg,.5,true);});}
     else if(K.type==='guard'){const gm=K.gm,v=moveValue(u).total;
       u.shield+=gm&&gm.st&&gm.st.length?v:v*1.4;
       if(gm&&gm.st)for(const[s,ch]of gm.st)if(ch>0)applyStat(u,s,ch);
@@ -910,7 +913,7 @@ const setChip=k=>`<span class="chip set" style="background:${setColor(k)}">${k}<
 function moveDesc(c){
   const K=c.kit,v=moveValue(c),T=Math.round(v.total),r=`<span class="sc">(${Math.round(v.base)} + ${pct(v.ratio)} ${v.statN})</span>`;
   if(K.type==='tank')return`<p><b>Passive.</b> Has no move; fights with basic attacks and +${pct(KIT.tankHp)} max HP.</p>`;
-  if(K.type==='heal'){const hm=K.hm;return`<p><b>${hm.n}</b> <span class="sc">${hm.t} · ${c.maxMana} PP</span></p><p>Restores <b>${T}</b> HP ${r} to ${hm.tg===7?'itself':'the most injured ally'}${hm.st&&hm.st.some(x=>x[1]>0)?' and raises its '+hm.st.filter(x=>x[1]>0).map(x=>STATN[x[0]]).join(', '):''}.</p>`;}
+  if(K.type==='heal'){const hm=K.hm;return`<p><b>${hm.n}</b> <span class="sc">${hm.t} · ${c.maxMana} PP</span></p><p>Restores <b>${T}</b> HP ${r} to ${hm.tg===7?'itself':'the most injured ally'}${hm.st&&hm.st.some(x=>x[1]>0)?' and raises its '+hm.st.filter(x=>x[1]>0).map(x=>STATN[x[0]]).join(', '):''}, then uses <b>${c.mv.n}</b> at 50% power.</p>`;}
   if(K.type==='guard'){const gm=K.gm||c.mv,ups=(gm.st||[]).filter(x=>x[1]>0);return`<p><b>${gm.n}</b> <span class="sc">${gm.t} · ${c.maxMana} PP</span></p><p>Gains a shield of <b>${Math.round(ups.length?v.total:v.total*1.4)}</b> <span class="sc">(${Math.round(v.base*(ups.length?1:1.4))} + ${ups.length?12:17}% max HP)</span>${ups.length?` and raises its ${ups.map(x=>STATN[x[0]]+(x[1]>1?' sharply':'')).join(' and ')}`:''}, then uses <b>${c.mv.n}</b> at 60% power for <b>${Math.round((c.base+KIT.castRatio*c.pf*(c.cat==='spec'?c.spa:c.atk))*.6)}</b> ${c.cat==='spec'?'special':'physical'} damage.</p>`;}
   const mv=c.mv,bits=[];
   const hits=mv.hmax>1?`${mv.hmin===mv.hmax?mv.hmax:mv.hmin+'–'+mv.hmax} hits`:'';
