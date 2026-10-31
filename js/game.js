@@ -651,7 +651,7 @@ function onHitFx(u,tg){
   if(u.fx.poisonHit)setDot(tg,'poison',u.fx.poisonHit,3,u);
   if(u.fx.seedStun&&Math.random()<u.fx.seedStun)stun(tg,.6);
   if(u.fx.toxic)addStatus(tg,'poison',1,u);
-  if(u.fx.chill&&!tg.dead){tg.slowT=3;tg.slowP=Math.max(tg.slowP,u.fx.chill);addStatus(tg,'chill',1,u,{freeze:u.fx.freeze});}
+  if(u.fx.chillSt&&!tg.dead)addStatus(tg,'chill',u.fx.chillSt,u);
   statusOnHit(u,tg);
   if(u.fx.hitAil&&Math.random()<u.fx.hitAil.c)applyAil(u,tg,u.fx.hitAil.ail);
   if(u.fx.flinch&&Math.random()<u.fx.flinch&&!tg.fx.fImm)stun(tg,.35);
@@ -660,7 +660,7 @@ function onHitFx(u,tg){
 }
 function applyAil(src,t,id){
   const a=AIL[id];if(!a||t.dead||t.fx.aImm)return;
-  if(id===1){addStatus(t,'para',4,src);stun(t,.3);}else if(id===3)addStatus(t,'chill',3,src);else if(id===6)addStatus(t,'conf',2,src);else if(a.stun)stun(t,a.stun);
+  if(id===1){addStatus(t,'para',4,src);stun(t,.3);}else if(id===3){addStatus(t,'chill',4,src);stun(t,.4);}else if(id===6)addStatus(t,'conf',2,src);else if(a.stun)stun(t,a.stun);
   if(a.slow&&id!==1){t.slowT=a.t;t.slowP=Math.max(t.slowP,a.slow);}
   if(a.dot)setDot(t,id===4?'burn':'poison',a.dot,a.t,src);
   if(!SIM.on)texts.push({x:t.x,y:t.y-30,txt:a.n,col:'#d8c7ff',life:.8,label:1});
@@ -809,7 +809,7 @@ function cast(u,tg){
   const anim=K.type==='heal'||K.type==='guard'||u.range>1?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);
   schedule(hTime(u,anim),()=>{if(u.dead)return;
     if((u.zReady||u.dmaxOn)&&K.type!=='cast'&&!tg.dead){useMove(u,tg);if(u.spray)u.spa*=1+u.spray;if(u.leppa)gainMana(u,u.leppa);return;}
-    if(K.type==='heal'){const hm=K.hm,v=moveValue(u).total;
+    if(K.type==='heal'){const hm=K.hm||{tg:0,n:u.mv.n},v=moveValue(u).total;
       const al=hm.tg===7?u:alive(u.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
       if(al){heal(al,v);if(!SIM.on){ring(al.x,al.y-8,'#c6ff8a');burst(al.x,al.y-12,'#e9ffb0',12,.6);texts.push({x:u.x,y:u.y-34,txt:hm.n,col:'#ffffff',life:1.1,label:1});}}
       if(hm.st)for(const[s,ch]of hm.st)if(ch>0)applyStat(u,s,ch);

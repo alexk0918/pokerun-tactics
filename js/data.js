@@ -119,8 +119,8 @@ const RELICS={
   'poke-flute':{n:'Poké Flute',d:'The first of your Pokémon to faint each battle wakes up with 35% HP.'},
   magmarizer:{n:'Magmarizer',d:'When a burned enemy faints, its Burn stacks leap to the nearest enemy.'},
   'poison-barb':{n:'Poison Barb',d:'Poison your team applies never wears off.'},
-  electirizer:{n:'Electirizer',d:'Enemies paralyzed by your team are fully paralyzed twice as often.'},
-  snowball:{n:'Snowball',d:'Enemies your team chills freeze at 2 Chill instead of 3.'},
+  electirizer:{n:'Electirizer',d:'Paralysis your team applies slows by 7% per stack instead of 5%.'},
+  snowball:{n:'Snowball',d:'Chill your team applies lowers Defense and Sp. Def by 6% per stack instead of 4%.'},
   'sticky-barb':{n:'Sticky Barb',d:'Every status your team applies adds 1 extra stack.'},
   'full-heal':{n:'Full Heal',d:'Status conditions deal half damage to your Pokémon and wear off twice as fast.'},
 };

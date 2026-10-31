@@ -288,15 +288,15 @@ function applyFx(c,t,fx,i){if(!fx||t.dead)return;
   if(fx.tri){const k=pick(['burn','chill','para']);if(k==='burn')setDot(t,'burn',.015,4,c);else addStatus(t,k,3,c);}
   if(fx.weaken)debuff(t,'atk',P(fx.weaken,i),4),debuff(t,'spa',P(fx.weaken,i),4);
   for(const k of['para','conf','chill','seed'])if(fx[k])addStatus(t,k,P(fx[k],i),c);
-  // moves of the right type also leave a status: Electric stuns paralyze, Ice slows chill, Psychic/Ghost/Fairy flinches confuse
-  const mt=c.mv&&c.mv.t;if(fx.stun&&mt==='Electric')addStatus(t,'para',2,c);if(fx.slow&&mt==='Ice')addStatus(t,'chill',1,c);if(fx.flinch&&['Psychic','Ghost','Fairy'].includes(mt))addStatus(t,'conf',1,c);}
+  // moves of the right type also leave a status: Electric stuns paralyze, Ice slows and freezes chill, Psychic/Ghost/Fairy flinches confuse
+  const mt=c.mv&&c.mv.t;if(fx.stun&&mt==='Electric')addStatus(t,'para',2,c);if((fx.slow||fx.freeze)&&mt==='Ice')addStatus(t,'chill',2,c);if(fx.flinch&&['Psychic','Ghost','Fairy'].includes(mt))addStatus(t,'conf',1,c);}
 function fxText(fx,i){if(!fx)return'';const o=[];
   if(fx.stun)o.push(`stuns for ${P(fx.stun,i)}s`);if(fx.sleep)o.push(`puts it to sleep for ${P(fx.sleep,i)}s`);if(fx.freeze)o.push(`freezes it for ${P(fx.freeze,i)}s`);
   if(fx.slow)o.push(`slows its <span class="s-as">Attack Speed</span> by ${pcnt(P(fx.slow[0],i))} for ${fx.slow[1]}s`);
   if(fx.burn)o.push(`burns for ${(P(fx.burn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);if(fx.psn)o.push(`poisons for ${(P(fx.psn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);
   if(fx.shred)o.push(`lowers <span class="s-def">Defense</span> by ${P(fx.shred,i)}`);if(fx.sdef)o.push(`lowers <span class="s-def">Sp. Def</span> by ${P(fx.sdef,i)}`);
   if(fx.knock)o.push('knocks back a hex');if(fx.pull)o.push('drags it next to this Pokémon');if(fx.flinch)o.push(`${pcnt(P(fx.flinch,i))} chance to flinch`);
-  if(fx.tri)o.push('burns, freezes or paralyzes at random');if(fx.para)o.push(`adds ${P(fx.para,i)} Paralysis`);if(fx.conf)o.push(`adds ${P(fx.conf,i)} Confusion`);if(fx.chill)o.push(`adds ${P(fx.chill,i)} Chill`);if(fx.seed)o.push(`plants ${P(fx.seed,i)} Leech Seed`);if(fx.weaken)o.push(`lowers <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> by ${pcnt(P(fx.weaken,i))} for 4s`);
+  if(fx.tri)o.push('burns, chills or paralyzes at random');if(fx.para)o.push(`adds ${P(fx.para,i)} Paralysis`);if(fx.conf)o.push(`adds ${P(fx.conf,i)} Confusion`);if(fx.chill)o.push(`adds ${P(fx.chill,i)} Chill`);if(fx.seed)o.push(`plants ${P(fx.seed,i)} Leech Seed`);if(fx.weaken)o.push(`lowers <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> by ${pcnt(P(fx.weaken,i))} for 4s`);
   return o.length?' It '+o.join(', ')+'.':'';}
 function pullTo(c,t){if(t.dead||t.stunImm)return;const opts=nbrs(c.c,c.r).filter(h=>!occupied(h.c,h.r,t));if(!opts.length)return;const h=opts.sort((a,b)=>hdist(a,t)-hdist(b,t))[0],p=hexXY(h.c,h.r);
   t.move={c:h.c,r:h.r,fx:t.x,fy:t.y,tx:p.x,ty:p.y,t:0,dur:.25};stun(t,.4);}
