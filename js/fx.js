@@ -83,7 +83,10 @@ function statusFx(u,dt){if(u.dead||OPTS.fx<2)return;u.sfxT=(u.sfxT||0)-dt;
   if(u.stun>0)pfx('Lucky_Chant_Star_Yellow',0,0,{follow:u,oy:-30,sc:1,force:1});
   else if(u.burn)pfx('Ember',u.x+rnd(-5,5),u.y-8,{sc:.75,force:1});
   else if(u.poison)pfx('Bubbles_Purple',u.x+rnd(-5,5),u.y-12,{sc:.9,force:1});
-  else if(u.slowT>0&&u.chillN)pfx('Ice_Shard_Hit_Sparkle',u.x+rnd(-6,6),u.y-14,{force:1});}
+  else if(u.chill)pfx('Ice_Shard_Hit_Sparkle',u.x+rnd(-6,6),u.y-14,{force:1});
+  else if(u.para)pfx('Spark',u.x+rnd(-5,5),u.y-12,{sc:.22,force:1});
+  else if(u.conf)pfx('Lucky_Chant_Star_Violet',0,0,{follow:u,oy:-30,force:1});
+  else if(u.seed)pfx('Leech_Seed_Sprout',u.x+rnd(-5,5),u.y-6,{force:1});}
 
 /* a chest from PMD treasure boxes: brown (floor), purple (alpha or challenge), white/silver (act boss) */
 const BOXIMG={};

@@ -531,7 +531,7 @@ function startOfBattle(trs){
     if(F.boostStart&&F.wBoost&&battle.weather===F.wBoost)u.dmg+=F.boostStart;
     if(u.team===0&&hasRelic('bicycle')){u.as*=1.3;schedule(6,()=>{u.as/=1.3;});}
     if(F.speedBoost){const tick=()=>{if(u.dead)return;if(u.sbN<8){u.sbN++;u.as*=1+F.speedBoost;}schedule(2,tick);};schedule(2,tick);}
-    const wk=battle.weather;
+    const wk=battle.weather;weatherStart(u);
     if(wk){if(F.wAS&&F.wAS[wk])u.as*=1+F.wAS[wk];if(F.wSpa&&F.wSpa[wk])u.spa*=1+F.wSpa[wk];if(F.wAtk&&F.wAtk[wk])u.atk*=1+F.wAtk[wk];if(F.wDmg&&F.wDmg[wk])u.dmg+=F.wDmg[wk];if(F.wRegen&&F.wRegen[wk])u.regen+=F.wRegen[wk];if(F.wDodge&&F.wDodge[wk])u.dodge+=F.wDodge[wk];}
   }
 }
@@ -585,18 +585,16 @@ function setAnim(u,a,loop=false){if(SIM.on)return;u.anim=a;u.animT=0;u.loop=loop
 function schedule(dt,fn){events.push({t:combatT+dt,fn});}
 const aLen=(u,a)=>SIM.on?.5:animLen(u.dex,a), hTime=(u,a)=>SIM.on?.25:hitTime(u.dex,a);
 const lowHp=(u,f)=>u.hp<u.maxHp*f;
-function effAS(u){let a=u.as*(1+(u.fx.momentum||0)*u.momN);if(u.fx.lowAS&&lowHp(u,.5))a*=1+u.fx.lowAS;if(u.slowT>0)a*=1-u.slowP;return a;}
+function effAS(u){let a=u.as*(1+(u.fx.momentum||0)*u.momN);if(u.fx.lowAS&&lowHp(u,.5))a*=1+u.fx.lowAS;if(u.slowT>0)a*=1-u.slowP;return a*statusAS(u);}
 function stepCombat(dt){
   combatT+=dt;tickZones(dt);
   for(let i=events.length-1;i>=0;i--)if(events[i].t<=combatT){const e=events[i];events.splice(i,1);e.fn();}
-  const sand=battle.weather==='sand',sandP=.01*battle.wPow;
   for(const u of units){
     u.animT+=dt;u.flash=Math.max(0,u.flash-dt);
     if(u.dead){u.deadT+=dt;continue;}
     if(!SIM.on&&!u.loop&&u.animT>=animLen(u.dex,u.anim)&&!u.move)setAnim(u,'Idle',true);
     if(u.regen>0)heal(u,u.maxHp*u.regen*dt,true);
-    for(const k of['burn','poison'])if(u[k]){u[k].t-=dt;if(k==='poison'&&u.poisonHeal)heal(u,u.maxHp*u[k].p*dt,true);else if(!u.fx.mGuard)hurt(u,u.maxHp*u[k].p*dt,u[k].src);if(u[k]&&u[k].t<=0)u[k]=null;}
-    if(sand&&u.team!==battle.wSide&&!u.fx.mGuard&&!u.fx.noWeatherChip&&!D[u.dex].t.some(t=>t==='Rock'||t==='Ground'||t==='Steel'))hurt(u,u.maxHp*sandP*dt,null);
+    statusTick(u,dt);weatherTick(u,dt);
     if(u.dead)continue;
     if(u.slowT>0)u.slowT-=dt;
     if(u.stun>0){u.stun-=dt;continue;}
@@ -624,6 +622,7 @@ function stun(tg,t){if(tg.dead)return;if(tg.stunRes)t*=1-tg.stunRes;if(tg.stunIm
 function gainMana(u,n){if(u.maxMana>0)u.mana=Math.min(u.maxMana,u.mana+n*u.ppMul);}
 function autoAmt(u){return u.cat==='spec'?u.spa*.8:u.atk;}
 function attack(u,tg){
+  if(statusSkip(u))return;
   const anim=u.range>1?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.55);
   schedule(hTime(u,anim),()=>{if(u.dead)return;
     const hit=()=>{if(tg.dead)return;if(u.fx.miss&&Math.random()<u.fx.miss){if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Miss',col:'#cfe0ff',life:.7});return;}
@@ -651,20 +650,18 @@ function onHitFx(u,tg){
   if(u.burnP)setDot(tg,'burn',u.burnP,4,u);
   if(u.fx.poisonHit)setDot(tg,'poison',u.fx.poisonHit,3,u);
   if(u.fx.seedStun&&Math.random()<u.fx.seedStun)stun(tg,.6);
-  if(u.fx.toxic)addToxic(u,tg);
-  if(u.fx.chill&&!tg.dead){tg.chillN=(tg.chillN||0)+1;tg.slowT=3;tg.slowP=Math.max(tg.slowP,u.fx.chill);
-    if(tg.chillN>=3&&(tg.frzCd||0)<combatT&&!tg.stunImm){tg.chillN=0;tg.frzCd=combatT+5;stun(tg,u.fx.freeze);if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Frozen!',col:'#bff0ff',life:1,label:1});burst(tg.x,tg.y-10,'#dff6ff',12,.8);}}}
+  if(u.fx.toxic)addStatus(tg,'poison',1,u);
+  if(u.fx.chill&&!tg.dead){tg.slowT=3;tg.slowP=Math.max(tg.slowP,u.fx.chill);addStatus(tg,'chill',1,u,{freeze:u.fx.freeze});}
+  statusOnHit(u,tg);
   if(u.fx.hitAil&&Math.random()<u.fx.hitAil.c)applyAil(u,tg,u.fx.hitAil.ail);
   if(u.fx.flinch&&Math.random()<u.fx.flinch&&!tg.fx.fImm)stun(tg,.35);
   // contact abilities on the target
   const T=tg.fx.touch;if(T&&(u.range===1||T.any)&&!u.dead&&Math.random()<T.c){if(T.slow){u.slowT=3;u.slowP=Math.max(u.slowP,T.slow);}else applyAil(tg,u,T.ail===-1?pick([1,2,5]):T.ail);}
 }
-function addToxic(u,t){if(t.dead||t.fx.aImm)return;t.toxN=Math.min(5,(t.toxN||0)+1);setDot(t,'poison',u.fx.toxic*t.toxN,4,u);t.griev=combatT+4;}
-function setDot(t,k,p,dur,src){if(t.fx.dotImm&&(k==='burn'||k==='poison'))return;if(k==='poison')t.griev=Math.max(t.griev||0,combatT+dur);if(t.dead||t.fx.mGuard||t.fx.aImm&&k!=='burn'&&false)return;t[k]={p:Math.max(p,t[k]?t[k].p:0),t:Math.max(dur,t[k]?t[k].t:0),src};}
 function applyAil(src,t,id){
   const a=AIL[id];if(!a||t.dead||t.fx.aImm)return;
-  if(a.stun)stun(t,a.stun);
-  if(a.slow){t.slowT=a.t;t.slowP=Math.max(t.slowP,a.slow);}
+  if(id===1){addStatus(t,'para',4,src);stun(t,.3);}else if(id===3)addStatus(t,'chill',3,src);else if(id===6)addStatus(t,'conf',2,src);else if(a.stun)stun(t,a.stun);
+  if(a.slow&&id!==1){t.slowT=a.t;t.slowP=Math.max(t.slowP,a.slow);}
   if(a.dot)setDot(t,id===4?'burn':'poison',a.dot,a.t,src);
   if(!SIM.on)texts.push({x:t.x,y:t.y-30,txt:a.n,col:'#d8c7ff',life:.8,label:1});
 }
@@ -679,7 +676,7 @@ function checkHp(tg,src){
   if(tg.fx.halfShield&&!tg.hsOn&&tg.hp>0&&lowHp(tg,.5)){tg.hsOn=1;tg.shield+=tg.maxHp*tg.fx.halfShield;if(tg.fx.redCard)for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)stun(o,tg.fx.redCard);if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Red Card!',col:'#ff8a7a',life:1});ring(tg.x,tg.y-8,'#ff6b6b');}}
   if(tg.hp>0){formsOnHp(tg);return;}
   if(tg.focus>0){tg.focus--;tg.hp=1;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Hung on!',col:'#ff8a7a',life:1.2});return;}
-  if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;tg.burn=tg.poison=null;if(tg.fx.ashFull){tg.mana=tg.maxMana;tg.dmg+=tg.fx.ashFull;}if(tg.fx.ancient){const a=tg.fx.ancient;tg.atk*=1+a;tg.spa*=1+a;tg.def*=1+a;tg.res*=1+a;tg.as*=1+a;for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)damage(tg,o,tg.maxHp*.15,{ab:1,cat:'spec',noCrit:1,refl:1});}if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
+  if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;cureStatus(tg);if(tg.fx.ashFull){tg.mana=tg.maxMana;tg.dmg+=tg.fx.ashFull;}if(tg.fx.ancient){const a=tg.fx.ancient;tg.atk*=1+a;tg.spa*=1+a;tg.def*=1+a;tg.res*=1+a;tg.as*=1+a;for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)damage(tg,o,tg.maxHp*.15,{ab:1,cat:'spec',noCrit:1,refl:1});}if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
   if(tg.team===0&&battle.flute){battle.flute=false;tg.hp=tg.maxHp*.35;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Woke up!',col:'#c6b3ff',life:1.2});return;}
   tg.dead=true;tg.hp=0;setAnim(tg,'Faint');tg.move=null;if(!SIM.on)burst(tg.x,tg.y-8,'#ffffff',10,.7);
   battle.kills[1-tg.team]++;
@@ -688,7 +685,8 @@ function checkHp(tg,src){
   if(tg.curseT>combatT&&tg.curseBy)for(const o of alive(tg.team))if(hdist(o,tg)<=1)damage(tg.curseBy,o,tg.maxHp*.2,{cat:'spec',ab:1,noCrit:1,refl:1});
   if(tg.curseT>combatT&&!SIM.on)burst(tg.x,tg.y-10,'#9b6bff',18,1.2);
   if(tg.fx.haunt){for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)damage(tg,o,tg.maxHp*tg.fx.haunt,{ab:1,cat:'spec',noCrit:1,refl:1});if(!SIM.on)burst(tg.x,tg.y-12,'#7a5ad0',20,1.2);}
-  if(tg.poison&&battle.plague[1-tg.team])for(const o of alive(tg.team))if(hdist(o,tg)<=1)setDot(o,'poison',tg.poison.p,4,tg.poison.src);
+  if(tg.poison&&battle.plague[1-tg.team])for(const o of alive(tg.team))if(hdist(o,tg)<=1)addStatus(o,'poison',Math.ceil(tg.poison.n/2),tg.poison.src,{raw:1});
+  statusOnFaint(tg);
   if(tg.fx.swarm&&!tg.summon&&(tg.fx.swarm>=2||!battle.swarm[tg.team])){battle.swarm[tg.team]++;const c0=tg.c,r0=tg.r,sw=tg.fx.swarm;schedule(.5,()=>{if(mode!=='combat'||occupied(c0,r0))return;
     const nu=mkUnit(tg.u.root);const c=makeCombatant(nu,tg.team,c0,r0,battle.trs[tg.team],tg.team?.9:1);c.summon=1;if(sw>=2)c.as*=1.3;units.push(c);if(!SIM.on){ensure(nu.dex);burst(c.x,c.y-10,'#b5d96a',16,1);texts.push({x:c.x,y:c.y-34,txt:'Swarm!',col:'#d6f08a',life:1,label:1});}});}
   for(const o of units)if(!o.dead&&o.team!==tg.team&&o.fx.momentum)o.momN++;
@@ -732,7 +730,7 @@ function damage(src,tg,amt,o={}){
   if(tg.curseT>combatT)d*=1.15;
   if(src.fx.burnAmp&&tg.burn)d*=1+src.fx.burnAmp;
   if(tg.fx.multiscale&&tg.hp>=tg.maxHp-.5)d*=1-tg.fx.multiscale;
-  d*=tg.taken;
+  d*=tg.taken*statusDmg(src,tg,o);
   if(tg.disguise>0&&d>0){tg.disguise--;d=0;formsOnDisguiseBroken(tg);if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Disguise!',col:'#ffe27a',life:1});}
   if(tg.iceFace&&o.cat==='phys'&&d>0){tg.iceFace=0;d=0;formsOnIceFace(tg);}
   tg.hits++;src.dealt+=d;
@@ -752,7 +750,7 @@ function damage(src,tg,amt,o={}){
   if(crit&&tg.fx.angerPoint&&!tg.angered){tg.angered=1;tg.atk*=1+tg.fx.angerPoint;}
   if(crit&&src.fx.critPP)gainMana(src,src.fx.critPP);
   if(o.ab&&tg.fx.ironShield&&(tg.ironCd||0)<combatT){tg.ironCd=combatT+3;tg.shield+=tg.maxHp*tg.fx.ironShield;}
-  if(o.ab&&!o.refl&&d>0){if(src.burnP)setDot(tg,'burn',src.burnP,4,src);
+  if(o.ab&&!o.refl&&d>0){statusOnAb(src,tg);if(src.burnP)setDot(tg,'burn',src.burnP,4,src);
     if(src.fx.fairyHeal&&!src.dead){const al=alive(src.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];if(al)heal(al,d*src.fx.fairyHeal,true);}
     if(src.fx.lightChain&&!o.chain)for(const o2 of alive(tg.team).filter(x=>x!==tg).sort((a,b)=>hdist(a,tg)-hdist(b,tg)).slice(0,2)){schedule(.05,()=>{damage(src,o2,d*src.fx.lightChain,{ab:1,cat:'spec',chain:1,noCrit:1});});if(!SIM.on)fx.push({line:1,x1:tg.x,y1:tg.y-10,x2:o2.x,y2:o2.y-10,life:.25,max:.25,col:'#ffe14d',w:1});}}
   if((o.ab||o.auto)&&!o.refl&&d>0){if(src.fx.toxic&&o.ab)addToxic(src,tg);if(src.fx.curse&&o.ab){tg.curseT=combatT+5;tg.curseBy=src;}}
@@ -1001,6 +999,7 @@ function draw(t){
   for(const l of leaves){ctx.fillStyle=l.col;ctx.fillRect(Math.round(l.x),Math.round(l.y),2,1);ctx.fillRect(Math.round(l.x)+1,Math.round(l.y)+1,1,1);}
   if(drag)drawSprite(drag.u.dex,'Walk',t,DIR.down,drag.x,drag.y-6);
   ctx.setTransform(1,0,0,1,0,0);
+  drawWeather(t);
   if(chest&&!chest.open){const bob=Math.sin(t*3)*3;ctx.font='24px PokeEmerald,"Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#1b2430';const txt=chest.kind==='relic'?'Open the rival\'s chest':'Open the chest';
     const q=w2s(chest.x,chest.y-14*(chest.tier==='silver'?1.2:1));ctx.strokeText(txt,q.x*2,q.y*2-20+bob);ctx.fillStyle='#ffe27a';ctx.fillText(txt,q.x*2,q.y*2-20+bob);}
   for(const tx of texts){ctx.globalAlpha=Math.min(1,tx.life*2.5);{const zb=CAM.z>1.35?8:0;ctx.font=(tx.big?24+zb:16+zb)+'px PokeEmerald,"Pixelify Sans",sans-serif';}
@@ -1040,7 +1039,7 @@ function drawBar(s){
   if(shield>0){ctx.fillStyle='#e6edf2';ctx.fillRect(x+Math.round(24*hp),y,Math.max(1,Math.round(24*shield)),3);}
   ctx.fillStyle='#2b3550';ctx.fillRect(x,y+3,24,1);ctx.fillStyle='#5aa8ff';ctx.fillRect(x,y+3,Math.round(24*mana),1);
   const cols=['#d7905a','#cfd8e0','#ffd34d'];for(let i=0;i<star;i++)star3(x+12-(star*5)/2+i*5+2,y-4,cols[star-1]);
-  if(s.cu&&s.cu.burn){ctx.fillStyle='#ff7a2a';ctx.fillRect(x+25,y,2,2);}
+  if(s.cu)drawStatusPips(s.cu,x,y-12);
 }
 function drawItems(s){
   const u=s.cu?s.cu.u:s.pu;if(!u||!u.items||!u.items.length)return;
@@ -1187,7 +1186,7 @@ function showTip(u,e,hit={}){
     ${gimLines(u,enemy)}
     ${G?`<div class="grow"><b>${G.n}</b>: ${G.d}${u.gs?`<br>Grown ${u.gs} time${u.gs>1?'s':''} this run.`:''}${(()=>{const S=!enemy&&specialFor(u);if(!S)return'';const got=run&&(run.specials||[]).includes(S.id);return`<br><b>${S.n}:</b> ${got?'earned!':`${Math.min(u.gs||0,S.need)}/${S.need} (${S.how})`}`;})()}</div>`:''}
     ${!enemy&&u.uid&&setsOf(u.dex,u.root).includes('Partner')?`<div class="grow"><b>Friendship ${u.fr||0}/20</b>: +${((u.fr||0)*1.5).toFixed(1)}% max HP and damage while Partner is active.${(u.fr||0)>=10?' Hangs on through its first fainting blow.':` Hangs on at 10.`}</div>`:''}
-    ${!enemy&&u.star<3&&evo.length?`<div class="lbl" style="margin-top:8px">${u.star===1?'At 2★':'At 3★'}: ${evo.length>1?'choose '+esc(evo.join(' / ')):'evolves into '+esc(evo[0])}</div>`:''}`;
+    ${!enemy&&u.star<3&&evo.length?`<div class="lbl" style="margin-top:8px">${u.star===1?'At 2★':'At 3★'}: ${evo.length>1?'choose '+esc(evo.join(' / ')):'evolves into '+esc(evo[0])}</div>`:''}${hit.cu?statusTipHtml(hit.cu):''}`;
   placeTip(e);
 }
 function gimLines(u,enemy){
@@ -1258,6 +1257,7 @@ function renderUI(){
     else if(sc.top)mh+=`<div class="mod"><div class="k">Scouting</div><div class="v">${sc.top.k}: ${Math.min(sc.top.lines,SCOUT.minLines)}/${SCOUT.minLines} lines · ₽${Math.min(sc.top.gold,SCOUT.minGold)}/${SCOUT.minGold}</div><p>${run.floor<SCOUT.minFloor?`Unlocks on floor ${SCOUT.minFloor}. `:''}Invest in a set and the shop starts favoring it.</p></div>`;}
   const nmh=nodeModHtml();mh+=nmh;
   if(mode!=='loot'&&!nmh&&!NONCOMBAT.has(nodeK(f)))mh+=`<div class="mod mini"><div class="k">Next opponent</div><div class="v">${esc(trainerName(f))}</div></div>`;
+  mh+=statusGuideHtml();
   $('mods').innerHTML=mh;
   const plan=mode==='plan',owned=new Set(allOwned().filter(u=>u.star<3).map(u=>u.root));
   $('cards').innerHTML=run.shop.map((r,i)=>{if(!r)return`<div class="card empty" aria-hidden="true"></div>`;const L=MODE.lines[r];const G=growthOf({root:r});

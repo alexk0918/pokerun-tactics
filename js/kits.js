@@ -175,7 +175,7 @@ const bliss=c=>(c.base+KIT.healRatio*c.spa)*(1+c.healAmp);
 defSig({ids:[440,113,242],role:'Nurse',cls:'Medic',type:'heal',cat:'spec',range:2,mana:75,pf:1,names:['Pound','Soft-Boiled','Soft-Boiled'],mvType:'Normal',
   d:(c,i)=>`Heals the most injured ally for <b class="s-hp">${Math.round(bliss(c))}</b> <span class="sc">(${Math.round(c.base)} + <span class="s-spa">${pct(KIT.healRatio)} Sp. Atk</span>)</span> and cures burn and poison.${i?` <b>Wish:</b> 1.5s later, every ally heals ${i===2?30:20}% of that.`:''}`,
   cast(c,tg,i){const h=bliss(c),al=alive(c.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
-    if(al){heal(al,h);al.burn=al.poison=null;if(!SIM.on){ring(al.x,al.y-8,'#ffc6e0');burst(al.x,al.y-12,'#fff0f6',14,.7);}}
+    if(al){heal(al,h);cureStatus(al);if(!SIM.on){ring(al.x,al.y-8,'#ffc6e0');burst(al.x,al.y-12,'#fff0f6',14,.7);}}
     if(i)schedule(1.5,()=>{if(c.dead)return;for(const o of alive(c.team)){heal(o,h*(i===2?.3:.2));if(!SIM.on)burst(o.x,o.y-14,'#ffe27a',6,.5);}});}});
 
 // Rillaboom: the drummer. Hits everything nearby; Grassy Surge heals allies standing in it.
@@ -285,15 +285,18 @@ function applyFx(c,t,fx,i){if(!fx||t.dead)return;
   if(fx.burn)setDot(t,'burn',P(fx.burn,i),4,c);if(fx.psn)setDot(t,'poison',P(fx.psn,i),4,c);
   if(fx.shred){t.def=Math.max(0,t.def-P(fx.shred,i));}if(fx.sdef){t.res=Math.max(0,t.res-P(fx.sdef,i));}
   if(fx.knock)knock(c,t);if(fx.pull)pullTo(c,t);if(fx.flinch&&Math.random()<P(fx.flinch,i))stun(t,.35);
-  if(fx.tri){const k=pick(['burn','freeze','para']);if(k==='burn')setDot(t,'burn',.015,4,c);else{stun(t,k==='freeze'?.8:.6);}}
-  if(fx.weaken)debuff(t,'atk',P(fx.weaken,i),4),debuff(t,'spa',P(fx.weaken,i),4);}
+  if(fx.tri){const k=pick(['burn','chill','para']);if(k==='burn')setDot(t,'burn',.015,4,c);else addStatus(t,k,3,c);}
+  if(fx.weaken)debuff(t,'atk',P(fx.weaken,i),4),debuff(t,'spa',P(fx.weaken,i),4);
+  for(const k of['para','conf','chill','seed'])if(fx[k])addStatus(t,k,P(fx[k],i),c);
+  // moves of the right type also leave a status: Electric stuns paralyze, Ice slows chill, Psychic/Ghost/Fairy flinches confuse
+  const mt=c.mv&&c.mv.t;if(fx.stun&&mt==='Electric')addStatus(t,'para',2,c);if(fx.slow&&mt==='Ice')addStatus(t,'chill',1,c);if(fx.flinch&&['Psychic','Ghost','Fairy'].includes(mt))addStatus(t,'conf',1,c);}
 function fxText(fx,i){if(!fx)return'';const o=[];
   if(fx.stun)o.push(`stuns for ${P(fx.stun,i)}s`);if(fx.sleep)o.push(`puts it to sleep for ${P(fx.sleep,i)}s`);if(fx.freeze)o.push(`freezes it for ${P(fx.freeze,i)}s`);
   if(fx.slow)o.push(`slows its <span class="s-as">Attack Speed</span> by ${pcnt(P(fx.slow[0],i))} for ${fx.slow[1]}s`);
   if(fx.burn)o.push(`burns for ${(P(fx.burn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);if(fx.psn)o.push(`poisons for ${(P(fx.psn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);
   if(fx.shred)o.push(`lowers <span class="s-def">Defense</span> by ${P(fx.shred,i)}`);if(fx.sdef)o.push(`lowers <span class="s-def">Sp. Def</span> by ${P(fx.sdef,i)}`);
   if(fx.knock)o.push('knocks back a hex');if(fx.pull)o.push('drags it next to this Pokémon');if(fx.flinch)o.push(`${pcnt(P(fx.flinch,i))} chance to flinch`);
-  if(fx.tri)o.push('burns, freezes or paralyzes at random');if(fx.weaken)o.push(`lowers <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> by ${pcnt(P(fx.weaken,i))} for 4s`);
+  if(fx.tri)o.push('burns, freezes or paralyzes at random');if(fx.para)o.push(`adds ${P(fx.para,i)} Paralysis`);if(fx.conf)o.push(`adds ${P(fx.conf,i)} Confusion`);if(fx.chill)o.push(`adds ${P(fx.chill,i)} Chill`);if(fx.seed)o.push(`plants ${P(fx.seed,i)} Leech Seed`);if(fx.weaken)o.push(`lowers <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> by ${pcnt(P(fx.weaken,i))} for 4s`);
   return o.length?' It '+o.join(', ')+'.':'';}
 function pullTo(c,t){if(t.dead||t.stunImm)return;const opts=nbrs(c.c,c.r).filter(h=>!occupied(h.c,h.r,t));if(!opts.length)return;const h=opts.sort((a,b)=>hdist(a,t)-hdist(b,t))[0],p=hexXY(h.c,h.r);
   t.move={c:h.c,r:h.r,fx:t.x,fy:t.y,tx:p.x,ty:p.y,t:0,dur:.25};stun(t,.4);}
@@ -330,7 +333,7 @@ const B={
       for(const a of ws){if(!a)continue;a.shield+=a.maxHp*P(p,i);if(o.def){const v=P(o.def,i);a.def+=v;a.res+=v;schedule(4,()=>{a.def-=v;a.res-=v;});}if(!SIM.on)ring(a.x,a.y-8,'#dfe8ff');}}}),
   heal:(m,o={})=>({d:(c,i)=>`Heals ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':o.who==='self'?'itself':'the most injured ally'} for ${HT(c,P(m,i))}${o.cleanse?' and cures burn and poison':''}.`,
     cast(c,tg,i){const ws=o.who==='team'?alive(c.team):o.who==='adjacent'?alive(c.team).filter(a=>hdist(a,c)<=1):o.who==='self'?[c]:[alive(c.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0]];
-      for(const a of ws){if(!a)continue;heal(a,HEALV(c,P(m,i)));if(o.cleanse)a.burn=a.poison=null;if(!SIM.on)burst(a.x,a.y-12,'#c6ff8a',8,.6);}}}),
+      for(const a of ws){if(!a)continue;heal(a,HEALV(c,P(m,i)));if(o.cleanse)cureStatus(a);if(!SIM.on)burst(a.x,a.y-12,'#c6ff8a',8,.6);}}}),
   buff:(st,o={})=>({d:(c,i)=>`Gives ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':'itself'} ${Object.entries(st).map(([k,v])=>`+${k==='def'||k==='res'?P(v,i):pcnt(P(v,i))} ${{as:'<span class="s-as">Attack Speed</span>',dmg:'damage',atk:'<span class="s-atk">Attack</span>',spa:'<span class="s-spa">Sp. Atk</span>',def:'<span class="s-def">Defense</span>',res:'<span class="s-def">Sp. Def</span>',dr:'damage reduction'}[k]}`).join(', ')} ${o.dur?`for ${o.dur}s`:'for the rest of the battle (stacks)'}.`,
     cast(c,tg,i){const ws=o.who==='team'?alive(c.team):o.who==='adjacent'?alive(c.team).filter(a=>hdist(a,c)<=1):[c];
       for(const a of ws){for(const[k,v0]of Object.entries(st)){const v=P(v0,i);const ap=s=>{if(k==='as'||k==='atk'||k==='spa')a[k]*=s>0?1+v:1/(1+v);else if(k==='dmg')a.dmg+=s*v;else if(k==='dr')a.taken*=s>0?1-v:1/(1-v);else a[k]+=s*v;};ap(1);if(o.dur)schedule(o.dur,()=>ap(-1));}

@@ -186,6 +186,32 @@ While you drag a Pokémon, or hover one on the field, the hexes it can reach fro
 
 Beating a rival (floors 5 and 10) lets you pick one of three relics, then one of three enhancers. Relics are team-wide effects such as Exp. Share, Coin Case, Dowsing Machine or Poké Flute. Alpha Pokémon have a 25% chance to drop a relic, and Kecleon Shops sell them.
 
+### Status conditions and weather
+
+Statuses stack, like the afflictions in The Last Flame and Guildrun: every hit adds stacks, more stacks hit harder, and stacks last 4s after the last hit before halving every 2s. Pips above each health bar show the stacks (BR 6 = 6 Burn).
+
+| Status | Effect | Immune |
+|---|---|---|
+| Burn | 0.25% max HP/s per stack (max 20). Deals 15% less physical damage, heals half as much | Fire |
+| Poison | 0.3% max HP/s per stack (max 20). Heals a third less | Poison, Steel |
+| Paralysis | −3% Attack Speed per stack (max 10) and a 3% chance per stack that an attack fails | Electric |
+| Chill | −5% Attack Speed per stack. At 3 stacks it freezes for 1.2s, then is immune for 4s | Ice |
+| Confusion | 8% chance per stack (max 5) that an attack hurts itself instead | — |
+| Leech Seed | Drains 0.3% max HP/s per stack (max 10) into whoever planted it | Grass |
+
+Pokémon apply them through their kits, sets and abilities. Electric moves that stun also paralyze, Ice moves that slow also chill, and Psychic, Ghost and Fairy moves that flinch also confuse. To build around them:
+
+- Enhancers: Charcoal (Burn), Toxic Orb (Poison), Cell Battery (Paralysis), Never-Melt Ice (Chill and bonus damage to frozen enemies), Twisted Spoon (Confusion), Miracle Seed (Leech Seed), and Black Sludge (Poison).
+- Relics: Magmarizer (Burn jumps on a faint), Poison Barb (Poison never wears off), Electirizer (paralysis fails twice as often), Snowball (freeze at 2 Chill), Sticky Barb (+1 stack on everything) and Full Heal (defensive: half status damage, statuses fade twice as fast).
+- Augments: Static, Poison Point and Flame Body (Silver), Hex Maniac (+6% damage per different status on the target) and Outbreak (statuses spread when an enemy faints) (Gold), Plague Doctor (double stacks, +25% status damage) (Prismatic).
+
+Weather now does what it does in the games, with PMD weather art on screen (rain streaks and splashes, falling hail and snow, blowing sand, heat shimmer and sun flares) and a banner explaining it:
+
+- Harsh sunlight: Fire moves +20%, Water −15%, and nothing can be chilled or frozen.
+- Rain: Water moves +20%, Fire −15%, and burns wear off twice as fast.
+- Sandstorm: everything that isn't Rock, Ground or Steel takes 1% max HP per second; Rock types get +50% Sp. Def.
+- Snow and hail: everything that isn't Ice takes 1% max HP per second; Ice types get +50% Defense.
+
 ### Sets
 
 Every Pokémon belongs to several sets, and each set activates at its breakpoints (counting different Pokémon on the field). Hover a set to see its bonuses the TFT way. Breakpoints you've reached are green, and the value for your current tier is highlighted. Other tiers' values, and bonuses that unlock at higher counts, are greyed out.

@@ -186,7 +186,7 @@ const ENH={
   'rare-bone':{n:'Rare Bone',e:{atkF:20},stack:'takedowns',d:(c,it)=>{const st=(it&&it.st)||0;return`+20 ${eA}. Each takedown heals ${eN(c,0,.1,'hp')} and permanently adds +2 ${eA} and ${eSA} to this bone${st?` (now +${2*st})`:''}.`;}},
   'soul-dew':{n:'Soul Dew',e:{mana:20,archangel:.08},d:()=>`+20 starting PP. Every 4 seconds in battle: +8% ${eSA}, stacking for the rest of the fight.`},
   'electric-seed':{n:'Electric Seed',e:{as:.15,chainHit:1},d:c=>`+15% ${eAS}. Every 3rd basic attack chains lightning to the 3 enemies nearest the target for ${eN(c,40,.4,'spa')} ${eSP} damage, paralyzing them for 0.3s.`},
-  'black-sludge':{n:'Black Sludge',e:{toxic:.006},d:()=>`Attacks and moves stack Toxic on the target (up to 5): 0.6% of its ${eHP} per stack per second for 4s. Poisoned enemies receive 33% less healing.`},
+  'black-sludge':{n:'Black Sludge',e:{toxic:1},d:()=>`Basic attacks add 1 Poison and moves add 2; poisoned targets heal a third less. (Poison: 0.3% of the target's ${eHP} per second per stack, up to 20.)`},
   'reaper-cloth':{n:'Reaper Cloth',e:{curse:1},d:()=>`Moves curse the target for 5s. Cursed enemies take 15% more damage from everyone, and when one faints it bursts for 20% of its ${eHP} as ${eSP} damage to enemies within 1 hex.`},
   'smoke-ball':{n:'Smoke Ball',e:{dodgeN:3,dodgePP:10},d:()=>`Dodges the first 3 attacks each battle. Each dodge restores 10 PP and adds +10% ${eAS} for the battle.`},
   'loaded-dice':{n:'Loaded Dice',e:{skillLink:1,hitsB:1,multiAmp:.2,double:.25},d:()=>`Multi-hit moves always land the maximum number of hits plus one and deal +20% damage. Basic attacks have a 25% chance to strike twice.`},
@@ -194,6 +194,12 @@ const ENH={
   'red-card':{n:'Red Card',e:{hpF:150,halfShield:.35,redCard:1.2},d:c=>`+150 HP. The first time it drops below half HP: gains a shield of ${eN(c,0,.35,'hp')} and stuns enemies within 1 hex for 1.2s.`},
   'adrenaline-orb':{n:'Adrenaline Orb',e:{adren:.15,killPP:25},d:()=>`Each time an ally faints: +15% ${eAS} and +10% damage for the battle (up to 3 times). Each takedown restores 25 PP.`},
   'room-service':{n:'Room Service',e:{slowAura:.2,shredAura:20},d:()=>`At the start of battle, enemies within 2 hexes lose 20% ${eAS} and 20 ${eDF} and ${eSD} for 8 seconds.`},
+  'charcoal':{n:'Charcoal',e:{onBurn:1,abBurn:3,burnDmg:.25},d:()=>`Basic attacks add 1 Burn and moves add 3. Burns it applies deal +25% damage. (Burn: 0.25% of the target's ${eHP} per second per stack, and it deals 15% less ${ePH} damage.)`},
+  'toxic-orb':{n:'Toxic Orb',e:{onPsn:1,abPsn:3,vsPsn:.12},d:()=>`Basic attacks add 1 Poison and moves add 3. Deals +12% damage to poisoned enemies. (Poison: 0.3% of the target's ${eHP} per second per stack, and its healing is cut by a third.)`},
+  'cell-battery':{n:'Cell Battery',e:{onPara:1,abPara:3,as:.1},d:()=>`+10% ${eAS}. Basic attacks add 1 Paralysis and moves add 3. (Paralysis: −3% ${eAS} per stack and a 3% chance per stack that an attack fails.)`},
+  'never-melt-ice':{n:'Never-Melt Ice',e:{onChill:1,abChill:1,vsFrz:.3,freezeAdd:.5},d:()=>`Basic attacks and moves add 1 Chill. At 3 Chill the target freezes for 1.7s, and it deals +30% damage to frozen enemies.`},
+  'twisted-spoon':{n:'Twisted Spoon',e:{abConf:3,spaP:.15},d:()=>`+15% ${eSA}. Moves add 3 Confusion. (Confusion: each attack has an 8% chance per stack to hurt itself instead.)`},
+  'miracle-seed':{n:'Miracle Seed',e:{onSeed:1,abSeed:2,seedHeal:.5},d:()=>`Basic attacks plant 1 Leech Seed and moves plant 2. Its seeds heal it 50% more. (Leech Seed: drains 0.3% of the target's ${eHP} per second per stack into whoever planted it.)`},
   'sacred-ash':{n:'Sacred Ash',e:{revive:.5,ashFull:.25},d:c=>`Revives once with ${eN(c,0,.5,'hp')} and full PP, then deals +25% damage for the rest of the battle.`},
 };
 const enhText=(k,c,it)=>ENH[k]?ENH[k].d(c||null,it):'';
@@ -207,7 +213,7 @@ const ITEMCALC={
   HH:c=>`Restores ${hpN(c,.03)} HP per second.`,
   ZH:()=>`Adjacent allies restore 2% of their max HP per second.`,
   PC:c=>`Each attack costs ${hpN(c,.02)} HP.`,
-  CH:()=>`Burn: 2% of the target's max HP per second for 4s.`,
+  CH:()=>`Adds 4 Burn per hit (0.25% of the target's max HP per second per stack).`,
   UD:()=>`Lasts the first 6 seconds of battle.`,
 };
 function itemCalc(it,c){const out=[];if(c&&ITEMCALC[it.k])out.push(ITEMCALC[it.k](c));if(it.enh&&ENH[it.enh])out.push(`<span class="enhl">${ENH[it.enh].n}: ${enhText(it.enh,c,it)}</span>`);return out.length?`<br><span class="calc">${out.join('<br>')}</span>`:'';}

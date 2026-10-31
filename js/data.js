@@ -22,9 +22,9 @@ const STRATS=[
 
 /* ---------- Augments (floor 2) ---------- */
 const AUGS={
-  silver:[{id:'berry',name:'Berry Basket',d:'Gain ₽8 right now.'},{id:'tailwind',name:'Tailwind',d:'Your team gains +12% Attack Speed.'},{id:'oran',name:'Oran Rations',d:'Your team gains +150 max HP.'}],
-  gold:[{id:'egg',name:'Daycare Egg',d:'Gain a random 2★ Pokémon on your bench.'},{id:'endure',name:'Endure',d:'Once per battle, each of your Pokémon survives a fainting blow with 1 HP.'},{id:'swords',name:'Swords Dance',d:'Your team deals +18% damage.'}],
-  prismatic:[{id:'resolve',name:"Trainer's Resolve",d:'+1 team size for the rest of the run.'},{id:'payday',name:'Pay Day',d:'Gain an extra ₽3 at the start of every floor.'},{id:'champion',name:"Champion's Belt",d:'Your team deals +30% damage and gains +15% Attack Speed.'}],
+  silver:[{id:'static',name:'Static',d:'Your team\'s basic attacks have a 30% chance to add 1 Paralysis.'},{id:'ppoint',name:'Poison Point',d:'Your team\'s basic attacks have a 30% chance to add 1 Poison.'},{id:'fbody',name:'Flame Body',d:'Your team\'s basic attacks have a 30% chance to add 1 Burn.'},{id:'berry',name:'Berry Basket',d:'Gain ₽8 right now.'},{id:'tailwind',name:'Tailwind',d:'Your team gains +12% Attack Speed.'},{id:'oran',name:'Oran Rations',d:'Your team gains +150 max HP.'}],
+  gold:[{id:'hexer',name:'Hex Maniac',d:'Your team deals +6% damage for each different status condition on the target (up to +30%).'},{id:'outbreak',name:'Outbreak',d:'When an enemy with status conditions faints, half of each of its stacks spread to enemies within 2 hexes.'},{id:'egg',name:'Daycare Egg',d:'Gain a random 2★ Pokémon on your bench.'},{id:'endure',name:'Endure',d:'Once per battle, each of your Pokémon survives a fainting blow with 1 HP.'},{id:'swords',name:'Swords Dance',d:'Your team deals +18% damage.'}],
+  prismatic:[{id:'plague2',name:'Plague Doctor',d:'Status conditions your team applies add double the stacks, and your Burn, Poison and Leech Seed deal +25% damage.'},{id:'resolve',name:"Trainer's Resolve",d:'+1 team size for the rest of the run.'},{id:'payday',name:'Pay Day',d:'Gain an extra ₽3 at the start of every floor.'},{id:'champion',name:"Champion's Belt",d:'Your team deals +30% damage and gains +15% Attack Speed.'}],
 };
 
 /* ---------- Items: TFT-style components and recipes ---------- */
@@ -52,7 +52,7 @@ const CRAFT={
   CS:{id:'metronome',n:'Metronome',d:'Each attack grants +5% Attack Speed for the rest of battle (up to +60%).',e:{metroAS:.05}},
   CI:{id:'absorb-bulb',n:'Absorb Bulb',d:'When hit by a move, restores 20 PP and gains +10% Sp. Atk (stacks).',e:{bulb:1}},
   CZ:{id:'wise-glasses',n:'Wise Glasses',d:'Special moves deal +30% damage.',e:{specAb:.3}},
-  CH:{id:'flame-orb',n:'Flame Orb',d:'Attacks and moves burn the target for 2% max HP per second for 4s. Burned targets heal 50% less.',e:{burn:.02}},
+  CH:{id:'flame-orb',n:'Flame Orb',d:'Attacks and moves add 4 Burn to the target. Burned targets heal 50% less and deal 15% less physical damage.',e:{burn:.02}},
   CU:{id:'throat-spray',n:'Throat Spray',d:'Each move used grants +15% Sp. Atk for the rest of battle.',e:{spray:.15}},
   CD:{id:'spell-tag',n:'Spell Tag',d:'Special damage ignores 40% of the target\'s Sp. Def.',e:{specPen:.4}},
   SS:{id:'choice-scarf',n:'Choice Scarf',d:'+25% more Attack Speed.',e:{as:.25}},
@@ -82,7 +82,7 @@ const recipeKey=(a,b)=>CORDER.indexOf(a)<=CORDER.indexOf(b)?a+b:b+a;
 /* Mutators (The Last Flame–style modifiers rolled onto items) */
 const MUTS={
   shiny:{n:'Shiny',d:'+8% max HP and damage',e:{hpP:.08,dmg:.08}},
-  blazing:{n:'Blazing',d:'Attacks burn for 1% max HP per second',e:{burn:.01}},
+  blazing:{n:'Blazing',d:'Attacks add 2 Burn',e:{burn:.01}},
   vampiric:{n:'Vampiric',d:'+8% lifesteal',e:{ls:.08}},
   swift:{n:'Swift',d:'+10% Attack Speed',e:{as:.1}},
   sturdy:{n:'Sturdy',d:'+12 Defense and Sp. Def',e:{def:12,res:12}},
@@ -117,6 +117,12 @@ const RELICS={
   'town-map':{n:'Town Map',d:'Enemy Pokémon have 8% less HP.'},
   'super-rod':{n:'Super Rod',d:'Chests always offer at least one completed item.'},
   'poke-flute':{n:'Poké Flute',d:'The first of your Pokémon to faint each battle wakes up with 35% HP.'},
+  magmarizer:{n:'Magmarizer',d:'When a burned enemy faints, its Burn stacks leap to the nearest enemy.'},
+  'poison-barb':{n:'Poison Barb',d:'Poison your team applies never wears off.'},
+  electirizer:{n:'Electirizer',d:'Enemies paralyzed by your team are fully paralyzed twice as often.'},
+  snowball:{n:'Snowball',d:'Enemies your team chills freeze at 2 Chill instead of 3.'},
+  'sticky-barb':{n:'Sticky Barb',d:'Every status your team applies adds 1 extra stack.'},
+  'full-heal':{n:'Full Heal',d:'Status conditions deal half damage to your Pokémon and wear off twice as fast.'},
 };
 
 /* Pokémon that grow stronger over a run (TFT-style stackers) */
