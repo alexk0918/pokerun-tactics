@@ -350,4 +350,4 @@ const B={
 function seq(...bs){return{d:(c,i)=>bs.map(b=>b.d(c,i)).map((t,k)=>!k||/^Then/.test(t)?t:'Then it '+t.charAt(0).toLowerCase()+t.slice(1)).join(' '),cast(c,tg,i){const x={};let t=0;for(const b of bs){const tt=t;schedule(tt,()=>{if(!c.dead)b.cast(c,x.t&&!x.t.dead?x.t:tg,i,x);});t+=b.gap??.3;}}};}
 function staged(...bs){return{d:(c,i)=>bs[Math.min(i,bs.length-1)].d(c,i),cast:(c,tg,i,x)=>bs[Math.min(i,bs.length-1)].cast(c,tg,i,x||{})};}
 // define a kit from blocks
-function kit(base,body){defSig(Object.assign(base,{d:base.d||((c,i)=>(base.lead?base.lead+' ':'')+body.d(c,i)+(base.tail?' '+base.tail(c,i):'')),cast:base.cast||((c,tg,i)=>body.cast(c,tg,i,{}))}));}
+function kit(base,body){for(const h of['begin','kill','hitBy'])if(body&&body[h]&&!base[h])base[h]=body[h];defSig(Object.assign(base,{d:base.d||((c,i)=>(base.lead?base.lead+' ':'')+body.d(c,i)+(base.tail?' '+base.tail(c,i):'')),cast:base.cast||((c,tg,i)=>body.cast(c,tg,i,{}))}));}

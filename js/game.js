@@ -620,7 +620,7 @@ function stepCombat(dt){
 }
 const hpFrac=t=>{const l=units.filter(u=>u.team===t);return l.reduce((s,u)=>s+Math.max(0,u.hp)/u.maxHp,0)/l.length;};
 const tcol=u=>TYPES[(u.mv&&u.mv.t)||D[u.dex].t[0]]||'#fff';
-function stun(tg,t){if(tg.dead)return;if(tg.stunImm){if(tg.fx.shieldPP&&(tg.shpCd||0)<combatT){tg.shpCd=combatT+1;gainMana(tg,tg.fx.shieldPP);}return;}tg.stun=Math.max(tg.stun,t);}
+function stun(tg,t){if(tg.dead)return;if(tg.stunRes)t*=1-tg.stunRes;if(tg.stunImm){if(tg.fx.shieldPP&&(tg.shpCd||0)<combatT){tg.shpCd=combatT+1;gainMana(tg,tg.fx.shieldPP);}return;}tg.stun=Math.max(tg.stun,t);}
 function gainMana(u,n){if(u.maxMana>0)u.mana=Math.min(u.maxMana,u.mana+n*u.ppMul);}
 function autoAmt(u){return u.cat==='spec'?u.spa*.8:u.atk;}
 function attack(u,tg){
