@@ -141,11 +141,12 @@ const ACTS=[{name:'Verdant Clearing'},{name:'Ember Canyon'},{name:'Tidepool Grot
 const FLOORS=15;
 const STARM=[1,1.8,3.24];
 const floorKind=f=>f<=3?'wild':(f===5||f===10)?'elite':f===15?'boss':'trainer';
-// trainer level: XP needed to go from level L to L+1
-const XPNEXT={2:2,3:4,4:8,5:12,6:18,7:26,8:36};
-const MAXLV=9;
-// shop odds by level for costs 1..5
-const LVODDS={2:[1,0,0,0,0],3:[.75,.25,0,0,0],4:[.55,.3,.15,0,0],5:[.45,.33,.2,.02,0],6:[.3,.4,.25,.05,0],7:[.19,.3,.35,.15,.01],8:[.16,.22,.32,.25,.05],9:[.12,.18,.3,.3,.1]};
+// trainer level, structured like TFT: XP to go from level L to L+1 follows TFT's curve scaled to a 15-floor run
+// (TFT 2·6·10·20·36·48·76·84 → about 0.55×), +2 XP after every floor, and XP can be bought at ₽4 for 4 XP. Max level 10.
+const XPNEXT={2:2,3:4,4:6,5:12,6:20,7:28,8:40,9:48};
+const MAXLV=10;
+// shop odds by trainer level for costs 1..5 (TFT's table): a cost never appears before its level
+const LVODDS={2:[1,0,0,0,0],3:[.75,.25,0,0,0],4:[.55,.3,.15,0,0],5:[.45,.33,.2,.02,0],6:[.3,.4,.25,.05,0],7:[.19,.3,.35,.15,.01],8:[.18,.25,.32,.22,.03],9:[.1,.2,.25,.35,.1],10:[.05,.1,.2,.4,.25]};
 // enemy team size by floor (wild floors set separately)
 const ECOUNT={4:3,5:4,6:4,7:4,8:5,9:5,10:5,11:5,12:6,13:6,14:6,15:4};
 const ELEVEL=f=>clamp(Math.round(2+f*.38),3,8);

@@ -39,4 +39,4 @@ function showKitDex(from){
   const f=$('dexfind');f.oninput=()=>{dexQ=f.value;const pos=f.selectionStart;showKitDex(dexFrom);const g=$('dexfind');g.focus();g.setSelectionRange(pos,pos);};
   $('dexclose').onclick=closeKitDex;
 }
-function closeKitDex(){if(dexFrom==='title')showTitle();else ov.innerHTML='';}
+function closeKitDex(){if(dexFrom==='title')showTitle();else{ov.innerHTML='';if(paused)$('pause').hidden=false;}}

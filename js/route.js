@@ -261,7 +261,7 @@ function drawRouteHud(t){
   let txt,col='#ffe27a';
   if(nk==='endurance'){const s=Math.min(END_LIMIT,battle.survT??combatT),nx=END_T.find(x=>s<x);txt=`Survived ${s.toFixed(1)}s`+(nx?` · next reward at ${nx}s`:' · Gold!');if(s<END_T[0])col='#ff9a8a';}
   else{const s=battle.clearT??combatT,nx=[...TA_T].reverse().find(x=>s<=x);txt=`${s.toFixed(1)}s`+(nx?` · ${nx===TA_T[2]?'Gold':nx===TA_T[1]?'Silver':'Bronze'} if under ${nx}s`:' · Out of time');
-    const tg=units.find(u=>u.isTgt&&!u.dead);if(tg){const bob=Math.sin(t*6)*2,x=Math.round(tg.x)*2,y=Math.round(tg.y-48*(tg.scaleShown||1))*2+bob*2;ctx.fillStyle='#1b2430';ctx.beginPath();ctx.moveTo(x-12,y-14);ctx.lineTo(x+12,y-14);ctx.lineTo(x,y);ctx.closePath();ctx.fill();ctx.fillStyle='#ffd34d';ctx.beginPath();ctx.moveTo(x-8,y-12);ctx.lineTo(x+8,y-12);ctx.lineTo(x,y-3);ctx.closePath();ctx.fill();}}
+    const tg=units.find(u=>u.isTgt&&!u.dead);if(tg){const bob=Math.sin(t*6)*2,q=w2s(tg.x,tg.y-48*(tg.scaleShown||1)),x=Math.round(q.x*2),y=Math.round(q.y*2)+bob*2;ctx.fillStyle='#1b2430';ctx.beginPath();ctx.moveTo(x-12,y-14);ctx.lineTo(x+12,y-14);ctx.lineTo(x,y);ctx.closePath();ctx.fill();ctx.fillStyle='#ffd34d';ctx.beginPath();ctx.moveTo(x-8,y-12);ctx.lineTo(x+8,y-12);ctx.lineTo(x,y-3);ctx.closePath();ctx.fill();}}
   ctx.font='32px PokeEmerald,"Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#1b2430';ctx.strokeText(txt,640,450);ctx.fillStyle=col;ctx.fillText(txt,640,450);
 }
 
@@ -271,7 +271,7 @@ function genKShop(){
   const mutated=Math.random()<.25,mut=mutated?pick(Object.keys(MUTS)):null;
   const rm=base=>mutated?(Math.random()<.7?[mut]:[]):rollMut(base);
   const stock=[];
-  const o=LVODDS[Math.min(MAXLV,run.level+1)];
+  const o=LVODDS[run.level];
   for(let i=0;i<2;i++){const c=rollCostFor(o),root=pick(MODE.byCost[c-1]);const m=mutated?(Math.random()<.7?mut:null):(Math.random()<.25?pick(Object.keys(MUTS)):null);
     stock.push({t:'unit',root,mut:m,price:KPRICE.unit(c)+(m?KPRICE.mut:0)});}
   for(let i=0;i<2;i++){const it=mkComp(randComp(),rm(.2));stock.push({t:'item',it,price:KPRICE.comp+(it.mut.length?KPRICE.mut:0)});}
@@ -326,7 +326,7 @@ const EVENTS={
       {t:'Wake it up!',d:'Fight it as an Alpha. Enhancer if you win.',ok:()=>!!lineRootOf(143),fn:()=>{nodeToBattle({k:'alpha',force:143});return null;}},
       {t:'Leave it be',d:'Turn back and take the long way around.',fn:()=>'You tiptoe back the way you came. The snoring fades behind you.'}]},
   egg:{n:'A Mysterious Egg',img:()=>iconOf('mystery-egg'),txt:'An Egg is resting alone in the tall grass. It\'s warm, and something inside is moving.',
-    opts:[{t:'Take the Egg',d:'It hatches into a ₽3–4 Pokémon (needs bench space).',ok:benchRoom,fn:()=>{const root=pick([...MODE.byCost[2],...MODE.byCost[3]]);giveUnit(root);return`It hatched into ${D[root].n}! It joined your bench.`;}},
+    opts:[{t:'Take the Egg',d:'It hatches into one of the priciest Pokémon your level can find (needs bench space).',ok:benchRoom,fn:()=>{const top=maxCostAt(run.level);const root=pick([...MODE.byCost[top-1],...(top>1?MODE.byCost[top-2]:[])]);giveUnit(root);return`It hatched into ${D[root].n}! It joined your bench.`;}},
       {t:'Return it to its owner',d:'+₽4 and +5 HP.',fn:()=>{run.gold+=4;return'You find a Breeder searching the grass nearby. They thank you with ₽4 and a snack. '+healHp(5);}},
       {t:'Leave it alone',d:'Its parent is probably nearby.',fn:()=>'You leave the Egg where it is. Something rustles in the bushes as you walk away.'}]},
   berry:{n:'A Berry Tree',img:()=>iconOf('sitrus-berry'),txt:'A Berry tree heavy with fruit stands in a sunny patch of the clearing.',
@@ -335,7 +335,7 @@ const EVENTS={
       {t:'Take a cutting',d:'Gain a Potion.',fn:()=>'You carefully take a cutting and brew it into medicine. '+gainBag({k:'potion',mut:[]})},
       {t:'Walk on',d:'Leave the tree be.',fn:()=>'You leave the tree for the wild Pokémon.'}]},
   trade:{n:'A traveling trader',img:()=>iconOf('luxury-ball'),txt:'A trainer with a backpack full of Poké Balls offers to trade. "Your weakest for something better? Deal?"',
-    opts:[{t:'Trade',d:'Your cheapest 1★ Pokémon for a 1★ one costing ₽1 more.',ok:()=>allOwned().some(u=>u.star===1),fn:()=>{const mine=allOwned().filter(u=>u.star===1).sort((a,b)=>lineOf(a).cost-lineOf(b).cost)[0];const c=Math.min(5,lineOf(mine).cost+1);const root=pick(MODE.byCost[c-1]);
+    opts:[{t:'Trade',d:'Your cheapest 1★ Pokémon for a 1★ one costing ₽1 more.',ok:()=>allOwned().some(u=>u.star===1),fn:()=>{const mine=allOwned().filter(u=>u.star===1).sort((a,b)=>lineOf(a).cost-lineOf(b).cost)[0];const c=Math.min(maxCostAt(run.level),lineOf(mine).cost+1);const root=pick(MODE.byCost[c-1]);
         const nm=nameOf(mine);for(const it of mine.items)run.bag.push(it);const loc=locate(mine);const nu=mkUnit(root);nu.mut=mine.mut;if(loc.kind==='board')run.board[loc.c+','+loc.r]=nu;else run.bench[loc.i]=nu;if(!SIM.on)ensure(root);combine();return`You traded ${nm} for ${D[root].n}!`;}},
       {t:'Decline',d:'Nothing happens.',fn:()=>'"Suit yourself!" The trader wanders off.'}]},
   tutor:{n:'The Move Tutor',img:()=>iconOf('tm-normal'),txt:'An old Move Tutor offers lessons. "I can teach your Pokémon to hit harder. For a price."',

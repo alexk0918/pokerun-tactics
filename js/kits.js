@@ -31,7 +31,7 @@ function debuff(t,stat,p,dur){if(t.dead)return;t[stat]*=1-p;schedule(dur,()=>{t[
 // projectile: fast bullet, or an arcing missile (Kai'Sa style) that curves in from the side
 function fire(c,t,col,onHit,o={}){
   if(!t)return;if(SIM.on){if(!t.dead)onHit();return;}
-  const p={x:c.x,y:c.y-12,tg:t,col,onHit,size:o.size||3,trail:[],sp:o.sp||260};
+  const lk=shotLook(o.type||typeOf(c));const p={x:c.x,y:c.y-12,tg:t,col,onHit,size:o.size||3,trail:[],sp:o.sp||260,...lk,ss:lk.ss*(o.size>3?1.3:1)};
   if(o.arc){const mx=(c.x+t.x)/2,my=(c.y+t.y)/2-10;p.arc={sx:c.x,sy:c.y-12,cx:mx+(o.side??rnd(-40,40)),cy:Math.min(c.y,t.y)-(o.lift||70),t:0,dur:o.dur||.6};p.retarget=o.retarget?1-c.team:-1;}
   proj.push(p);
 }
@@ -40,7 +40,7 @@ function dashTo(c,t,behind,dur=.2){
   const opts=nbrs(t.c,t.r).filter(h=>!occupied(h.c,h.r,c));if(!opts.length)return false;
   opts.sort((a,b)=>behind?hdist(b,c)-hdist(a,c):hdist(a,c)-hdist(b,c));
   const h=opts[0],p=hexXY(h.c,h.r);c.move={c:h.c,r:h.r,fx:c.x,fy:c.y,tx:p.x,ty:p.y,t:0,dur};c.dir=dirFrom(p.x-c.x,(p.y-c.y)/SQ);c.target=t;
-  if(!SIM.on)for(let i=0;i<8;i++)fx.push({x:c.x+rnd(-5,5),y:c.y-rnd(4,20),vx:0,vy:0,life:.35,max:.35,col:tcol(c),sz:2,g:0});
+  if(!SIM.on){pfx('Puff_'+colFamily(tcol(c)),c.x,c.y-6,{sc:.7,force:1});}
   return true;
 }
 function knock(c,t){if(t.dead||t.stunImm)return;const opts=nbrs(t.c,t.r).filter(h=>!occupied(h.c,h.r,t)&&hdist(h,c)>hdist(t,c));if(!opts.length)return;
@@ -196,7 +196,7 @@ defSig({ids:[813,814,815],role:'Striker',cls:'Striker',cat:'phys',range:[1,1,2],
 defSig({ids:[4,5,6],role:'Fire Breather',cls:'Artillery',cat:'spec',range:2,mana:75,pf:[.55,.7,.85],names:['Ember','Flame Burst','Flamethrower'],mvType:'Fire',
   d:(c,i)=>`Breathes a cone of fire: the target and enemies ${i===2?'up to 2 hexes':'right'} behind it take ${DT(c,1)} (70% to the others) and burn for 1% <span class="s-hp">max HP</span> per second for 4s.`,
   cast(c,tg,i){const ts=[tg,...alive(tg.team).filter(o=>o!==tg&&hdist(o,tg)<=(i===2?2:1)&&hdist(o,c)>=hdist(tg,c))];
-    if(!SIM.on){for(let k=0;k<26;k++){const f=Math.random(),x=c.x+(tg.x-c.x)*f*1.3,y=c.y-12+(tg.y-c.y)*f*1.3;fx.push({x:x+rnd(-6,6)*f,y:y+rnd(-5,5)*f,vx:(tg.x-c.x)*.6,vy:(tg.y-c.y)*.6-10,life:rnd(.25,.45),max:.45,col:pick(['#ff7a2c','#ffd34d','#ff4d2c']),sz:2,g:0});}}
+    if(!SIM.on){for(let k=1;k<=5;k++){const f=k/5;schedule(k*.04,()=>pfx('Fire_Blast',c.x+(tg.x-c.x)*f,c.y-12+(tg.y-c.y)*f,{sc:.55+f*.35,force:1}));}}
     for(const t of ts){hitAb(c,t,t===tg?1:.7);setDot(t,'burn',.01,4,c);}}});
 
 // Venusaur: Solar Beam, a line through every enemy behind the target. Instant in sun.
@@ -261,7 +261,7 @@ defSig({ids:[446,143],role:'Glutton',cls:'Juggernaut',type:'guard',cat:'phys',ra
 const richBonus=c=>c.team===0&&run?Math.min(.3,Math.floor(run.gold/2)*.01):0;
 defSig({ids:[999,1000],role:'Treasure Keeper',cls:'Mystic',cat:'spec',range:3,mana:[70,75],pf:[.8,1.15],names:['Astonish','Make It Rain'],mvType:'Steel',
   d:(c,i)=>`Showers coins on the target and every enemy within 1 hex of it for ${DT(c,1)}, plus <b>+1% per ₽2 you have saved</b> (up to +30%; now +${Math.round(richBonus(c)*100)}%). ${i?'Each knockout with it drops ₽1 (up to ₽2 per battle).':''}`,
-  cast(c,tg,i){const m=1+richBonus(c);for(const o of[tg,...near(tg,1)]){hitAb(c,o,m*(o===tg?1:.75));if(!SIM.on)for(let k=0;k<6;k++)fx.push({x:o.x+rnd(-8,8),y:o.y-40-rnd(0,20),vx:0,vy:90,life:.45,max:.45,col:pick(['#ffd34d','#fff0a0','#c9961d']),sz:2,g:120});
+  cast(c,tg,i){const m=1+richBonus(c);for(const o of[tg,...near(tg,1)]){hitAb(c,o,m*(o===tg?1:.75));if(!SIM.on){pfx('Pay_Day',o.x,o.y-16,{sc:.8,force:1});pfx('Metal_Burst_Hit',o.x,o.y-10,{sc:1.2,force:1});}
       if(i&&o.dead&&c.team===0&&(battle.gholdN||0)<2){battle.gholdN=(battle.gholdN||0)+1;run.gold++;if(!SIM.on)texts.push({x:o.x,y:o.y-30,txt:'+₽1',col:'#ffd34d',life:1});}}}});
 
 /* ================= Kit building blocks =================

@@ -13,6 +13,7 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 - Pick a region, then a team strategy (Ember Gambit, Tidal Fortress or Verdant Investment).
 - Act I has 15 floors: wild Pokémon on floors 1–2, rivals on floors 5 and 10, a legendary boss on floor 15, and a route choice for every other floor (see below).
+- Floor 1 opens with a carousel: eight ₽1 Pokémon walk a ring, each holding an item component. Pick one and it joins your bench while its item goes to your bag. Floors 6 and 11 bring more carousels with Pokémon your trainer level can roll, and the floor-11 carousel carries some finished items.
 - On floor 2 you pick an augment. The tier rolls Silver (25%), Gold (50%) or Prismatic (25%).
 - The shop sells the first stage of each evolution line, priced ₽1–₽5 (₽5 is legendaries and mythicals). Three copies combine into the next star level and evolve; branching lines let you choose the evolution. National Dex runs draw a 100-line pool from all 541 so copies are findable.
 
@@ -156,7 +157,22 @@ While you drag a Pokémon, or hover one on the field, the hexes it can reach fro
 ### Economy
 
 - Income each floor: ₽5 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win.
-- Trainer level sets how many Pokémon you can field and the shop odds. You gain 2 XP per floor and can buy 4 XP for ₽4.
+- Trainer level (2–10) sets how many Pokémon you can field and the shop odds, structured like TFT. You gain 2 XP per floor and can buy 4 XP for ₽4. XP to the next level is TFT's curve scaled to a 15-floor run: 2, 4, 6, 12, 20, 28, 40, 48.
+- Shop odds use TFT's table, so a cost never appears before its level. The tab above the shop shows the current odds.
+
+| Level | ₽1 | ₽2 | ₽3 | ₽4 | ₽5 |
+|---|---|---|---|---|---|
+| 2 | 100% | | | | |
+| 3 | 75% | 25% | | | |
+| 4 | 55% | 30% | 15% | | |
+| 5 | 45% | 33% | 20% | 2% | |
+| 6 | 30% | 40% | 25% | 5% | |
+| 7 | 19% | 30% | 35% | 15% | 1% |
+| 8 | 18% | 25% | 32% | 22% | 3% |
+| 9 | 10% | 20% | 25% | 35% | 10% |
+| 10 | 5% | 10% | 20% | 40% | 25% |
+
+- Kecleon stock, event eggs and trades also stay within the costs your level can roll.
 - Shortcuts: D rerolls, F buys XP, Space starts the battle or opens the chest.
 
 ### Items
@@ -261,9 +277,26 @@ Rivals and the boss use a gimmick of their own.
 
 Forms that don't have a PMD sprite yet use the base Pokémon's sprite tinted toward the form's colors, plus a badge: a Key Stone over Megas, a red cloud crown for Gigantamax, a gold crown for Crowned forms and wind swirls for Therian forms. Pokémon with no PMD sprite at all appear as round portrait tokens with a type-colored ring. Re-running the asset scripts picks up new SpriteCollab sprites automatically.
 
+### Screen layout and camera
+
+Built to stay readable on small handheld screens such as the AYN Thor:
+
+- A slim top bar holds trainer HP, the route tracker, level, Pokédollars, battle speed and the Menu button.
+- The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (strategy, augment, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
+- The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
+- The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan with a right- or middle-button drag or the right stick. 0 or R3 resets.
+
+### Visual effects
+
+Every move effect, impact, projectile, beam, status sparkle and chest is a Pokémon Mystery Dungeon asset from [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset): type-matched particle sheets for hits and projectiles (directional sheets turn to face their flight), column and lightning beams for links and chains, Protect bubbles for shields, and PMD treasure boxes for chests. A brown box follows normal floors, a purple box follows alpha and challenge fights, and a silver box follows the act rivals on floors 5 and 10.
+
+### Settings
+
+Settings are split into sections like PokéRogue's: General (battle speed, damage numbers, shop and bag behaviour), Display (board auto-fit, zoom speed, move effects, light rays), Audio (no sound yet), Gamepad (cursor speed, stick dead zone, right-stick mode, button list), Controls (keyboard and mouse list) and Data (delete the saved run, forget Kit Dex discoveries, reset settings).
+
 ### Saving
 
-Runs save automatically in your browser. Continue from the main menu, which also has Options (battle speed, damage numbers, delete save) and Credits.
+Runs save automatically in your browser. Continue from the main menu.
 
 ## Controller
 
@@ -271,15 +304,19 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 
 | Input | Action |
 |---|---|
-| Left stick | Move the cursor (right stick for fine adjustments) |
-| D-pad | Snap to the next button, card, item or Pokémon |
+| Left stick | Move the cursor (speed and dead zone in Settings › Gamepad) |
+| Right stick | Zoom (up/down) and pan (left/right) the board, or a fine cursor nudge if set in Settings |
+| D-pad | Snap to the next button, card, item, carousel Pokémon or board Pokémon |
 | A | Select. Hold A to drag a Pokémon or item, release to drop |
-| B | Back / cancel a drag |
+| B | Back / cancel a drag / close the menu |
 | X | Reroll |
 | Y | Level up |
+| LB | Hide or show the shop |
 | RB | Release the Pokémon under the cursor |
+| L3 | Toggle battle speed |
+| R3 | Reset the zoom |
 | Start | Continue or new game / battle / open chest |
-| Select | Toggle battle speed |
+| Select | Menu (pauses the game) |
 
 ## Project layout
 
@@ -294,12 +331,18 @@ js/kits.js          kit building blocks, set gear and the first signature kits
 js/kits_gen1.js     Generation I signature kits
 js/kits_gen2.js     Generation II signature kits (and Gen II branches of Gen I lines)
 js/kitdex.js        in-game Kit Dex and discoveries
+js/fx.js            PMD particle player, beams, PMD chests
+js/fx_manifest.js   frame layout of every particle sheet
+js/carousel.js      carousel rounds
+js/ui.js            pause menu, settings, collapsible shop and bag
 js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata
 data/kits.json      per-species move, heal/guard move and abilities (from PokéAPI)
 data/forms.json     Mega, Gigantamax, battle and item forms (from PokéAPI)
 assets/fonts/       Pokémon Emerald font built from pret/pokeemerald glyphs
+assets/fx/          PMD particle sheets (PMDCollab RawAsset)
+assets/beam/        PMD beam sheets (PMDCollab RawAsset)
 assets/XXXX/        PMD sprites and portrait for National Dex #XXXX (form ids above 10000)
 ```
 
@@ -307,6 +350,6 @@ Run locally with any static server, for example `python3 -m http.server`, then o
 
 ## Credits
 
-Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
+Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Move effects, beams and treasure boxes are Pokémon Mystery Dungeon assets (Spike Chunsoft) collected by [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
 
 This is a non-commercial fan project and is not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon is a trademark of Nintendo, Game Freak and Creatures.

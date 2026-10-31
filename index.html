@@ -420,6 +420,92 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .dexmv{margin:4px 0 0;}
 .dexdesc{line-height:1.35;}
 .dexent details{margin-top:6px;} .dexent summary{cursor:pointer;color:var(--frame);}
+
+/* --- v9: small-screen layout (slim HUD, pause menu, collapsible shop and bag) --- */
+#hud{top:8px;left:12px;right:12px;height:50px;gap:8px;}
+#hud .win{padding:4px 12px;gap:8px;}
+#trainer{min-width:0;width:184px;}
+#trainer .ball{width:24px;height:24px;}
+#trainer .hpbar{width:92px;}
+#floors{flex-direction:row!important;align-items:center;justify-content:flex-start;gap:12px!important;padding:4px 12px!important;min-width:0;}
+#floors .act{flex-direction:column;align-items:flex-start;gap:0;line-height:20px;white-space:nowrap;flex:none;max-width:210px;overflow:hidden;}
+#floors .act b{font-family:var(--display);font-size:16px;text-transform:none;overflow:hidden;text-overflow:ellipsis;max-width:210px;}
+#track{margin-top:0;flex:1;justify-content:center;min-width:0;}
+.node{width:18px;height:18px;border-width:2px;}
+.node svg,.node img{width:10px;height:10px;}
+.node.boss{width:24px;height:24px;} .node.boss img{width:100%;height:100%;}
+.node.cur{transform:scale(1.2);box-shadow:0 0 0 2px var(--gold);}
+.node.aug::before{bottom:-9px;width:6px;height:6px;margin-left:-3px;}
+.link{width:6px;}
+#teambox{min-width:0;}
+#teambox .lbl{line-height:18px;}
+#goldbox .lbl{display:none;}
+#goldbox .coin{width:20px;height:20px;font-size:14px;}
+#goldbox .num{font-size:24px;}
+.hudbtns .btn-speed{display:flex;align-items:center;gap:5px;}
+.hudbtns .btn-speed svg{width:14px;height:14px;}
+#gimbtn img{width:20px;height:20px;image-rendering:pixelated;margin:-3px 0;}
+#traits{top:68px;max-height:280px;}
+#bag{top:356px;transition:none;}
+.baghead{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:space-between;}
+.baghead:focus-visible{outline:2px solid var(--gold);}
+.caret{width:0;height:0;border:5px solid transparent;border-top:7px solid var(--ink);border-bottom:0;transition:transform .15s;}
+#bag.closed{width:auto;padding:5px 10px;}
+#bag.closed .slots,#bag.closed .baghint{display:none;}
+#bag.closed .caret{transform:rotate(-90deg);}
+/* shop: a tab hides it, leaving one slim row of buttons and the offers as small portraits */
+#shop{transition:height .18s;}
+.shoptog{position:absolute;left:14px;top:-26px;height:26px;padding:0 12px 0 10px;border:3px solid var(--ink);border-bottom:0;border-radius:8px 8px 0 0;background:var(--paper);color:var(--ink);font-family:var(--label);font-size:16px;text-transform:uppercase;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:inset 0 3px 0 var(--frame-lt);}
+.shoptog:focus-visible{outline:2px solid var(--gold);}
+.minicards{display:none;flex:1;gap:8px;align-items:center;}
+#shop.mini{height:52px;padding:6px 12px;}
+#shop.mini .cards{display:none;}
+#shop.mini .minicards{display:flex;}
+#shop.mini .side{flex-direction:row;width:auto;align-items:stretch;}
+#shop.mini .side .btn{padding:4px 12px;}
+#shop.mini .btn.go{font-size:16px;min-width:120px;}
+#shop.mini .shoptog .caret{transform:rotate(180deg);}
+.mcard{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;border:2px solid var(--ink);border-radius:6px;background:#fff;padding:1px 8px 1px 1px;font-family:var(--label);font-size:16px;color:var(--ink);}
+.mcard img{width:32px;height:32px;image-rendering:pixelated;border-radius:4px;background:#e8efe2;}
+.mcard.c2{border-color:#2d62b8;} .mcard.c3{border-color:#1e1e22;box-shadow:inset 0 -3px 0 var(--gold);} .mcard.c4{border-color:#203d1d;box-shadow:inset 0 -3px 0 #f08a2c;} .mcard.c5{border-color:#5a2898;box-shadow:inset 0 -3px 0 #ff8ad2;}
+.mcard.empty{opacity:.35;cursor:default;}
+.mcard:focus-visible{outline:2px solid var(--gold);}
+/* pause menu */
+#pause{position:absolute;inset:0;z-index:30;display:grid;place-items:center;}
+.pscrim{position:absolute;inset:0;background:#0b140fc4;}
+.pwin{position:relative;width:1000px;height:600px;display:grid;grid-template-columns:240px 1fr;grid-template-rows:auto 1fr;gap:10px 16px;padding:16px 18px;box-sizing:border-box;}
+.ptitle{grid-column:1 / -1;display:flex;align-items:baseline;gap:14px;font-size:32px;line-height:1;}
+.ptabs{display:flex;flex-direction:column;gap:2px;}
+.ptabs .mi{font-size:24px;line-height:34px;padding-left:30px;}
+.ptabs .mi[aria-pressed="true"]{background:#e9eef7;border-radius:6px;}
+.pbody{overflow:auto;min-height:0;}
+#mods{position:static;width:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start;}
+#mods .mod{background:#22382b;}
+
+/* settings */
+.setwin{width:980px;height:600px;display:flex;flex-direction:column;padding:14px 18px;box-sizing:border-box;gap:10px;}
+.stabs{display:flex;gap:4px;border-bottom:3px solid var(--ink);padding-bottom:6px;}
+.stab{all:unset;cursor:pointer;font-family:var(--display);font-size:24px;padding:4px 16px;border-radius:8px 8px 0 0;color:var(--muted);}
+.stab[aria-selected="true"]{background:var(--ink);color:var(--paper);}
+.stab:focus-visible{outline:3px solid var(--gold);}
+.sbody{flex:1;overflow:auto;display:flex;flex-direction:column;gap:2px;}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:24px;}
+.srow small{display:block;font-family:var(--label);font-size:16px;color:var(--muted);text-transform:none;}
+.srow:hover,.srow:focus-visible{background:#e9eef7;outline:none;}
+.sval{display:flex;align-items:center;gap:6px;flex:none;}
+.sval b{min-width:150px;text-align:center;font-weight:normal;color:var(--frame);}
+.sarr{all:unset;cursor:pointer;width:30px;height:30px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:6px;background:#fff;font-size:24px;line-height:1;}
+.sarr:hover,.sarr:focus-visible{background:var(--gold);}
+.snote{font-size:16px;color:var(--muted);margin:8px 10px;}
+.sinfo{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin:10px 10px 0;font-size:16px;}
+.sinfo div{display:flex;gap:10px;align-items:center;}
+.sinfo kbd{font-family:var(--label);font-size:16px;border:2px solid var(--ink);border-radius:5px;padding:0 6px;background:#fff;min-width:96px;text-align:center;}
+.sfoot{display:flex;justify-content:space-between;align-items:center;}
+
+.oddstab{position:absolute;right:14px;top:-26px;height:26px;padding:0 10px;border:3px solid var(--ink);border-bottom:0;border-radius:8px 8px 0 0;background:var(--paper);display:flex;align-items:center;gap:8px;font-family:var(--label);font-size:16px;box-shadow:inset 0 3px 0 var(--frame-lt);}
+.od{color:var(--ink);} .od b{font-weight:normal;}
+.od.c1{color:#c42f2c;} .od.c2{color:#2d62b8;} .od.c3{color:#1e1e22;} .od.c4{color:#3f6e3a;} .od.c5{color:#7a35c0;}
+.od.off{opacity:.3;}
 </style>
 
 </head>
@@ -433,41 +519,51 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
       <div class="num" id="hpnum">100</div>
     </div>
     <div class="win" id="floors">
-      <div class="act"><span id="modelbl">Gen I</span><span>Act I</span><b id="actname">Verdant Clearing</b><span id="floorlbl">Floor 1 / 15</span></div>
+      <div class="act"><b id="actname">Verdant Clearing</b><span><span id="modelbl">Gen I</span> · <span id="floorlbl">Floor 1 / 15</span></span></div>
       <div id="track"></div>
     </div>
     <div class="win" id="teambox"><div><div class="lbl">Level <b id="lvl">2</b></div><div class="num" id="teamnum">0<small>/2</small></div><div class="xpbar" id="xpbar" title="XP"><i></i></div></div></div>
     <div class="win" id="goldbox"><div class="coin">₽</div><div><div class="lbl">Pokédollars</div><div class="num" id="goldnum">0</div></div></div>
-    <div class="win hudbtns"><button class="btn-speed" id="dexbtn" title="Kit Dex">Dex</button><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button></div>
+    <div class="win hudbtns"><button class="btn-speed" id="gimbtn" hidden title="Choose who uses your gimmick"></button><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button><button class="btn-speed" id="menubtn" title="Menu (Esc)" aria-haspopup="dialog"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Menu</button></div>
   </div>
   <div id="traits" hidden></div>
-  <div id="mods" hidden></div>
-  <div id="bag" class="win" hidden><div class="baghead"><span class="lbl">Bag</span><span class="lbl" id="bagct">0/10</span></div><div class="slots" id="slots"></div><div class="baghint" id="baghint">Drag items onto a Pokémon</div></div>
+  <div id="bag" class="win" hidden><button class="baghead" id="bagtog" aria-expanded="true"><span class="lbl">Bag</span><span class="lbl" id="bagct">0/10</span><span class="caret" aria-hidden="true"></span></button><div class="slots" id="slots"></div><div class="baghint" id="baghint">Drag items onto a Pokémon</div></div>
   <img id="ghost" alt="" hidden>
   <div id="shop" class="win" hidden>
+    <button class="shoptog" id="shoptog" aria-expanded="true" title="Hide or show the shop (Tab · LB)"><span class="caret" aria-hidden="true"></span><span id="shoptogl">Hide shop</span></button>
     <div class="sellzone" id="sellzone">Release for ₽0</div>
     <div class="cards" id="cards"></div>
+    <div class="minicards" id="minicards"></div>
+    <div class="oddstab" id="odds" aria-label="Shop odds"></div>
     <div class="side">
       <button class="btn sm" id="buyxp">Level up <span class="lbl" style="color:inherit">₽4</span></button>
       <button class="btn sm" id="reroll">Reroll <span class="lbl" style="color:inherit" id="rerollcost">₽2</span></button>
       <button class="btn go" id="fight">Battle!</button>
     </div>
   </div>
+  <div id="pause" hidden><div class="pscrim" id="pscrim"></div><div class="win pwin" role="dialog" aria-label="Menu">
+    <div class="ptitle"><span>Paused</span><span class="lbl" id="psub"></span></div>
+    <nav class="ptabs"><button class="mi" id="p-resume">Resume</button><button class="mi" id="p-run" aria-pressed="true">Run info</button><button class="mi" id="dexbtn">Kit Dex</button><button class="mi" id="p-set">Settings</button><button class="mi" id="p-quit">Quit to title</button></nav>
+    <div class="pbody"><div id="mods"></div></div></div></div>
   <div id="tip" class="win"></div>
   <div id="toast" class="win"></div>
   <div id="bannerhost"></div>
   <div id="overlay"><div class="screen"><div class="loading" id="loadmsg">Loading Pokédex…</div></div></div>
 </div></div>
 
-<script src="js/data.js?v=10"></script>
+<script src="js/data.js?v=11"></script>
 <script src="js/sets.js?v=14"></script>
-<script src="js/game.js?v=15"></script>
+<script src="js/game.js?v=17"></script>
+<script src="js/fx_manifest.js?v=1"></script>
+<script src="js/fx.js?v=1"></script>
 <script src="js/forms.js?v=11"></script>
-<script src="js/route.js?v=14"></script>
-<script src="js/kits.js?v=15"></script>
+<script src="js/route.js?v=15"></script>
+<script src="js/carousel.js?v=1"></script>
+<script src="js/kits.js?v=16"></script>
 <script src="js/kits_gen1.js?v=2"></script>
 <script src="js/kits_gen2.js?v=1"></script>
-<script src="js/kitdex.js?v=1"></script>
-<script src="js/gamepad.js?v=10"></script>
+<script src="js/kitdex.js?v=2"></script>
+<script src="js/ui.js?v=1"></script>
+<script src="js/gamepad.js?v=11"></script>
 </body>
 </html>
