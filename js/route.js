@@ -165,41 +165,58 @@ function showRoute(){
 }
 
 /* ================= Enhancers ================= */
-// Two tiers. Refined: rare-recipe style stat packages with a small kicker, pushed above a completed item's budget.
-// Signature: legendary-recipe style effects that define what the holder does, toned down a bit. Some grow over the whole run.
+// One tier. Every enhancer pairs a real stat package with an effect big enough to shape a build.
+// d(c,it): c is the holder's combatant (when shown on a Pokémon) so numbers are computed; it is the item (for stacks).
 const eA='<span class="s-atk">Attack</span>',eSA='<span class="s-spa">Sp. Atk</span>',eHP='<span class="s-hp">max HP</span>',eDF='<span class="s-def">Defense</span>',eSD='<span class="s-def">Sp. Def</span>',eAS='<span class="s-as">Attack Speed</span>';
 const ePH='<span class="s-atk">physical</span>',eSP='<span class="s-spa">special</span>',eTR='<span class="s-true">true</span>';
+// "30 + 30% Attack", or with a holder: "123 (30 + 30% Attack)"
+function eN(c,base,ratio,stat){const sn={atk:'Attack',spa:'Sp. Atk',hp:'max HP'}[stat],cl={atk:'s-atk',spa:'s-spa',hp:'s-hp'}[stat];
+  const f=`${base?base+' + ':''}<span class="${cl}">${Math.round(ratio*100)}% ${sn}</span>`;if(!c)return f;
+  const v=base+ratio*(stat==='hp'?c.maxHp:c[stat]);return`<b class="${cl}">${Math.round(v)}</b> <span class="sc">(${f})</span>`;}
 const ENH={
-  // ---- Refined ----
-  'quick-powder':{tier:'refined',n:'Quick Powder',d:`+25% ${eAS}. Each basic attack adds +2% ${eAS} for the battle (up to 15 times).`,e:{as:.25,qpRamp:.02}},
-  'metal-coat':{tier:'refined',n:'Metal Coat',d:`+35 ${eDF} and ${eSD}, and takes 8% less damage.`,e:{def:35,res:35,dr:.08}},
-  'thick-club':{tier:'refined',n:'Thick Club',d:`+35% ${eA}. Basic attacks deal bonus ${ePH} damage equal to 3% of the target's ${eHP}.`,e:{atkP:.35,pctHit:.03}},
-  'light-ball':{tier:'refined',n:'Light Ball',d:`+35% ${eSA} and +15 starting PP.`,e:{spaP:.35,mana:15}},
-  'lucky-punch':{tier:'refined',n:'Lucky Punch',d:`+25% crit chance and +30% crit damage. Moves can crit.`,e:{crit:.25,critD:.3,abCrit:1}},
-  'big-root':{tier:'refined',n:'Big Root',d:`+18% lifesteal on all damage. Healing past full HP becomes a shield (up to 25% ${eHP}).`,e:{ls:.18,ohShield:.25}},
-  'starf-berry':{tier:'refined',n:'Starf Berry',d:`Below half HP: +50% ${eAS} and +20% lifesteal.`,e:{lowAS:.5,lowLs:.2}},
-  'enigma-berry':{tier:'refined',n:'Enigma Berry',d:`The first time it drops below half HP: heals 35% ${eHP} and gains +25 ${eDF} and ${eSD}.`,e:{sitrus:.35,enigma:25}},
-  // ---- Signature ----
-  'deep-sea-tooth':{tier:'signature',n:'Deep Sea Tooth',d:`+15% ${eAS}. Every third basic attack deals bonus ${eTR} damage equal to 30 + 30% ${eA}. <b>Grows:</b> +1% bonus damage for every time it has triggered this run.`,e:{as:.15,kraken:1},stack:'procs'},
-  'rare-bone':{tier:'signature',n:'Rare Bone',d:`+15 ${eA}. <b>Grows:</b> each takedown permanently adds +2 ${eA} and ${eSA} to this item.`,e:{atkF:15},stack:'takedowns'},
-  'soul-dew':{tier:'signature',n:'Soul Dew',d:`+20 starting PP. Every 4 seconds in battle: +8% ${eSA}, stacking.`,e:{mana:20,archangel:.08}},
-  'electric-seed':{tier:'signature',n:'Electric Seed',d:`+15% ${eAS}. Every third basic attack chains lightning to 3 enemies for 40 + 40% ${eSA} ${eSP} damage and paralyzes them for 0.3s.`,e:{as:.15,chainHit:1}},
-  'black-sludge':{tier:'signature',n:'Black Sludge',d:`Attacks and moves stack Toxic (up to 5): each stack deals 0.6% ${eHP} per second. Poisoned enemies receive 33% less healing.`,e:{toxic:.006}},
-  'spell-tag':{tier:'signature',n:'Spell Tag',d:`Moves curse the target for 5s. Cursed enemies take 15% more damage from everyone and burst when knocked out, dealing 20% of their ${eHP} as ${eSP} damage to adjacent enemies.`,e:{curse:1}},
-  'smoke-ball':{tier:'signature',n:'Smoke Ball',d:`Dodges the first 3 attacks each battle. Each dodge restores 10 PP and adds +10% ${eAS} for the battle.`,e:{dodgeN:3,dodgePP:10}},
-  'loaded-dice':{tier:'signature',n:'Loaded Dice',d:`Multi-hit moves always land the maximum number of hits plus one and deal +20% damage. Basic attacks have a 25% chance to strike twice.`,e:{skillLink:1,hitsB:1,multiAmp:.2,double:.25}},
-  'ability-shield':{tier:'signature',n:'Ability Shield',d:`Immune to stuns and status conditions. +25 ${eSD} and +10 ${eDF}.`,e:{stunImm:1,aImm:1,res:25,def:10}},
-  'red-card':{tier:'signature',n:'Red Card',d:`+150 HP. The first time it drops below half HP: gains a shield of 35% ${eHP} and stuns adjacent enemies for 1.2s.`,e:{hpF:150,halfShield:.35,redCard:1.2}},
-  'adrenaline-orb':{tier:'signature',n:'Adrenaline Orb',d:`Each time an ally faints: +15% ${eAS} and +10% damage (up to 3 times). Each takedown restores 25 PP.`,e:{adren:.15,killPP:25}},
-  'room-service':{tier:'signature',n:'Room Service',d:`At the start of battle, enemies within 2 hexes lose 20% ${eAS} and 20 ${eDF} and ${eSD} for 8 seconds.`,e:{slowAura:.2,shredAura:20}},
-  'sacred-ash':{tier:'signature',n:'Sacred Ash',d:`Revives once with 50% HP and full PP, then deals +25% damage for the rest of the battle.`,e:{revive:.5,ashFull:.25}},
+  'quick-powder':{n:'Quick Powder',e:{as:.25,qpRamp:.03},d:()=>`+25% ${eAS}. Each basic attack adds +3% ${eAS} for the battle (up to 15 times). At 15 stacks, every attack also ricochets to an enemy within 2 hexes of the target for 50% damage.`},
+  'metal-coat':{n:'Metal Coat',e:{def:30,res:30,dr:.08,ironShield:.12},d:c=>`+30 ${eDF} and ${eSD}, and takes 8% less damage. When an enemy move hits it, gains a shield of ${eN(c,0,.12,'hp')} (once every 3s).`},
+  'thick-club':{n:'Thick Club',e:{atkP:.35,pctHit:.03,clubStun:.6},d:()=>`+35% ${eA}. Basic attacks deal bonus ${ePH} damage equal to 3% of the target's ${eHP}, and every 5th attack bonks the target, stunning it for 0.6s.`},
+  'light-ball':{n:'Light Ball',e:{spaP:.3,mana:15,lightChain:.25},d:()=>`+30% ${eSA} and +15 starting PP. Moves arc lightning to the 2 nearest other enemies for 25% of the damage dealt.`},
+  'lucky-punch':{n:'Lucky Punch',e:{crit:.25,critD:.3,abCrit:1,critPP:5},d:()=>`+25% crit chance and +30% crit damage. Moves can crit, and every critical hit restores 5 PP.`},
+  'big-root':{n:'Big Root',e:{ls:.18,healAmp:.25,ohShield:.25},d:c=>`Heals for 18% of all damage dealt and its heals are 25% stronger. Healing past full HP becomes a shield, up to ${eN(c,0,.25,'hp')}.`},
+  'starf-berry':{n:'Starf Berry',e:{lowAS:.5,lowLs:.2,lowDef:20},d:()=>`While below half HP: +50% ${eAS}, +20% lifesteal and +20 ${eDF}.`},
+  'enigma-berry':{n:'Enigma Berry',e:{sitrus:.35,enigma:25},d:c=>`The first time it drops below half HP: heals ${eN(c,0,.35,'hp')}, gains +25 ${eDF} and ${eSD}, and heals allies within 1 hex for 15% of their ${eHP}.`},
+  'deep-sea-tooth':{n:'Deep Sea Tooth',e:{as:.15,kraken:1},stack:'triggers',d:(c,it)=>{const st=(it&&it.st)||0;return`+15% ${eAS}. Every 3rd basic attack deals ${eN(c,30,.3,'atk')} bonus ${eTR} damage. <b>Grows:</b> +1% for every time this tooth has triggered this run${st?` (now +${st}%)`:''}.`;}},
+  'rare-bone':{n:'Rare Bone',e:{atkF:20},stack:'takedowns',d:(c,it)=>{const st=(it&&it.st)||0;return`+20 ${eA}. Each takedown heals ${eN(c,0,.1,'hp')} and permanently adds +2 ${eA} and ${eSA} to this bone${st?` (now +${2*st})`:''}.`;}},
+  'soul-dew':{n:'Soul Dew',e:{mana:20,archangel:.08},d:()=>`+20 starting PP. Every 4 seconds in battle: +8% ${eSA}, stacking for the rest of the fight.`},
+  'electric-seed':{n:'Electric Seed',e:{as:.15,chainHit:1},d:c=>`+15% ${eAS}. Every 3rd basic attack chains lightning to the 3 enemies nearest the target for ${eN(c,40,.4,'spa')} ${eSP} damage, paralyzing them for 0.3s.`},
+  'black-sludge':{n:'Black Sludge',e:{toxic:.006},d:()=>`Attacks and moves stack Toxic on the target (up to 5): 0.6% of its ${eHP} per stack per second for 4s. Poisoned enemies receive 33% less healing.`},
+  'reaper-cloth':{n:'Reaper Cloth',e:{curse:1},d:()=>`Moves curse the target for 5s. Cursed enemies take 15% more damage from everyone, and when one faints it bursts for 20% of its ${eHP} as ${eSP} damage to enemies within 1 hex.`},
+  'smoke-ball':{n:'Smoke Ball',e:{dodgeN:3,dodgePP:10},d:()=>`Dodges the first 3 attacks each battle. Each dodge restores 10 PP and adds +10% ${eAS} for the battle.`},
+  'loaded-dice':{n:'Loaded Dice',e:{skillLink:1,hitsB:1,multiAmp:.2,double:.25},d:()=>`Multi-hit moves always land the maximum number of hits plus one and deal +20% damage. Basic attacks have a 25% chance to strike twice.`},
+  'ability-shield':{n:'Ability Shield',e:{stunImm:1,aImm:1,res:25,def:10,shieldPP:15},d:()=>`Immune to stuns and status conditions. +25 ${eSD} and +10 ${eDF}. Each stun it shrugs off restores 15 PP (at most once per second).`},
+  'red-card':{n:'Red Card',e:{hpF:150,halfShield:.35,redCard:1.2},d:c=>`+150 HP. The first time it drops below half HP: gains a shield of ${eN(c,0,.35,'hp')} and stuns enemies within 1 hex for 1.2s.`},
+  'adrenaline-orb':{n:'Adrenaline Orb',e:{adren:.15,killPP:25},d:()=>`Each time an ally faints: +15% ${eAS} and +10% damage for the battle (up to 3 times). Each takedown restores 25 PP.`},
+  'room-service':{n:'Room Service',e:{slowAura:.2,shredAura:20},d:()=>`At the start of battle, enemies within 2 hexes lose 20% ${eAS} and 20 ${eDF} and ${eSD} for 8 seconds.`},
+  'sacred-ash':{n:'Sacred Ash',e:{revive:.5,ashFull:.25},d:c=>`Revives once with ${eN(c,0,.5,'hp')} and full PP, then deals +25% damage for the rest of the battle.`},
 };
+const enhText=(k,c,it)=>ENH[k]?ENH[k].d(c||null,it):'';
+// computed numbers for completed items whose effect depends on the holder's stats
+const hpN=(c,p)=>`<b class="s-hp">${Math.round(c.maxHp*p)}</b>`;
+const ITEMCALC={
+  SU:c=>`Every 3rd attack zaps up to 3 enemies for ${eN(c,60,.3,'spa')} ${eSP} damage.`,
+  II:c=>`Melee attackers take ${hpN(c,.06)} damage per hit.`,
+  IU:c=>`Battle-start shield: ${hpN(c,.18)} (also on adjacent allies, based on their HP).`,
+  IH:c=>`Heals ${hpN(c,.35)} below half HP, once per battle.`,
+  HH:c=>`Restores ${hpN(c,.03)} HP per second.`,
+  ZH:()=>`Adjacent allies restore 2% of their max HP per second.`,
+  PC:c=>`Each attack costs ${hpN(c,.02)} HP.`,
+  CH:()=>`Burn: 2% of the target's max HP per second for 4s.`,
+  UD:()=>`Lasts the first 6 seconds of battle.`,
+};
+function itemCalc(it,c){const out=[];if(c&&ITEMCALC[it.k])out.push(ITEMCALC[it.k](c));if(it.enh&&ENH[it.enh])out.push(`<span class="enhl">${ENH[it.enh].n}: ${enhText(it.enh,c,it)}</span>`);return out.length?`<br><span class="calc">${out.join('<br>')}</span>`:'';}
 const isEnh=it=>typeof it.k==='string'&&it.k.startsWith('enh:');
 const enhKey=it=>it.k.slice(4);
-function enhDef(it){const k=enhKey(it),E=ENH[k];return{id:k,n:E.n,d:E.d,tier:E.tier};}
+function enhDef(it){const k=enhKey(it),E=ENH[k];return{id:k,n:E.n,d:E.d(null,it)};}
 // Signature enhancers are rarer: about 40% of rolls
-const rollEnh=()=>pick(Object.keys(ENH).filter(k=>ENH[k].tier===(Math.random()<.4?'signature':'refined')));
-function enhChoices(n){const out=[];for(let i=0;i<40&&out.length<n;i++){const k=rollEnh();if(!out.includes(k))out.push(k);}if(!out.some(k=>ENH[k].tier==='signature'))out[n-1]=pick(Object.keys(ENH).filter(k=>ENH[k].tier==='signature'));return out;}
+const rollEnh=()=>pick(Object.keys(ENH));
+function enhChoices(n){return shuffle(Object.keys(ENH)).slice(0,n);}
 const canEnhance=it=>isCraft(it)&&!it.enh;
 function applyEnh(enh,target){if(!canEnhance(target))return false;target.enh=enhKey(enh);return true;}
 function enhOnUnit(bi,u){
@@ -249,7 +266,7 @@ function drawRouteHud(t){
 }
 
 /* ================= Kecleon shop ================= */
-const KPRICE={unit:c=>c+2,comp:4,craft:9,enh:6,enhSig:9,relic:12,use:3,mut:2};
+const KPRICE={unit:c=>c+2,comp:4,craft:9,enh:8,relic:12,use:3,mut:2};
 function genKShop(){
   const mutated=Math.random()<.25,mut=mutated?pick(Object.keys(MUTS)):null;
   const rm=base=>mutated?(Math.random()<.7?[mut]:[]):rollMut(base);
@@ -259,7 +276,7 @@ function genKShop(){
     stock.push({t:'unit',root,mut:m,price:KPRICE.unit(c)+(m?KPRICE.mut:0)});}
   for(let i=0;i<2;i++){const it=mkComp(randComp(),rm(.2));stock.push({t:'item',it,price:KPRICE.comp+(it.mut.length?KPRICE.mut:0)});}
   {const it={k:randCraft(),mut:rm(.3)};stock.push({t:'item',it,price:KPRICE.craft+(it.mut.length?KPRICE.mut:0)});}
-  for(const k of [rollEnh(),rollEnh()])stock.push({t:'item',it:{k:'enh:'+k,mut:[]},price:ENH[k].tier==='signature'?KPRICE.enhSig:KPRICE.enh});
+  for(const k of [rollEnh(),rollEnh()])stock.push({t:'item',it:{k:'enh:'+k,mut:[]},price:KPRICE.enh});
   {const r=shuffle(Object.keys(RELICS).filter(x=>!run.relics.includes(x)))[0];if(r)stock.push({t:'relic',id:r,price:KPRICE.relic});}
   stock.push({t:'item',it:{k:pick(Object.keys(USE)),mut:[]},price:KPRICE.use});
   return{mut,stock};
@@ -334,7 +351,7 @@ const EVENTS={
       {t:'Bet big',d:'₽10: 30% chance for ₽30.',cost:10,fn:()=>{run.gold-=10;if(Math.random()<.3){run.gold+=30;return'Triple 7s! You won ₽30!';}return'The machine eats your coins.';}},
       {t:'Walk away',d:'Leave.',fn:()=>'You walk past without looking back.'}]},
   ruins:{n:'Unown Ruins',img:()=>por(201),txt:'Strange letters cover a crumbling stone wall. A cluster of Unown hums as you approach.',
-    opts:[{t:'Decipher the wall',d:'Gain a Signature enhancer, but lose 5 HP.',fn:()=>'The letters rearrange into a word you somehow understand. '+gainBag({k:'enh:'+pick(Object.keys(ENH).filter(k=>ENH[k].tier==='signature')),mut:[]})+' '+loseHp(5)},
+    opts:[{t:'Decipher the wall',d:'Gain an enhancer, but lose 5 HP.',fn:()=>'The letters rearrange into a word you somehow understand. '+gainBag({k:'enh:'+rollEnh(),mut:[]})+' '+loseHp(5)},
       {t:'Take the stone tablet',d:'Gain a random relic, but lose 12 HP.',ok:()=>run.hp>14&&Object.keys(RELICS).some(r=>!run.relics.includes(r)),fn:()=>{const r=pick(Object.keys(RELICS).filter(x=>!run.relics.includes(x)));run.relics.push(r);return`You got the ${RELICS[r].n}! The Unown lash out. `+loseHp(12);}},
       {t:'Leave quietly',d:'Nothing happens.',fn:()=>'The humming fades behind you.'}]},
   shrine:{n:'A forest shrine',img:()=>iconOf('odd-keystone'),txt:'A small, mossy shrine sits between two roots. People have left offerings here.',

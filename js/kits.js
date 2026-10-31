@@ -107,12 +107,12 @@ defSig({ids:[885,886,887],role:'Marksman',cls:'Combo',cat:'phys',range:3,mana:60
     if(c.u)c.u.ss=(c.u.ss||0)+1;}});
 
 // Swalot: Cho'Gath. Swallows weak enemies whole and keeps the HP forever.
-defSig({ids:[316,317],role:'Devourer',cls:'Juggernaut',cat:'spec',range:1,mana:80,start:20,pf:[1,1.3],names:['Stockpile','Swallow'],mvType:'Poison',
+defSig({ids:[316,317],role:'Devourer',cls:'Juggernaut',cat:'spec',range:1,mana:80,start:20,pf:[.85,1.1],names:['Stockpile','Swallow'],mvType:'Poison',
   begin(c){c.scaleMul=1+Math.min(.35,((c.u&&c.u.ss)||0)*.012);},
-  d:c=>{const s=(c.u&&c.u.ss)||0;return`Swallows the weakest enemy within 2 hexes for ${DT(c,1,'spec','true')} plus <b class="s-hp">${Math.round(c.maxHp*.06)}</b> <span class="sc">(6% <span class="s-hp">max HP</span>)</span>. <b>Grows:</b> a knockout permanently adds +25 <span class="s-hp">max HP</span>, heals 15% and makes it a little bigger. Feasts so far: <b>${s}</b> (+${s*25} HP).`;},
+  d:c=>{const s=(c.u&&c.u.ss)||0;return`Swallows the weakest enemy within 2 hexes for ${DT(c,1,'spec','true')} plus <b class="s-hp">${Math.round(c.maxHp*.06)}</b> <span class="sc">(6% <span class="s-hp">max HP</span>)</span>. <b>Grows:</b> a knockout permanently adds +20 <span class="s-hp">max HP</span>, heals 15% and makes it a little bigger. Feasts so far: <b>${s}</b> (+${s*20} HP).`;},
   cast(c,tg){const t=foesOf(c).filter(o=>hdist(c,o)<=2).sort((a,b)=>a.hp-b.hp)[0]||tg;if(hdist(c,t)>1)dashTo(c,t);
     schedule(.18,()=>{if(c.dead||t.dead)return;damage(c,t,V(c,1)+c.maxHp*.06,{ab:1,cat:'spec',tru:1,type:'Poison'});boom(t,'#a35bd6',2);
-      if(t.dead&&c.u){c.u.ss=(c.u.ss||0)+1;c.u.g.hp=(c.u.g.hp||0)+25;c.maxHp+=25;heal(c,c.maxHp*.15);c.scaleMul=1+Math.min(.35,c.u.ss*.012);if(!SIM.on)texts.push({x:c.x,y:c.y-42,txt:'Feast! +25 HP',col:'#7dff7a',life:1.3,label:1});}});}});
+      if(t.dead&&c.u){c.u.ss=(c.u.ss||0)+1;c.u.g.hp=(c.u.g.hp||0)+20;c.maxHp+=20;heal(c,c.maxHp*.15);c.scaleMul=1+Math.min(.35,c.u.ss*.012);if(!SIM.on)texts.push({x:c.x,y:c.y-42,txt:'Feast! +20 HP',col:'#7dff7a',life:1.3,label:1});}});}});
 
 // Marowak: Nasus. Its bone hits harder with every swing and every knockout, forever.
 defSig({ids:[104,105],role:'Bone Collector',cls:'Bruiser',cat:'phys',range:1,mana:55,pf:[1,1.25],names:['Bone Club','Bonemerang'],mvType:'Ground',
@@ -120,15 +120,18 @@ defSig({ids:[104,105],role:'Bone Collector',cls:'Bruiser',cat:'phys',range:1,man
   cast(c,tg,i){const hit=()=>{if(c.dead||tg.dead)return;damage(c,tg,V(c,i?.65:1.1)+((c.u&&c.u.ss)||0)*3,{ab:1,cat:'phys',type:'Ground'});boom(tg,'#e8dcc0');if(tg.dead&&c.u)c.u.ss=(c.u.ss||0)+5;};
     if(c.u)c.u.ss=(c.u.ss||0)+1;if(i){fire(c,tg,'#efe6cf',hit,{arc:1,dur:.35,lift:25,size:3});schedule(.5,()=>{if(!tg.dead&&!c.dead)fire(c,tg,'#efe6cf',hit,{arc:1,dur:.35,lift:25,side:-30,size:3});});}else hit();}});
 
-// Salamence: Smolder. A Bagon practicing to fly; every hit is practice, and milestones unlock new powers.
-const prac=c=>(c.u&&c.u.ss)||0;
-defSig({ids:[371,372,373],role:'Dragon in Training',cls:'Mystic',cat:'spec',range:2,mana:[55,50,45],pf:[.8,1,1.2],names:['Ember','Dragon Breath','Dragon Breath'],mvType:'Dragon',
-  d:c=>{const s=prac(c);return`Breathes dragonfire at the target for ${DT(c,.9)} plus <b class="s-spa">${Math.round(s*.8)}</b> bonus (0.8 per stack). <b>Grows:</b> +1 stack per enemy hit, +3 per knockout, forever. Stacks: <b>${s}</b>.<br>${tierLine(s>=25,'25: also hits enemies next to the target')}<br>${tierLine(s>=80,'80: leaves burning ground for 3s')}<br>${tierLine(s>=160,'160: executes enemies left below 12% HP')}`;},
-  cast(c,tg){const s=prac(c),ts=[tg,...(s>=25?near(tg,1):[])];
-    fire(c,tg,'#8f7bff',()=>{for(const t of ts){if(t.dead)continue;hitAb(c,t,.9*(t===tg?1:.6),{flat:s*.8});if(c.u)c.u.ss=(c.u.ss||0)+1;
-        if(!t.dead&&s>=160&&t.hp<t.maxHp*.12){hurt(t,t.hp+t.shield+1,c);if(!SIM.on)texts.push({x:t.x,y:t.y-36,txt:'Executed!',col:'#ff6b6b',life:1.1,label:1});}
-        if(t.dead&&c.u)c.u.ss+=3;}
-      boom(tg,'#8f7bff',2);if(s>=80)zone(c,tg,1,3,'#7a5cff',z=>{for(const o of inZone(z,1-c.team))hitAb(c,o,.1,{noCrit:1,quiet:1});});},{size:5,sp:230});}});
+// Bagon line: a Pokémon that dreams of flying. Bagon headbutts, Shelgon hardens its shell, Salamence finally takes to the sky.
+defSig({ids:[371,372,373],role:'Sky Dreamer',cls:'Bruiser',cat:'phys',range:1,mana:[60,70,80],start:[10,20,30],pf:[1,1,1.05],names:['Headbutt','Iron Defense','Fly'],mvType:'Dragon',
+  d:(c,i)=>[`Rams the target for ${DT(c,1.2)} and flinches it for 0.5s. It always aims a little higher.`,
+    `Hardens its shell: gains a <b class="s-hp">${Math.round(c.maxHp*.22)}</b> <span class="sc">(22% <span class="s-hp">max HP</span>)</span> shield and +30 <span class="s-def">Defense</span> for 4s, then headbutts the target for ${DT(c,.9)}.`,
+    `Soars out of reach for 1s (can't be targeted or hit), then dives onto the biggest group of enemies for ${DT(c,1.4)} to everything within 1 hex, knocking them back. Then it goes into an <b>Outrage</b> for 4s: +30% <span class="s-as">Attack Speed</span>, and its attacks splash 50% damage to enemies next to the target. Afterwards it's confused, stunned for 0.8s.`][i],
+  cast(c,tg,i){
+    if(i===0){if(hdist(c,tg)>1)dashTo(c,tg);schedule(.12,()=>{if(c.dead||tg.dead)return;hitAb(c,tg,1.2);stun(tg,.5);boom(tg,'#7fb0ff');});return;}
+    if(i===1){c.shield+=c.maxHp*.22;c.def+=30;schedule(4,()=>{c.def-=30;});if(!SIM.on)ring(c.x,c.y-8,'#c8d0d8');schedule(.3,()=>{if(!c.dead&&!tg.dead)hitAb(c,tg,.9);});return;}
+    c.airT=combatT+1;c.busy=Math.max(c.busy,1.1);c.target=null;if(!SIM.on){burst(c.x,c.y-10,'#9fd0ff',18,1.2);texts.push({x:c.x,y:c.y-40,txt:'Fly!',col:'#bfe4ff',life:1,label:1});}
+    schedule(1,()=>{if(c.dead)return;const t=cluster(c);if(!t)return;dashTo(c,t,false,.15);
+      schedule(.16,()=>{if(c.dead)return;for(const o of[t,...near(t,1)]){hitAb(c,o,1.4);knock(c,o);}boom(t,'#7a9cff',3);
+        const ch=.3;c.outrageT=combatT+4;c.as*=1+ch;schedule(4,()=>{if(c.dead)return;c.as/=1+ch;stun(c,.8);if(!SIM.on)texts.push({x:c.x,y:c.y-34,txt:'Confused',col:'#d8c7ff',life:.9,label:1});});});});}});
 
 // Pikachu line: chain lightning.
 defSig({ids:[172,25,26],role:'Storm Chaser',cls:'Mystic',cat:'spec',range:3,mana:70,pf:[.5,.62,.75],names:['Thunder Shock','Thunderbolt','Thunderbolt'],mvType:'Electric',
@@ -156,7 +159,7 @@ defSig({ids:[447,448],role:'Aura Fighter',cls:'Bruiser',cat:'spec',range:2,mana:
   cast(c,tg){const miss=1-c.hp/c.maxHp;fire(c,tg,'#5fb0ff',()=>{hitAb(c,tg,1.15*(1+miss));boom(tg,'#5fb0ff',1+Math.round(miss*2));},{sp:320,size:4+Math.round(miss*3)});c.dmg+=.06;}});
 
 // Garchomp: dives onto the back line.
-defSig({ids:[443,444,445],role:'Land Shark',cls:'Bruiser',cat:'phys',range:1,mana:65,start:[10,25,40],pf:[1.15,1.4,1.6],names:['Dragon Rage','Dragon Claw','Dragon Rush'],mvType:'Dragon',
+defSig({ids:[443,444,445],role:'Land Shark',cls:'Bruiser',cat:'phys',range:1,mana:65,start:[10,25,40],pf:[1,1.2,1.35],names:['Dragon Rage','Dragon Claw','Dragon Rush'],mvType:'Dragon',
   begin(c,i){if(i===2)c.helmet+=.03;},
   d:(c,i)=>`${i?'Leaps onto the farthest enemy':'Charges the target'} and crashes down for ${DT(c,1.3)} to it and adjacent enemies (70%), stunning them for 0.6s.${i===2?' <b>Rough Skin:</b> melee attackers take 3% of its <span class="s-hp">max HP</span>.':''}`,
   cast(c,tg,i){const t=i?(foesOf(c).sort((a,b)=>hdist(c,b)-hdist(c,a)||a.hp-b.hp)[0]||tg):tg;if(hdist(c,t)>1)dashTo(c,t,true,.35);c.busy=Math.max(c.busy,.45);
@@ -190,7 +193,7 @@ defSig({ids:[813,814,815],role:'Striker',cls:'Striker',cat:'phys',range:[1,1,2],
     kick(c,tg,[0,1,3][i]);c.as*=1.06;}});
 
 // Charizard: a cone of fire through the target.
-defSig({ids:[4,5,6],role:'Flamethrower',cls:'Artillery',cat:'spec',range:2,mana:75,pf:[.55,.7,.85],names:['Ember','Flame Burst','Flamethrower'],mvType:'Fire',
+defSig({ids:[4,5,6],role:'Fire Breather',cls:'Artillery',cat:'spec',range:2,mana:75,pf:[.55,.7,.85],names:['Ember','Flame Burst','Flamethrower'],mvType:'Fire',
   d:(c,i)=>`Breathes a cone of fire: the target and enemies ${i===2?'up to 2 hexes':'right'} behind it take ${DT(c,1)} (70% to the others) and burn for 1% <span class="s-hp">max HP</span> per second for 4s.`,
   cast(c,tg,i){const ts=[tg,...alive(tg.team).filter(o=>o!==tg&&hdist(o,tg)<=(i===2?2:1)&&hdist(o,c)>=hdist(tg,c))];
     if(!SIM.on){for(let k=0;k<26;k++){const f=Math.random(),x=c.x+(tg.x-c.x)*f*1.3,y=c.y-12+(tg.y-c.y)*f*1.3;fx.push({x:x+rnd(-6,6)*f,y:y+rnd(-5,5)*f,vx:(tg.x-c.x)*.6,vy:(tg.y-c.y)*.6-10,life:rnd(.25,.45),max:.45,col:pick(['#ff7a2c','#ffd34d','#ff4d2c']),sz:2,g:0});}}
@@ -214,3 +217,45 @@ defSig({ids:[280,281,282],role:'Seer',cls:'Mystic',cat:'spec',range:3,mana:80,pf
   d:(c,i)=>`Foresees the ${[1,2,3][i]} strongest enem${i?'ies':'y'} (highest <span class="s-atk">Attack</span> or <span class="s-spa">Sp. Atk</span>) and marks ${i?'them':'it'}. 2s later, each takes ${DT(c,1.15)}.`,
   cast(c,tg,i){const ts=foesOf(c).sort((a,b)=>Math.max(b.atk,b.spa)-Math.max(a.atk,a.spa)).slice(0,[1,2,3][i]);for(const t of ts)t.markT=combatT+2;
     schedule(2,()=>{if(c.dead)return;for(const t of ts)if(!t.dead){hitAb(c,t,1.15);boom(t,'#ff7ad9',2);}});}});
+
+/* ================= Earned special items =================
+   Some lines earn a unique item by taking part in fights (tracked by their growth counter).
+   Special items take a normal item slot, can't be crafted, and only one of each exists per run. */
+const SPECIAL={
+  'leaders-crest':{n:"Leader's Crest",growth:'Supreme Overlord',need:8,how:'8 takedowns by the Pawniard line',
+    d:`+15% damage. Allies within 1 hex gain +10% move damage and +10% <span class="s-as">Attack Speed</span>. Held by Kingambit: +8% damage for every ally that has fainted this battle.`,e:{dmg:.15,aura:{ab:.1,as:.1},crestKing:.08}},
+  'big-malasada':{n:'Snack Stash',growth:'Leftovers Feast',need:6,how:'6 battles fought by Munchlax or Snorlax',
+    d:`Restores 3% <span class="s-hp">max HP</span> per second. Every 5 seconds it tosses a snack to your most injured ally, healing them for 10% of the holder's <span class="s-hp">max HP</span>.`,e:{regen:.03,snack:.1}},
+  'gold-bottle-cap':{n:'Gold Bottle Cap',growth:'Coin Hoard',need:6,how:'6 wins with the Gimmighoul line',
+    d:`Hyper Training: +15% <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span>, +25 <span class="s-def">Defense</span> and <span class="s-def">Sp. Def</span>, and +15% <span class="s-as">Attack Speed</span>.`,e:{atkP:.15,spaP:.15,def:25,res:25,as:.15}},
+};
+const isSpc=it=>typeof it.k==='string'&&it.k.startsWith('spc:');
+const spcKey=it=>it.k.slice(4);
+function spcDef(it){const S=SPECIAL[spcKey(it)];return{id:spcKey(it),n:S.n,d:S.d};}
+function specialFor(u){const G=growthOf(u);if(!G)return null;const id=Object.keys(SPECIAL).find(k=>SPECIAL[k].growth===G.n);return id?{id,...SPECIAL[id]}:null;}
+function awardSpecials(){
+  run.specials=run.specials||[];
+  for(const u of allOwned()){const S=specialFor(u);if(!S||run.specials.includes(S.id)||(u.gs||0)<S.need)continue;
+    run.specials.push(S.id);run.bag.push({k:'spc:'+S.id,mut:[]});
+    if(!SIM.on)setTimeout(()=>{banner(`${nameOf(u)} earned the ${S.n}!`,'A special item was added to your bag',2200);},1200);}
+}
+
+// Pawniard line: the leader. Kowtow Cleave never misses and grows as allies fall.
+defSig({ids:[624,625,983],role:'Leader',cls:'Bruiser',cat:'phys',range:1,mana:[70,70,75],pf:[1.1,1.4,1.75],names:['Metal Claw','Night Slash','Kowtow Cleave'],mvType:'Dark',
+  d:(c,i)=>`${i===2?'Bows, then cleaves':'Slashes'} the weakest enemy within 2 hexes for ${DT(c,1.25)}${i===1?' with +30% crit chance':''}${i===2?'. It can\'t miss, and deals +12% for every ally that has fainted this battle':''}. Earns the <b>Leader's Crest</b> after 8 takedowns.`,
+  cast(c,tg,i){const t=foesOf(c).filter(o=>hdist(c,o)<=2).sort((a,b)=>a.hp-b.hp)[0]||tg;if(hdist(c,t)>1)dashTo(c,t);
+    const fallen=units.filter(o=>o.team===c.team&&o.dead).length;
+    schedule(.15,()=>{if(c.dead||t.dead)return;hitAb(c,t,1.25*(i===2?1+.12*fallen:1),{cr:i===1?.3:0});boom(t,'#c9c9d6',2);});}});
+
+// Munchlax/Snorlax: the glutton. Naps to heal, then flattens everything nearby with its weight.
+defSig({ids:[446,143],role:'Glutton',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[80,90],start:20,pf:[.8,1],names:['Lick','Body Slam'],mvType:'Normal',
+  d:(c,i)=>`${i?`If it's below 60% HP, it first takes a quick <b>Rest</b>: asleep for 1.5s while healing <b class="s-hp">${Math.round(c.maxHp*.4)}</b> <span class="sc">(40% <span class="s-hp">max HP</span>)</span>. Then it`:'It'} Body Slams the target and adjacent enemies for <b class="s-hp">${Math.round(c.base*.6+c.maxHp*.08)}</b> <span class="sc">(${Math.round(c.base*.6)} + 8% <span class="s-hp">max HP</span>)</span> <span class="s-atk">physical</span> damage, stunning them for 0.6s. Earns a <b>Snack Stash</b> after 6 battles.`,
+  cast(c,tg,i){const slam=()=>{if(c.dead||tg.dead)return;for(const o of[tg,...near(tg,1)]){damage(c,o,(c.base*.6+c.maxHp*.08)*(o===tg?1:.7),{ab:1,cat:'phys',type:'Normal'});stun(o,.6);}boom(tg,'#d8c8a8',3);};
+    if(i&&c.hp<c.maxHp*.6){stun(c,1.5);heal(c,c.maxHp*.4);if(!SIM.on)texts.push({x:c.x,y:c.y-38,txt:'Zzz...',col:'#c6b3ff',life:1.4,label:1});schedule(1.55,slam);}else slam();}});
+
+// Gimmighoul/Gholdengo: the treasure keeper. Make It Rain hits harder the richer you are.
+const richBonus=c=>c.team===0&&run?Math.min(.3,Math.floor(run.gold/2)*.01):0;
+defSig({ids:[999,1000],role:'Treasure Keeper',cls:'Mystic',cat:'spec',range:3,mana:[70,75],pf:[.8,1.15],names:['Astonish','Make It Rain'],mvType:'Steel',
+  d:(c,i)=>`Showers coins on the target and every enemy within 1 hex of it for ${DT(c,1)}, plus <b>+1% per ₽2 you have saved</b> (up to +30%; now +${Math.round(richBonus(c)*100)}%). ${i?'Each knockout with it drops ₽1 (up to ₽2 per battle). ':''}Earns a <b>Gold Bottle Cap</b> after 6 wins.`,
+  cast(c,tg,i){const m=1+richBonus(c);for(const o of[tg,...near(tg,1)]){hitAb(c,o,m*(o===tg?1:.75));if(!SIM.on)for(let k=0;k<6;k++)fx.push({x:o.x+rnd(-8,8),y:o.y-40-rnd(0,20),vx:0,vy:90,life:.45,max:.45,col:pick(['#ffd34d','#fff0a0','#c9961d']),sz:2,g:120});
+      if(i&&o.dead&&c.team===0&&(battle.gholdN||0)<2){battle.gholdN=(battle.gholdN||0)+1;run.gold++;if(!SIM.on)texts.push({x:o.x,y:o.y-30,txt:'+₽1',col:'#ffd34d',life:1});}}}});

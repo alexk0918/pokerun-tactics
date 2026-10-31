@@ -60,33 +60,31 @@ The stock: two Pokémon, two components, one completed item, two enhancers, a re
 
 ### Enhancers
 
-Drop an enhancer onto a completed item, in your bag or on a Pokémon, to add an effect. Each item takes one, and enhanced items show a "+" and a teal frame. Enhancers sit between The Last Flame's rare and legendary recipes, in two tiers:
+Drag an enhancer onto a completed item, in your bag or on a Pokémon, to fuse them. Each item takes one, and enhanced items show a "+" and a teal frame. There's a single tier: every enhancer pairs a real stat package with an effect big enough to shape a build, sitting between The Last Flame's rare and legendary recipes. When an enhanced item is on a Pokémon, its tooltip shows the calculated numbers.
 
-- **Refined (about 60% of drops, ₽6 at Kecleon):** rare-recipe stat packages pushed past a completed item's budget, each with a small kicker.
-  - Quick Powder: Attack Speed that ramps with every attack.
-  - Metal Coat: Defense, Sp. Def and damage reduction.
-  - Thick Club: Attack, plus %-max-HP hits.
-  - Light Ball: Sp. Atk and starting PP.
-  - Lucky Punch: crit, and moves can crit.
-  - Big Root: lifesteal, with overhealing turned into a shield.
-  - Starf Berry: low-HP Attack Speed and lifesteal.
-  - Enigma Berry: a heal and resistances at half HP.
-- **Signature (about 40%, ₽9):** build-defining effects like legendary recipes, slightly toned down. Several grow over the whole run.
-  - Deep Sea Tooth: every third attack deals true damage, growing with every trigger, Kraken Slayer style.
-  - Rare Bone: permanent Attack and Sp. Atk per takedown, Hubris style.
-  - Soul Dew: Sp. Atk stacks every 4 seconds, Archangel's style.
-  - Electric Seed: chain lightning every third attack.
-  - Black Sludge: stacking poison plus reduced healing.
-  - Spell Tag: curse that amplifies damage; cursed enemies explode on death.
-  - Smoke Ball: dodges that restore PP.
-  - Loaded Dice: multi-hit moves and double strikes.
-  - Ability Shield: crowd-control immunity.
-  - Red Card: a shield and stun at half HP.
-  - Adrenaline Orb: Attack Speed and damage as allies fall, PP on takedowns.
-  - Room Service: an Attack Speed and armor debuff on enemies at battle start.
-  - Sacred Ash: revive with full PP and bonus damage.
-
-Mini-boss enhancer picks always include at least one Signature enhancer.
+| Enhancer | Effect |
+|---|---|
+| Quick Powder | +25% Attack Speed, +3% more per attack (15 stacks); fully stacked attacks ricochet to a second enemy |
+| Metal Coat | Defenses and damage reduction; a shield whenever a move hits it (3s cooldown) |
+| Thick Club | +35% Attack, %-max-HP hits, every 5th attack stuns |
+| Light Ball | Sp. Atk and PP; moves arc lightning to 2 more enemies for 25% |
+| Lucky Punch | Crit chance and damage, moves can crit, crits restore PP |
+| Big Root | Lifesteal and stronger heals; overhealing becomes a shield |
+| Starf Berry | Below half HP: Attack Speed, lifesteal and Defense |
+| Enigma Berry | At half HP: big heal and defenses for itself, a heal for adjacent allies |
+| Deep Sea Tooth | Every 3rd attack deals true damage, growing permanently every time it triggers |
+| Rare Bone | +20 Attack; takedowns heal and permanently add Attack and Sp. Atk to the bone |
+| Soul Dew | PP, plus Sp. Atk that stacks every 4 seconds |
+| Electric Seed | Every 3rd attack chains lightning to 3 enemies and paralyzes them |
+| Black Sludge | Stacking Toxic poison; poisoned enemies heal less |
+| Reaper Cloth | Moves curse: cursed enemies take more damage and explode when they faint |
+| Smoke Ball | Dodges the first 3 attacks; each dodge restores PP and adds Attack Speed |
+| Loaded Dice | Max-plus-one multi-hits with bonus damage; 25% double strikes |
+| Ability Shield | Immune to stuns and status; restores PP whenever it shrugs off a stun |
+| Red Card | +150 HP; at half HP, a big shield and an area stun |
+| Adrenaline Orb | Attack Speed and damage as allies fall; takedowns restore PP |
+| Room Service | At battle start, enemies within 2 hexes lose Attack Speed and defenses for 8s |
+| Sacred Ash | Revives with full PP and bonus damage |
 
 ### Mutated Pokémon
 
@@ -107,9 +105,9 @@ Some lines have a hand-designed signature kit instead of the generic move, built
 | Charcadet → Ceruledge | Cursed Knight | Bitter Blade lunges, cleaves and heals for 40% of damage (80% below half HP) |
 | Charcadet → Armarouge | Cannon Knight | Lobs an arcing cannonball into the biggest group; recoil lowers its own defenses |
 | Dreepy → Dragapult | Marksman | Fires Dreepy that arc in and spread across enemies; gains a dart every 4 casts for the whole run |
-| Gulpin → Swalot | Devourer | Swallows the weakest enemy for true damage; each kill permanently adds max HP (Cho'Gath style) |
-| Cubone → Marowak | Bone Collector | Bone damage stacks forever, +5 per knockout (Nasus style) |
-| Bagon → Salamence | Dragon in Training | Practice stacks forever, unlocking splash, burning ground and an execute (Smolder style) |
+| Gulpin → Swalot | Devourer | Swallows the weakest enemy for true damage; each kill permanently adds max HP |
+| Cubone → Marowak | Bone Collector | Bone damage stacks forever, +5 per knockout |
+| Bagon → Salamence | Sky Dreamer | Bagon headbutts and flinches; Shelgon hardens its shell; Salamence flies out of reach, dives onto the biggest group, then goes into Outrage (splashing attacks) before getting confused |
 | Pichu → Raichu | Storm Chaser | Chain lightning across up to 6 enemies |
 | Machop → Machamp | Brawler | Punch flurry ending in a stun; No Guard |
 | Gastly → Gengar | Hexer | Shadow Balls shred Sp. Def; Cursed Body drains PP from attackers |
@@ -119,10 +117,23 @@ Some lines have a hand-designed signature kit instead of the generic move, built
 | Happiny → Blissey | Nurse | Big heal and cleanse, then Wish heals the team |
 | Grookey → Rillaboom | Drummer | Area hit with slow; Grassy Surge heals allies standing in it |
 | Scorbunny → Cinderace | Striker | Pyro Ball bounces between enemies; Libero ramps Attack Speed |
-| Charmander → Charizard | Flamethrower | Burning cone through the target |
+| Charmander → Charizard | Fire Breather | Burning cone through the target |
 | Bulbasaur → Venusaur | Solar Cannon | Charged beam through a whole line, instant in sun |
 | Squirtle → Blastoise | Cannon Tank | Shell shield, then twin cannons with knockback |
 | Ralts → Gardevoir | Seer | Future Sight marks the strongest enemies and strikes them 2s later |
+| Pawniard → Kingambit | Leader | Cleaves the weakest nearby enemy; Kowtow Cleave can't miss and grows as allies fall. Earns the Leader's Crest |
+| Munchlax → Snorlax | Glutton | Rests to heal when hurt, then Body Slams nearby enemies (scales with max HP). Earns a Snack Stash |
+| Gimmighoul → Gholdengo | Treasure Keeper | Make It Rain hits harder the more Pokédollars you've saved and drops coins on knockouts. Earns a Gold Bottle Cap |
+
+Every kit tooltip shows its PP cost and range, and every damage, heal and shield number is calculated from the Pokémon's current stats.
+
+### Earned special items
+
+Some lines earn a unique item by taking part in fights. Each one exists once per run, takes a normal item slot and can't be crafted. Progress shows in the Pokémon's tooltip.
+
+- **Leader's Crest:** after 8 takedowns by the Pawniard line. +15% damage, and adjacent allies gain move damage and Attack Speed. Kingambit gains +8% damage for each ally that faints.
+- **Snack Stash:** after 6 battles fought by Munchlax or Snorlax. Regeneration, and every 5 seconds it heals your most injured ally.
+- **Gold Bottle Cap:** after 6 wins with the Gimmighoul line. Hyper Training: Attack, Sp. Atk, both defenses and Attack Speed.
 
 Values that grow over the run show their progress in the tooltip.
 
@@ -158,12 +169,48 @@ Beating a rival (floors 5 and 10) lets you pick one of three relics, then one of
 
 ### Sets
 
-Every Pokémon belongs to several sets, and each set activates at its breakpoints (counting different Pokémon on the field):
+Every Pokémon belongs to several sets, and each set activates at its breakpoints (counting different Pokémon on the field). Hover a set to see its bonuses the TFT way. Breakpoints you've reached are green, and the value for your current tier is highlighted. Other tiers' values, and bonuses that unlock at higher counts, are greyed out.
 
-- **Types (18):** from the Pokémon's current types. Breakpoints 2 / 4 / 6.
-- **Classes (9):** what its kit does: Vanguard, Juggernaut, Bruiser, Striker, Mystic, Artillery, Combo, Trickster, Medic. Breakpoints 2 / 4 / 6.
-- **Styles (17):** how it plays, taken from its real abilities and lineage: Sun, Rain, Sandstorm, Snow, Intimidator, Last Stand, Momentum, Ironclad, Toxic, Powerhouse, Sharpshooter, Regrowth, Phantom, Charged, Partner (starters, Pikachu, Eevee), Fossil and Pseudo. Weather styles change the battlefield.
-- **Regions (9):** National Dex only.
+**Type sets (2 / 4 / 6)** each change how the fight plays:
+
+| Set | Mechanic |
+|---|---|
+| Normal (Adaptable) | Max HP and damage for every different type on your field |
+| Fire (Kindling) | Attacks and moves burn; bonus damage to burning enemies |
+| Water (High Tide) | A wave every 5s gives PP; at 6 it also damages every enemy |
+| Grass (Photosynthesis) | Regeneration and bonus damage above 75% HP |
+| Electric (Static) | Every 3rd attack zaps 3 enemies; at 6 the whole team gets Attack Speed |
+| Ice (Frostbite) | Attacks chill; the third chill in a row freezes |
+| Fighting (Challenger) | When their target falls they dash to the next one with an Attack Speed burst |
+| Poison (Toxin) | Poison cuts healing; at 6 it spreads when a poisoned enemy faints |
+| Ground (Earthquake) | Your sturdiest Ground Pokémon stomps every 8 / 6 / 4s, stunning nearby enemies |
+| Flying (Tailwind) | Dodges grant stacking Attack Speed |
+| Psychic (Mind Link) | Each Psychic move gives every other Psychic ally PP |
+| Bug (Swarm) | At 4, a fallen Bug leaves a 1★ copy that keeps fighting; at 6, every one does |
+| Rock (Stealth Rock) | Enemies take damage every time they move to a new hex |
+| Ghost (Haunt) | Lifesteal; fainting Ghosts lash out at adjacent enemies |
+| Dragon (Dragon's Hoard) | Every win with Dragon active adds a permanent damage stack for the run |
+| Dark (Pursuit) | Bonus damage to weakened enemies; at 6 takedowns restore PP |
+| Steel (Steelworker) | Damage reduction, burn and poison immunity, then reflection |
+| Fairy (Charm) | Moves heal your most injured ally |
+
+**Class sets (2 / 4 / 6):**
+
+- Vanguards taunt adjacent enemies at 4.
+- Juggernauts become unstoppable at 4.
+- Bruisers heal once at half HP.
+- Every 3rd Striker attack crits.
+- Mystic moves cost less PP.
+- Combo hits restore PP.
+- Tricksters leap behind the enemy back line at the start of battle.
+- Medic overhealing becomes shields at 4.
+
+**Style sets** come from real abilities and lineage. Weather styles set the weather. Two styles grow with you:
+
+- **Partner:** Friendship stacks up over the run, and at 10 the Pokémon hangs on through a fainting blow.
+- **Pseudo:** your strongest pseudo-legendary becomes a bigger, stronger Apex; at 3, all of them do.
+
+**Region sets** are National Dex only.
 
 ### Scouting
 
