@@ -595,14 +595,15 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
 const alive=t=>units.filter(u=>!u.dead&&u.team===t);
 const occupied=(c,r,ex)=>units.some(u=>u!==ex&&!u.dead&&((u.c===c&&u.r===r)||(u.move&&u.move.c===c&&u.move.r===r)));
 function setAnim(u,a,loop=false){if(SIM.on)return;u.anim=a;u.animT=0;u.loop=loop;}
-function schedule(dt,fn){events.push({t:combatT+dt,fn});}
+let ACT=null;// unit whose action is running, for crediting heals in the meter
+function schedule(dt,fn){events.push({t:combatT+dt,fn,a:ACT});}
 const aLen=(u,a)=>SIM.on?.5:animLen(u.dex,a), hTime=(u,a)=>SIM.on?.25:hitTime(u.dex,a);
 const lowHp=(u,f)=>u.hp<u.maxHp*f;
 function effAS(u){let a=u.as*(1+(u.fx.momentum||0)*u.momN);if(u.fx.lowAS&&lowHp(u,.5))a*=1+u.fx.lowAS;if(u.slowT>0)a*=1-u.slowP;return a*statusAS(u);}
 function stepCombat(dt){
   combatT+=dt;tickZones(dt);
-  for(let i=events.length-1;i>=0;i--)if(events[i].t<=combatT){const e=events[i];events.splice(i,1);e.fn();}
-  for(const u of units){
+  for(let i=events.length-1;i>=0;i--)if(events[i].t<=combatT){const e=events[i];events.splice(i,1);ACT=e.a||null;e.fn();ACT=null;}
+  for(const u of units){ACT=u;
     u.animT+=dt;u.flash=Math.max(0,u.flash-dt);
     if(u.dead){u.deadT+=dt;continue;}
     if(!SIM.on&&!u.loop&&u.animT>=animLen(u.dex,u.anim)&&!u.move)setAnim(u,'Idle',true);
@@ -627,7 +628,7 @@ function stepCombat(dt){
       if(opts.length&&opts[0].d<d+.2){const h=opts[0],p=hexXY(h.c,h.r);u.move={c:h.c,r:h.r,fx:u.x,fy:u.y,tx:p.x,ty:p.y,t:0,dur:.42};u.dir=dirFrom(p.x-u.x,(p.y-u.y)/SQ);setAnim(u,'Walk',true);}
       else u.target=null;}
   }
-  combatEndCheck();
+  ACT=null;combatEndCheck();
 }
 const hpFrac=t=>{const l=units.filter(u=>u.team===t);return l.reduce((s,u)=>s+Math.max(0,u.hp)/u.maxHp,0)/l.length;};
 const tcol=u=>TYPES[(u.mv&&u.mv.t)||D[u.dex].t[0]]||'#fff';
@@ -679,7 +680,7 @@ function applyAil(src,t,id){
   if(!SIM.on)texts.push({x:t.x,y:t.y-30,txt:a.n,col:'#d8c7ff',life:.8,label:1});
 }
 function shoot(u,tg,col,onHit,size=2){proj.push({x:u.x,y:u.y-10,tg,col,onHit,size,trail:[],...shotLook(typeOf(u))});}
-function hurt(tg,d,src){if(tg.dead)return;let left=d;if(tg.shield>0){const s=Math.min(tg.shield,left);tg.shield-=s;left-=s;}tg.hp-=left;checkHp(tg,src);}
+function hurt(tg,d,src){if(tg.dead)return;if(d>0){const e=Math.min(d,Math.max(0,tg.hp)+(tg.shield||0));tg.mTaken=(tg.mTaken||0)+e;if(src&&src!==tg&&typeof src==='object'&&'team'in src)src.mDmg=(src.mDmg||0)+e;}let left=d;if(tg.shield>0){const s=Math.min(tg.shield,left);tg.shield-=s;left-=s;}tg.hp-=left;checkHp(tg,src);}
 function checkHp(tg,src){
   if(tg.sitrus&&tg.sitrusN>0&&tg.hp>0&&tg.hp<tg.maxHp*.5){heal(tg,tg.maxHp*tg.sitrus);tg.sitrusN--;if(tg.fx.enigma){tg.def+=tg.fx.enigma;tg.res+=tg.fx.enigma;for(const o of alive(tg.team))if(o!==tg&&hdist(o,tg)<=1)heal(o,o.maxHp*.15);}}
   if(tg.kee&&tg.hp>0&&tg.hp<tg.maxHp*.4){tg.def+=tg.kee;tg.res+=tg.kee;tg.kee=0;}
@@ -774,7 +775,7 @@ function damage(src,tg,amt,o={}){
   if(!tg.dead&&!SIM.on&&!tg.move&&tg.busy<=0&&Math.random()<.3){setAnim(tg,'Hurt');tg.busy=.2;}
   return d;
 }
-function heal(u,amt,quiet){if(u.dead)return;if(u.burn)amt*=.5;if(u.griev>combatT)amt*=.67;const h=Math.min(u.maxHp-u.hp,amt);u.hp+=h;if(u.fx.ohShield&&amt>h)u.shield=Math.min(u.maxHp*u.fx.ohShield,u.shield+amt-h);if(!quiet&&h>1&&!SIM.on){texts.push({x:u.x,y:u.y-24,txt:'+'+Math.round(h),col:'#7dff7a',life:.9});if((u.healFxT||0)<combatT){u.healFxT=combatT+.6;pfx('Heal_Block_Sparkle',0,0,{follow:u,oy:-14,sc:.9,force:1});}}}
+function heal(u,amt,quiet){if(u.dead)return;if(u.burn)amt*=.5;if(u.griev>combatT)amt*=.67;const h=Math.max(0,Math.min(u.maxHp-u.hp,amt));u.hp+=h;if(h>0){const hr=ACT&&ACT.team===u.team&&!ACT.dead?ACT:u;hr.mHeal=(hr.mHeal||0)+h;}if(u.fx.ohShield&&amt>h)u.shield=Math.min(u.maxHp*u.fx.ohShield,u.shield+amt-h);if(!quiet&&h>1&&!SIM.on){texts.push({x:u.x,y:u.y-24,txt:'+'+Math.round(h),col:'#7dff7a',life:.9});if((u.healFxT||0)<combatT){u.healFxT=combatT+.6;pfx('Heal_Block_Sparkle',0,0,{follow:u,oy:-14,sc:.9,force:1});}}}
 function moveValue(c){
   const R5=v=>Math.round(v/5)*5,RR=v=>Math.round(v*20)/20;
   if(c.kind==='heal'&&!c.strike){const b=R5(c.base),r=RR(KIT.healRatio);return{base:b,ratio:r,stat:c.spa,statN:'Sp. Atk',total:(b+r*c.spa)*(1+c.healAmp)};}
@@ -1252,7 +1253,7 @@ function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.w
 function hideTip(){$('tip').style.display='none';}
 let toastT=0;function toast(m){if(SIM.on)return;const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2600);}
 function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="banner win">${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</div>`;setTimeout(()=>{if(h.firstChild&&h.firstChild.textContent.startsWith(title))h.innerHTML='';},ms);}
-function showGameUI(on){['hud','traits','shop','bag'].forEach(id=>$(id).hidden=!on);if(!on)closePause();}
+function showGameUI(on){['hud','traits','shop','bag','meter'].forEach(id=>$(id).hidden=!on);if(!on)closePause();}
 function renderUI(){
   if(run&&mode==='plan')grantGear();
   dexLearnOwned();
@@ -1332,7 +1333,7 @@ addEventListener('keydown',e=>{if(evoOpen||!run||paused||ov.innerHTML.trim())ret
   if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key===' '){e.preventDefault();startCombat();}});
 
 /* ================= Options & saving ================= */
-const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1};
+const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1,meterOpen:1};
 try{Object.assign(OPTS,JSON.parse(localStorage.getItem('pokerun.opts')||'{}'));}catch(e){}
 function saveOpts(){try{localStorage.setItem('pokerun.opts',JSON.stringify(OPTS));}catch(e){}}
 const SAVEKEY='pokerun.save.v1';

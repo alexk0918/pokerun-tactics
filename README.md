@@ -321,6 +321,7 @@ Built to stay readable on small handheld screens such as the AYN Thor:
 - The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (strategy, augment, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
 - The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
 - The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan by dragging empty ground (any mouse button, in planning and in battle) or with the right stick.
+- **Battle meter:** a panel on the right during battles (and showing the last battle while you plan). Tabs for Damage, Healing and Damage taken list each Pokémon's total with a bar and its per-second rate below, plus a team total. Switch between your team and the enemies; collapse it with its header.
 - **Unit menu:** right-click a Pokémon (or press RT on a controller) to open a panel with its full details, all held items and gimmick items (hover for tooltips), the Mega Evolution toggle and Rotom's Catalog. Battles pause while it's open. 0 or R3 resets.
 
 ### Visual effects

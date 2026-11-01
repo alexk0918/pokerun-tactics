@@ -539,6 +539,23 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .umslot.t-epic{border-color:#c9961d;background:#fff4d6;} .umslot.t-gear{border-color:#8a6ce0;background:#f1ebff;} .umslot.t-enh{border-color:#2fb8a0;}
 .umslot.gim{border-color:#ff7ad9;background:#fff0fa;}
 .umacts{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:12px;}
+#meter{position:absolute;right:14px;top:68px;width:212px;padding:6px 10px 8px;display:flex;flex-direction:column;gap:6px;max-height:440px;}
+#meter.closed{width:auto;padding:5px 10px;}#meter.closed .mbody{display:none;}#meter.closed .caret{transform:rotate(-90deg);}
+#meter .mbody{display:flex;flex-direction:column;gap:5px;min-height:0;}
+.mtabs,.mside{display:flex;gap:3px;}
+.mtabs button,.mside button{all:unset;cursor:pointer;flex:1;text-align:center;font-family:var(--label);font-size:14px;padding:2px 0;border:2px solid var(--ink);border-radius:6px;background:#e8efe2;}
+.mside button{font-size:12px;border-width:1px;padding:1px 0;}
+.mtabs button[aria-pressed="true"],.mside button[aria-pressed="true"]{background:var(--ink);color:#fff;text-shadow:none;}
+.mtabs button:focus-visible,.mside button:focus-visible{outline:2px solid var(--gold);}
+#mrows{overflow-y:auto;max-height:340px;display:flex;flex-direction:column;gap:4px;padding-right:2px;}
+.mrow{display:flex;gap:6px;align-items:center;}.mrow.dead{opacity:.55;}
+.mrow img{width:26px;height:26px;image-rendering:pixelated;border:1px solid #c5d1d9;border-radius:4px;background:#e8efe2;flex:none;}
+.mmain{flex:1;min-width:0;}.mtop{display:flex;justify-content:space-between;gap:4px;font-size:13px;line-height:1.1;}
+.mtop .mn{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}.mtop i{font-style:normal;opacity:.6;font-size:11px;}
+.mbar{height:5px;background:#d9e0d4;border-radius:3px;overflow:hidden;margin:2px 0 1px;}.mbar i{display:block;height:100%;}
+.mps{font-family:var(--label);font-size:12px;opacity:.75;line-height:1;}
+.mtot{display:flex;justify-content:space-between;font-family:var(--label);font-size:12px;border-top:1px solid #c5d1d9;padding-top:4px;margin-top:2px;}.mtot small{opacity:.7;}
+.mempty{font-family:var(--label);font-size:13px;opacity:.7;padding:4px 0;}
 </style>
 
 </head>
@@ -561,6 +578,9 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
   </div>
   <div id="traits" hidden></div>
   <div id="bag" class="win" hidden><button class="baghead" id="bagtog" aria-expanded="true"><span class="lbl">Bag</span><span class="lbl" id="bagct">0/10</span><span class="caret" aria-hidden="true"></span></button><div class="slots" id="slots"></div><div class="baghint" id="baghint">Drag items onto a Pokémon</div></div>
+  <div id="meter" class="win" hidden><button class="baghead" id="mtog" aria-expanded="true"><span class="lbl" id="mlbl">Battle meter</span><span class="caret" aria-hidden="true"></span></button>
+    <div class="mbody"><div class="mtabs"><button data-mtab="dmg">Damage</button><button data-mtab="heal">Healing</button><button data-mtab="taken">Taken</button></div>
+    <div class="mside"><button data-mside="0">Your team</button><button data-mside="1">Enemies</button></div><div id="mrows"></div></div></div>
   <img id="ghost" alt="" hidden>
   <div id="shop" class="win" hidden>
     <button class="shoptog" id="shoptog" aria-expanded="true" title="Hide or show the shop (Tab · LB)"><span class="caret" aria-hidden="true"></span><span id="shoptogl">Hide shop</span></button>
@@ -586,7 +606,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 
 <script src="js/data.js?v=16"></script>
 <script src="js/sets.js?v=18"></script>
-<script src="js/game.js?v=35"></script>
+<script src="js/game.js?v=36"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=6x"></script>
@@ -603,6 +623,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 <script src="js/kits_gen6.js?v=4"></script>
 <script src="js/kitdex.js?v=4"></script>
 <script src="js/ui.js?v=10"></script>
+<script src="js/meter.js?v=1"></script>
 <script src="js/gamepad.js?v=17"></script>
 </body>
 </html>
