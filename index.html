@@ -586,6 +586,12 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .card .sigstar{color:var(--gold);margin-right:3px;font-size:14px;text-shadow:0 1px 0 #0008;}
 </style>
 
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#13201a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 </head>
 <body>
 <div id="wrap"><div id="stage">
