@@ -559,6 +559,24 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 #lootback{position:absolute;left:50%;top:478px;transform:translateX(-50%);z-index:30;padding:8px 22px;font-size:18px;box-shadow:0 4px 0 #0005;}
 .lootacts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px;}.lootacts .btn{width:auto;padding:8px 18px;}.lootacts .btn.skip{margin:0;}
 .lootacts .btn[disabled]{opacity:.5;cursor:not-allowed;}
+.augscreen{gap:10px;}
+.augrow{display:flex;gap:16px;justify-content:center;align-items:stretch;}
+.augcard{color:var(--ink);text-shadow:1px 1px 0 #d6d6ce;width:250px;display:flex;flex-direction:column;gap:8px;align-items:stretch;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:12px 12px 10px;}
+.augpick{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;flex:1;border-radius:8px;padding:4px;}
+.augpick:hover,.augpick:focus-visible{background:#fff8d8;outline:2px solid var(--gold);}
+.augpick h2{font-size:21px;margin:0;}.augpick p{font-size:15px;line-height:1.3;margin:0;}
+.augic{width:64px;height:64px;transform:rotate(45deg);border:3px solid var(--ink);display:grid;place-items:center;margin:8px 0 6px;border-radius:6px;}
+.augic img{width:40px;height:40px;transform:rotate(-45deg);image-rendering:pixelated;}
+.tier-silver .augic{background:linear-gradient(135deg,#ffffff,#b8c4cf 60%,#8293a3);}
+.tier-gold .augic{background:linear-gradient(135deg,#fff4b8,#f5c645 55%,#b98a14);}
+.tier-prismatic .augic{background:linear-gradient(135deg,#ff9be6,#9fe0ff 35%,#fff08a 65%,#b8a0ff);animation:prism 2.4s linear infinite;}
+.augtag{font-family:var(--label);font-size:12px;padding:1px 8px;border-radius:10px;background:#24303d;color:#fff;text-shadow:none;}
+.augtag.t-econ{background:#c9961d;}.augtag.t-combat{background:#c63c3c;}.augtag.t-status{background:#7a4ac8;}.augtag.t-items{background:#2f8a76;}.augtag.t-team{background:#2c6ec9;}.augtag.t-set{background:#d0558c;}.augtag.t-weather{background:#3a9ac0;}
+.augrr{align-self:center;width:auto!important;padding:4px 16px!important;font-size:14px;}
+.augrr[disabled]{opacity:.5;cursor:not-allowed;}
+.augmine{background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:10px;padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;max-width:900px;}
+.augchip{color:var(--ink);display:inline-flex;align-items:center;gap:4px;font-family:var(--label);font-size:13px;padding:2px 8px 2px 4px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);}
+.augchip img{width:18px;height:18px;image-rendering:pixelated;}.augchip.t-gold{border-color:#c9961d;}.augchip.t-prismatic{border-color:#8a6ce0;}.augchip.t-silver{border-color:#8293a3;}
 </style>
 
 </head>
@@ -608,16 +626,16 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
   <div id="overlay"><div class="screen"><div class="loading" id="loadmsg">Loading Pokédex…</div></div></div>
 </div></div>
 
-<script src="js/data.js?v=16"></script>
+<script src="js/data.js?v=18"></script>
 <script src="js/sets.js?v=18"></script>
-<script src="js/game.js?v=39"></script>
+<script src="js/game.js?v=42"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
-<script src="js/status.js?v=6x"></script>
+<script src="js/status.js?v=7"></script>
 <script src="js/cine.js?v=6"></script>
 <script src="js/forms.js?v=15"></script>
-<script src="js/route.js?v=20"></script>
-<script src="js/carousel.js?v=3"></script>
+<script src="js/route.js?v=21"></script>
+<script src="js/carousel.js?v=4"></script>
 <script src="js/kits.js?v=22"></script>
 <script src="js/kits_gen1.js?v=5"></script>
 <script src="js/kits_gen2.js?v=4"></script>
@@ -626,7 +644,8 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 <script src="js/kits_gen5.js?v=5"></script>
 <script src="js/kits_gen6.js?v=4"></script>
 <script src="js/kitdex.js?v=4"></script>
-<script src="js/ui.js?v=10"></script>
+<script src="js/augments.js?v=2"></script>
+<script src="js/ui.js?v=11"></script>
 <script src="js/meter.js?v=1"></script>
 <script src="js/gamepad.js?v=17"></script>
 </body>

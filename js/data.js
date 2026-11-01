@@ -20,13 +20,6 @@ const STRATS=[
   {id:'verdant',name:'Verdant Investment',type:'Grass',si:0,risk:'Scaling',pts:['Interest pays ₽1 per ₽8 saved (instead of ₽10), up to ₽7.','Grass Pokémon restore +1% max HP per second.'],guide:'Save early, spend late. Grass sustains.'},
 ];
 
-/* ---------- Augments (floor 2) ---------- */
-const AUGS={
-  silver:[{id:'static',name:'Static',d:'Your team\'s basic attacks have a 30% chance to add 1 Paralysis.'},{id:'ppoint',name:'Poison Point',d:'Your team\'s basic attacks have a 30% chance to add 1 Poison.'},{id:'fbody',name:'Flame Body',d:'Your team\'s basic attacks have a 30% chance to add 1 Burn.'},{id:'berry',name:'Berry Basket',d:'Gain ₽8 right now.'},{id:'tailwind',name:'Tailwind',d:'Your team gains +10% Attack Speed.'},{id:'oran',name:'Oran Rations',d:'Your team gains +150 max HP.'}],
-  gold:[{id:'hexer',name:'Hex Maniac',d:'Your team deals +5% damage for each different status condition on the target (up to +30%).'},{id:'outbreak',name:'Outbreak',d:'When an enemy with status conditions faints, half of each of its stacks spread to enemies within 2 hexes.'},{id:'egg',name:'Daycare Egg',d:'Gain a random 2★ Pokémon on your bench.'},{id:'endure',name:'Endure',d:'Once per battle, each of your Pokémon survives a fainting blow with 1 HP.'},{id:'swords',name:'Swords Dance',d:'Your team deals +20% damage.'}],
-  prismatic:[{id:'plague2',name:'Plague Doctor',d:'Status conditions your team applies add double the stacks, and your Burn, Poison and Leech Seed deal +25% damage.'},{id:'resolve',name:"Trainer's Resolve",d:'+1 team size for the rest of the run.'},{id:'payday',name:'Pay Day',d:'Gain an extra ₽3 at the start of every floor.'},{id:'champion',name:"Champion's Belt",d:'Your team deals +30% damage and gains +15% Attack Speed.'}],
-};
-
 /* ---------- Items: TFT-style components and recipes ---------- */
 const CORDER='PCSIZHUD';
 const COMP={
@@ -146,7 +139,43 @@ const GROWTH=[
 ];
 
 /* ---------- Run structure ---------- */
-const ACTS=[{name:'Verdant Clearing'},{name:'Ember Canyon'},{name:'Tidepool Grotto'}];
+/* Acts: each has its own scenery, enemy theme (enemy teams lean on these types), trainer classes and guardian.
+   After Act III's guardian the run can go on in Endless mode, which builds new acts from ENDLESS_ACTS forever. */
+const ACTS=[
+  {name:'Verdant Clearing',bg:'forest',types:['Grass','Bug','Normal','Flying'],guard:'Guardian of the Grove',theme:'Forest Pokémon: Grass, Bug, Normal and Flying',
+    tr:['Youngster','Lass','Bug Catcher','Picnicker','Camper','Bird Keeper','Aroma Lady','Pokémon Ranger']},
+  {name:'Ember Canyon',bg:'canyon',types:['Fire','Ground','Rock','Fighting'],guard:'Guardian of the Canyon',theme:'Canyon Pokémon: Fire, Ground, Rock and Fighting',
+    tr:['Hiker','Firebreather','Black Belt','Ruin Maniac','Kindler','Battle Girl','Worker','Biker']},
+  {name:'Tidepool Grotto',bg:'grotto',types:['Water','Ice','Dark','Ghost'],guard:'Guardian of the Grotto',theme:'Grotto Pokémon: Water, Ice, Dark and Ghost',
+    tr:['Swimmer','Fisherman','Sailor','Diver','Hex Maniac','Channeler','Skier','Beauty']},
+];
+const ENDLESS_ACTS=[
+  {name:'Thunder Plains',bg:'plains',types:['Electric','Steel','Normal'],guard:'Storm Guardian',theme:'Plains Pokémon: Electric, Steel and Normal',tr:['Guitarist','Engineer','Scientist','Cyclist']},
+  {name:'Haunted Ruins',bg:'ruins',types:['Ghost','Dark','Poison','Psychic'],guard:'Ruin Guardian',theme:'Ruin Pokémon: Ghost, Dark, Poison and Psychic',tr:['Hex Maniac','Medium','Punk','Psychic']},
+  {name:'Sky Pillar',bg:'sky',types:['Dragon','Flying','Fairy'],guard:'Sky Guardian',theme:'Sky Pillar Pokémon: Dragon, Flying and Fairy',tr:['Dragon Tamer','Bird Keeper','Fairy Tale Girl','Ace Trainer']},
+  {name:'Frozen Peak',bg:'snow',types:['Ice','Steel','Rock'],guard:'Peak Guardian',theme:'Peak Pokémon: Ice, Steel and Rock',tr:['Skier','Boarder','Hiker','Veteran']},
+  {name:'Toxic Marsh',bg:'marsh',types:['Poison','Bug','Water','Grass'],guard:'Marsh Guardian',theme:'Marsh Pokémon: Poison, Bug, Water and Grass',tr:['Bug Maniac','Fisherman','Punk Girl','Ninja Boy']},
+];
+const TRNAMES=['Ben','Mira','Rik','Jo','Theo','Bram','Celine','Noor','Paz','Wen','Ash','Ada','Kofi','Lena','Ivo','Rhea','Tomas','Yuki','Sana','Oren'];
+// scenery palettes: ground (inner/outer), dirt patches, canopy (dark→light, last is the highlight), trunks, falling particles
+const BGPAL={
+  forest:{inner:['#6aa646','#78b44f','#86c25a','#94cc66'],outer:['#2f6630','#3a7434','#44803a','#4f8e3e'],dirt:['#9a7d4c','#a98a56','#b89a62'],tuft:['#5b9a3f','#3a7434'],
+    can:['#1d4527','#2c6435','#3d7f3d','#58a04a','#7cc25e'],trunk:['#5a3b24','#3d2716'],flow:['#f4f0e6','#ffd84a','#ff7a8a','#b7a2ff'],glow:'rgba(255,240,180,.10)',edge:'rgba(5,20,10,.55)',void:'#13201a',leaf:['#9fd16a','#c7d95a','#7fbf4f','#e0c25a']},
+  canyon:{inner:['#c98a4f','#d39758','#dca463','#e4b06f'],outer:['#7a3a26','#8a442c','#985034','#a65c3c'],dirt:['#9a6038','#a86c42','#b6784c'],tuft:['#b0703c','#8a442c'],
+    can:['#4a2318','#6b3322','#8a4a30','#a8643f','#c98058'],trunk:null,flow:['#ffd84a','#ff9a4a','#f4f0e6'],glow:'rgba(255,200,120,.12)',edge:'rgba(30,8,4,.55)',void:'#2a120a',leaf:['#ff9a4a','#ffd34d','#ff6a3a']},
+  grotto:{inner:['#5f9c9a','#6aa8a4','#76b3ad','#84bdb5'],outer:['#1d4a6b','#22557a','#286089','#2e6b96'],dirt:['#c9b98a','#d4c495','#ddd0a2'],tuft:['#4f8a88','#22557a'],
+    can:['#14324a','#1f4a66','#2c6283','#3f7fa0','#86d0dc'],trunk:null,flow:['#ff9ac0','#ffe27a','#bff4ff'],glow:'rgba(200,240,255,.10)',edge:'rgba(2,12,30,.6)',void:'#06182a',leaf:['#bff4ff','#e8fbff','#9fe0ff']},
+  plains:{inner:['#a8b84a','#b4c454','#c0ce60','#cad86c'],outer:['#4a5a2a','#566832','#62743a','#6e8042'],dirt:['#9a8a4c','#a99856','#b8a862'],tuft:['#8c9c3a','#566832'],
+    can:['#2e3a1c','#45552a','#5c7038','#7a8f48','#c9d870'],trunk:['#5a4a2a','#3a2e18'],flow:['#ffe95a','#f4f0e6','#ffd84a'],glow:'rgba(255,250,170,.12)',edge:'rgba(20,20,5,.55)',void:'#1a1a0c',leaf:['#ffe95a','#fff6a0','#e0e070']},
+  ruins:{inner:['#6e6880','#787290','#827c9a','#8c86a4'],outer:['#2a2238','#322a44','#3a3250','#433a5c'],dirt:['#5a5266','#665e72','#726a7e'],tuft:['#5e5874','#322a44'],
+    can:['#1a1426','#2a2040','#3e3058','#5a4878','#9a88c8'],trunk:['#4a4050','#2e2836'],flow:['#c9a8ff','#8affc8','#f4f0e6'],glow:'rgba(200,170,255,.08)',edge:'rgba(8,4,16,.65)',void:'#0c0814',leaf:['#c9a8ff','#8affc8','#e0d0ff']},
+  sky:{inner:['#b8c4d0','#c2ccd8','#ccd6e0','#d6dee8'],outer:['#6a8ec0','#7698c8','#82a2d0','#8eacd8'],dirt:['#9aa6b4','#a6b2c0','#b2becc'],tuft:['#a2aebc','#7698c8'],
+    can:['#9ab4dc','#b4c8e6','#cad8ee','#e2ecf8','#ffffff'],trunk:null,flow:['#ffd84a','#ff9ac0','#ffffff'],glow:'rgba(255,255,255,.12)',edge:'rgba(20,40,80,.45)',void:'#4a6a9a',leaf:['#ffffff','#e8f0ff','#ffe9a8']},
+  snow:{inner:['#dfe8ef','#e6eef4','#edf3f8','#f4f8fb'],outer:['#8aa4b8','#96aec2','#a2b8cc','#aec2d6'],dirt:['#b8d8ec','#c4e0f2','#d0e8f6'],tuft:['#c8d6e0','#96aec2'],
+    can:['#1f3a3a','#2c4f4c','#3d6660','#5a8a80','#e8f2f6'],trunk:['#4a3a2e','#2e241c'],flow:['#bfe8ff','#ffffff','#9fd0ff'],glow:'rgba(220,240,255,.12)',edge:'rgba(20,30,50,.5)',void:'#1a2836',leaf:['#ffffff','#e8f4ff','#d0e8ff']},
+  marsh:{inner:['#5a7a3e','#64844a','#6e8e52','#78985c'],outer:['#2a3a26','#30422c','#384a32','#405238'],dirt:['#6a4a6e','#765478','#825e84'],tuft:['#4a6a34','#30422c'],
+    can:['#1a2a18','#26402a','#34563a','#4a7048','#8aa860'],trunk:['#3a3024','#241c14'],flow:['#c070ff','#ffd84a','#8aff8a'],glow:'rgba(200,255,150,.06)',edge:'rgba(10,15,8,.6)',void:'#0e140c',leaf:['#a070d0','#8aa860','#c0e070']},
+};
 const FLOORS=15;
 const STARM=[1,1.8,3.24];
 const floorKind=f=>f<=3?'wild':(f===5||f===10)?'elite':f===15?'boss':'trainer';
@@ -159,5 +188,8 @@ const LVODDS={2:[1,0,0,0,0],3:[.75,.25,0,0,0],4:[.55,.3,.15,0,0],5:[.45,.33,.2,.
 // enemy team size by floor (wild floors set separately)
 const ECOUNT={4:3,5:4,6:4,7:4,8:5,9:5,10:5,11:5,12:6,13:6,14:6,15:4};
 const ELEVEL=f=>clamp(Math.round(2+f*.38),3,8);
+// extra enemy power per act (on top of the floor curve) and guardian power per act
+const ACTSCALE=[1,1,1.12,1.12];
+const BOSSCALE=[1,1.45,2.2,2.4];
 const TRAINERS=['Youngster Ben','Lass Mira','Bug Catcher Rik','Picnicker Jo','Camper Theo','Hiker Bram','Beauty Celine','Ace Trainer Noor','Bird Keeper Paz','Fisher Wen','Ranger Ash','Twins Ada & Ida'];
 const RIVALS=['Rival Kade','Rival Sora'];

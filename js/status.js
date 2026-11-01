@@ -60,7 +60,7 @@ function statusTick(u,dt){
 }
 // returns true when the attack is lost to confusion
 function statusSkip(u){
-  if(u.conf&&Math.random()<.08*u.conf.n){hurt(u,autoAmt(u)*.4,null);u.conf.n--;if(!u.conf.n)u.conf=null;u.busy=.4;
+  if(u.conf&&Math.random()<.08*u.conf.n){hurt(u,autoAmt(u)*.4,null);if(u.conf){u.conf.n--;if(!u.conf.n)u.conf=null;}u.busy=.4;
     if(!SIM.on){texts.push({x:u.x,y:u.y-30,txt:'Confused!',col:'#ff9be6',life:.8,label:1});pfx('Dizzy_Punch_Hit',u.x,u.y-14,{sc:.5,force:1});}return true;}
   return false;
 }

@@ -8,13 +8,14 @@ const CAROUSEL_FLOORS=[1,6,11];
 let carHover=-1;
 const carDue=f=>CAROUSEL_FLOORS.includes(f)&&!(run.carDone||[]).includes(f);
 function genCarousel(f){
-  const n=8,opts=[],used=new Set();
-  const odds=f===1?LVODDS[2]:LVODDS[run.level];
+  const n=8,opts=[],used=new Set(),F=effFloor(f),open=F===1;
+  const odds=open?LVODDS[2]:LVODDS[run.level];
   for(let i=0;i<n;i++){let root=null;
-    for(let k=0;k<12&&!root;k++){const c=f===1?1:Math.max(f>=11?2:1,rollCostFor(odds));const pool=MODE.byCost[c-1].filter(r=>!used.has(r));if(pool.length)root=pick(pool);}
+    for(let k=0;k<12&&!root;k++){const c=open?1:Math.max(F>=11?2:1,rollCostFor(odds));const pool=MODE.byCost[c-1].filter(r=>!used.has(r));if(pool.length)root=pick(pool);}
     if(!root)root=pick(MODE.byCost[0]);used.add(root);
-    const item=f>=11&&i%3===0?{k:randCraft(),mut:[]}:mkComp(randComp(),[]);
-    const u=mkEnemy(root,f>=11&&Math.random()<.35?2:1);u.items=[item];
+    // later acts: more finished items and more 2-star Pokémon on the carousel
+    const item=F>=11&&i%(F>=30?2:3)===0?{k:randCraft(),mut:[]}:mkComp(randComp(),[]);
+    const u=mkEnemy(root,F>=11&&Math.random()<(F>=30?.6:F>=16?.45:.35)?2:1);u.items=[item];
     opts.push({u,item,ph:i/n*Math.PI*2});}
   return{f,opts,t:0,picked:-1};
 }
@@ -23,7 +24,7 @@ function startCarousel(){
   if(SIM.on){carTake(Math.floor(Math.random()*run.car.opts.length));return;}
   mode='carousel';showGameUI(true);hideTip();
   preload(run.car.opts.map(o=>o.u.dex)).then(()=>{});
-  renderUI();banner(f===1?'Opening carousel':'Carousel','Pick a Pokémon — it brings its item',2200);
+  renderUI();banner(effFloor(f)===1?'Opening carousel':'Carousel','Pick a Pokémon — it brings its item',2200);
 }
 function carPos(o,t){const a=o.ph+t*.32,cx=320,cy=136;return{x:cx+Math.cos(a)*92,y:cy+Math.sin(a)*58,a};}
 function carouselSprites(list,t){if(mode!=='carousel'||!run.car)return;const C=run.car;C.t=t;

@@ -45,7 +45,7 @@ function nodeName(f){
   const n=run.nodes&&run.nodes[f];if(!n)return null;
   const big=enemyPreview.find(e=>e.u.alpha||e.u.tgt);
   if(n.rocket)return'Team Rocket';
-  if(n.k==='challenge')return`${TRAINERS[(f*7+run.strat.id.length)%TRAINERS.length]} (Challenge)`;
+  if(n.k==='challenge')return`${trainerTitle(f)} (Challenge)`;
   if(n.k==='alpha')return big?`Alpha ${D[big.u.dex].n}`:'Alpha Pokémon';
   if(n.k==='endurance')return'Endurance: survive the waves';
   if(n.k==='timeattack')return big?`Time Attack: defeat ${D[big.u.dex].n}`:'Time Attack';
@@ -60,10 +60,10 @@ function nodeModHtml(){
 }
 
 /* ---------- big enemies (Alpha / Time Attack target) ---------- */
-function bigEnemy(f){const pool=[...MODE.byCost[2],...MODE.byCost[3]];const root=pick(pool);const u=mkUnit(root,2);u.dex=finalOf(root);return u;}
+function bigEnemy(f){const pool=[...MODE.byCost[2],...MODE.byCost[3]],tp=[...MODE.byCostAll[2],...MODE.byCostAll[3]].filter(r=>SM[finalOf(r)]&&inTheme(r));const root=pick(tp.length&&Math.random()<.7?tp:pool);const u=mkUnit(root,actOf()>=2?3:2);u.dex=finalOf(root);return u;}
 function bigify(c){
   if(c.u.alpha){c.hp*=2.8;c.maxHp=c.hp;c.atk*=1.3;c.spa*=1.3;c.def+=10;c.res+=10;c.shield=c.maxHp*(c.fx.shieldP||0);c.scaleMul=1.4;c.alpha=1;}
-  if(c.u.tgt){c.hp*=2.4+run.floor*.05;c.maxHp=c.hp;c.atk*=.55;c.spa*=.55;c.shield=0;c.scaleMul=1.4;c.isTgt=1;}
+  if(c.u.tgt){c.hp*=2.4+effFloor(run.floor)*.05;c.maxHp=c.hp;c.atk*=.55;c.spa*=.55;c.shield=0;c.scaleMul=1.4;c.isTgt=1;}
   return c;
 }
 
@@ -77,9 +77,9 @@ function spawnWave(){
   if(mode!=='combat'||!battle||battle.node!=='endurance')return;
   battle.wave++;const f=run.floor,w=battle.wave;
   const n=Math.min(2+Math.ceil(w/2),5),room=Math.max(0,9-alive(1).length);
-  const o=LVODDS[ELEVEL(f)],mult=(1.02+(f-4)*.03)*(1+w*.1)*(hasRelic('town-map')?.9:1);
+  const F=effFloor(f),o=LVODDS[enemyLv(F)],mult=(1.02+(Math.min(F,60)-4)*.03)*(1+w*.1)*endlessMul()*(hasRelic('town-map')?.9:1);
   for(let i=0;i<Math.min(n,room);i++){
-    const root=pick(MODE.byCost[rollCostFor(o)-1]);const u=mkEnemy(root,Math.random()<clamp((f-4)*.05+w*.05,0,.6)?2:1);
+    const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkEnemy(root,x<clamp((F-15)*.04,0,.5)?3:x<clamp((F-4)*.05+w*.05,0,.85)?2:1);
     const pos=freeHex([0,1,2]);if(!pos)break;
     const c=makeCombatant(u,1,pos.c,pos.r,battle.etr||{},mult);c.cd=.6;units.push(c);
     if(!SIM.on){ensure(u.dex);burst(c.x,c.y-10,'#ffb35c',14,1);}
@@ -147,7 +147,7 @@ function startNode(){
   else if(k==='shop'){if(!run.ks)run.ks=genKShop();if(SIM.on){run.ks=null;return finishNode();}showKecleon();}
 }
 function finishNode(){run.ev=null;run.ks=null;run.results[run.floor]=run.results[run.floor]||'event';hideTip();
-  if(run.floor>=FLOORS)return SIM.on?(mode='over'):showEnd(true);return afterFloor();}
+  if(run.floor>=FLOORS)return guardianDone(true);return afterFloor();}
 // an event turning into a battle on the same floor
 function nodeToBattle(node){run.nodes[run.floor]=node;run.ev=null;ov.innerHTML='';setupCombatFloor(true);}
 

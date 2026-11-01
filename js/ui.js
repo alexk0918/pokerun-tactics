@@ -30,7 +30,7 @@ $('gimbtn').onclick=()=>openPause();
 /* ---------- pause menu ---------- */
 function openPause(){if(!run||evoOpen)return;if(ov.innerHTML.trim())return toast('Finish this choice first.');
   paused=true;hideTip();drag=null;$('pause').hidden=false;
-  $('psub').textContent=`${MODE.gen?MODE.label+' · '+MODE.region:'National Dex'} · Floor ${run.floor} / ${FLOORS}`;
+  $('psub').textContent=`${MODE.gen?MODE.label+' · '+MODE.region:'National Dex'} · ${actLabel()} · Floor ${run.floor} / ${FLOORS}`;
   renderUI();$('p-resume').focus();}
 function closePause(){paused=false;const p=$('pause');if(p)p.hidden=true;}
 $('menubtn').onclick=()=>{if(paused)closePause();else openPause();};

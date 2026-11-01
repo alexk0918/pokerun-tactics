@@ -12,9 +12,22 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 ## How a run works
 
 - Pick a region, then a team strategy (Ember Gambit, Tidal Fortress or Verdant Investment).
-- Act I has 15 floors: wild Pokémon on floors 1–2, rivals on floors 5 and 10, a legendary boss on floor 15, and a route choice for every other floor (see below).
+- A run has three acts of 15 floors each: wild Pokémon on floors 1–2, rivals on floors 5 and 10, a legendary guardian on floor 15, and a route choice for every other floor (see below). Your team, gold, items, relics and augments carry over between acts.
+
+### Acts and Endless mode
+
+| Act | Scenery | Enemy theme | Guardian |
+|---|---|---|---|
+| I · Verdant Clearing | Forest | Grass, Bug, Normal, Flying | Guardian of the Grove |
+| II · Ember Canyon | Red-rock canyon | Fire, Ground, Rock, Fighting | Guardian of the Canyon |
+| III · Tidepool Grotto | Sea cave | Water, Ice, Dark, Ghost | Guardian of the Grotto |
+
+- About 70% of enemy Pokémon come from the act's theme types (drawn from every line in the mode, not just your shop pool), and trainers are themed too (Hikers and Firebreathers in the canyon, Swimmers and Hex Maniacs in the grotto). The guardian is a legendary of the act's theme when the mode has one, and never one you've already beaten.
+- Each act hits harder: more enemies per team, more 2★ and 3★ Pokémon, more items, enemies rolling up to ₽5 shops, and tougher guardians.
+- Beating a guardian clears the act: your trainer heals to full HP, you can take a relic, and the next act starts with its own carousel. Each act also lets you switch your generation gimmick on floor 4 (or keep the one you have).
+- Beat Act III's guardian to become Champion, then choose **Enter Endless mode** to keep going. Endless builds new acts forever (Thunder Plains, Haunted Ruins, Sky Pillar, Frozen Peak, Toxic Marsh, then around again), each one +12% stronger than the last on top of the floor curve, with a themed guardian at the end of each.
 - Floor 1 opens with a carousel: eight ₽1 Pokémon walk a ring, each holding an item component. Pick one and it joins your bench while its item goes to your bag. Floors 6 and 11 bring more carousels with Pokémon your trainer level can roll, and the floor-11 carousel carries some finished items.
-- On floor 2 you pick an augment. The tier rolls Silver (25%), Gold (50%) or Prismatic (25%).
+- Augments come on floors 2 and 10 of Acts I and II, and floor 2 of every later act (see Augments).
 - The shop sells the first stage of each evolution line, priced ₽1–₽5 (₽5 is legendaries and mythicals). Three copies combine into the next star level and evolve; branching lines let you choose the evolution. National Dex runs draw a 100-line pool from all 541 so copies are findable.
 
 ### Routes
@@ -280,9 +293,23 @@ Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type
 | Galar (Power Spot) | HP and damage; at 4, the bulkiest grows giant for 8s |
 | Paldea (Terastal Treasure) | Crit, Terastallize after the first move; at 4, +₽1 per win |
 
+### Augments
+
+You pick one of three augments on floors 2 and 10 of Acts I and II and on floor 2 of every later act (5 in a full run, plus one per endless act). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first.
+
+There are 51 hand-made augments plus Heart / Crest / Crown augments for every type and class:
+
+- **Combat:** Tailwind, Oran Rations, Iron Defense, Focus Energy, Quick Start, Leftovers, Thick Fat, Intimidate (Silver); Endure, Swords Dance, Sitrus Stash, Drain Punch, Spellslinger, Thrill of the Hunt, Scary Face (Gold); Champion's Belt, Second Wind, Hyperdrive (Prismatic).
+- **Team building:** Front Line, Back Line (Silver); Daycare Egg, Big Game, Little Buddies, Training Grounds (Gold); Trainer's Resolve, Ace Trainer, Legendary Encounter, Harmony (Prismatic).
+- **Economy:** Berry Basket, Candy Jar, Bargain Bin (Silver); Rich Get Richer, Study Hall (Gold); Pay Day, Rare Candy Mountain, Golden Ticket (Prismatic).
+- **Items:** Component Pack, Pickup (Silver); Item Grab Bag, Cybernetic Implants (Gold); Item Rain (Prismatic).
+- **Status:** Static, Poison Point, Flame Body (Silver); Hex Maniac, Outbreak (Gold); Plague Doctor (Prismatic).
+- **Weather (Gold):** Drought, Drizzle, Sand Stream and Snow Warning start every battle in that weather and buff the matching types.
+- **Sets:** a *Heart* (Silver) counts as one extra of that type or class, a *Crest* (Gold) adds one and gives you a ₽2–3 Pokémon of it, and a *Crown* (Prismatic) adds two and gives you a 2★ ₽3–4 Pokémon. One of the three cards is often a set augment for a set you already play.
+
 ### Scouting
 
-Once you've invested in a set (3+ different lines and ₽8+ worth of units, from floor 4), shop slots have a chance to show Pokémon from your two most-invested sets. The chance grows with investment and with every shop that misses. Scouted cards are tagged in the shop. While fewer than a third of your lines (or fewer than 2) are Vanguard or Juggernaut, scouted slots strongly favour tanks from your sets, and lines in both of your top sets are favoured too. The National Dex pool is about seven times bigger than a single generation's, so there scouting starts on floor 2 at 2 lines and ₽5, with a higher base chance (30%, up to 65%).
+Once you've invested in a set (3+ different lines and ₽6+ worth of units, from floor 3), shop slots have a chance to show Pokémon from your two most-invested sets. The chance grows with investment and with every shop that misses. Scouted cards are tagged in the shop. Each shop that misses adds 12% (15% in National Dex), so a dry streak ends quickly. Lines that are in both of your top sets are favoured. The National Dex pool is about seven times bigger than a single generation's, so there scouting starts on floor 2 at 2 lines and ₽5.
 
 ### Kits: real moves and abilities
 
@@ -303,7 +330,7 @@ Form-change Pokémon transform the way they do in the games:
 
 ### Generation gimmicks
 
-On floor 4 of each act you choose one key item. The others become available in later acts.
+On floor 4 of each act you choose one key item. In later acts you can switch to one you haven't used, or keep your current one.
 
 - **Mega Bracelet (Gen VI):** Mega Stones drop only for Pokémon you own (96 Megas, including Legends: Z-A). There's no cap: every Pokémon holding its stone Mega Evolves the moment the stone is dropped on it, and starts each battle in Mega form with its real Mega stats and ability. Toggle any Mega off or on from its unit menu.
 - **Z-Power Ring (Gen VII):** Z-Crystals let a Pokémon with a matching move type turn its first move each battle into a Z-Move.
@@ -369,7 +396,8 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 
 ```
 index.html          markup and styles
-js/data.js          balance tables: items, relics, augments, levels
+js/data.js          balance tables: items, relics, acts, levels
+js/augments.js      augments, set augments and the augment screen
 js/sets.js          sets, ability passives, kit tuning
 js/game.js          game logic
 js/forms.js         form changes and generation gimmicks

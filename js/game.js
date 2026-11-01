@@ -194,11 +194,11 @@ function vnoise(x,y,sc,s){const X=Math.floor(x/sc),Y=Math.floor(y/sc),fx=x/sc-X,
   const a=hash(X,Y,s),b=hash(X+1,Y,s),c=hash(X,Y+1,s),d=hash(X+1,Y+1,s);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
 const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
 const BGM={x:400,y:280};// forest margin drawn around the arena so panning never shows the void
-function renderForest(){
-  const MX=BGM.x,MY=BGM.y,TW=W+2*MX,TH=H+2*MY;
+function renderForest(bg){
+  const P=BGPAL[bg]||BGPAL.forest,MX=BGM.x,MY=BGM.y,TW=W+2*MX,TH=H+2*MY;
   const c=document.createElement('canvas');c.width=TW;c.height=TH;const g=c.getContext('2d');
   const img=g.createImageData(TW,TH),Dd=img.data;
-  const inner=['#6aa646','#78b44f','#86c25a','#94cc66'].map(hex2rgb),outer=['#2f6630','#3a7434','#44803a','#4f8e3e'].map(hex2rgb),dirt=['#9a7d4c','#a98a56','#b89a62'].map(hex2rgb);
+  const inner=P.inner.map(hex2rgb),outer=P.outer.map(hex2rgb),dirt=P.dirt.map(hex2rgb);
   const CX=320,CY=150,RX=250,RY=150;
   for(let Y=0;Y<TH;Y++)for(let X=0;X<TW;X++){const x=X-MX,y=Y-MY;
     const d=Math.hypot((x-CX)/RX,(y-CY)/RY)+(vnoise(x,y,22,3)-.5)*.22;
@@ -210,8 +210,8 @@ function renderForest(){
   }
   g.putImageData(img,0,0);g.translate(MX,MY);
   const px=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w,h);};
-  for(let i=0;i<520;i++){const x=rnd(0,W),y=rnd(0,H);const d=Math.hypot((x-CX)/RX,(y-CY)/RY);if(d>1.02)continue;const dark=d<.9?'#5b9a3f':'#3a7434';px(x,y,1,2,dark);px(x+2,y-1,1,3,dark);px(x+4,y,1,2,dark);}
-  for(let i=0;i<120;i++){const x=rnd(0,W),y=rnd(0,H);const d=Math.hypot((x-CX)/RX,(y-CY)/RY);if(d>.98||d<.6)continue;const col=pick(['#f4f0e6','#ffd84a','#ff7a8a','#b7a2ff']);px(x-1,y,3,1,col);px(x,y-1,1,3,col);px(x,y,1,1,'#ffe9a8');}
+  for(let i=0;i<520;i++){const x=rnd(0,W),y=rnd(0,H);const d=Math.hypot((x-CX)/RX,(y-CY)/RY);if(d>1.02)continue;const dark=d<.9?P.tuft[0]:P.tuft[1];px(x,y,1,2,dark);px(x+2,y-1,1,3,dark);px(x+4,y,1,2,dark);}
+  for(let i=0;i<120;i++){const x=rnd(0,W),y=rnd(0,H);const d=Math.hypot((x-CX)/RX,(y-CY)/RY);if(d>.98||d<.6)continue;const col=pick(P.flow);px(x-1,y,3,1,col);px(x,y-1,1,3,col);px(x,y,1,1,'#ffe9a8');}
   for(let i=0;i<14;i++){const a=rnd(0,Math.PI*2),d=rnd(.82,.96);const x=CX+Math.cos(a)*RX*d,y=CY+Math.sin(a)*RY*d;g.fillStyle='#00000030';g.beginPath();g.ellipse(x+1,y+3,6,2.5,0,0,7);g.fill();
     const s=rnd(3,6);px(x-s,y-s+2,s*2,s,'#8a9196');px(x-s+1,y-s+1,s*2-2,1,'#b5bcbf');px(x-s+1,y+1,s*2-2,1,'#5d6468');}
   for(let r=0;r<ROWS;r++)for(let col=0;col<COLS;col++){const p=hexXY(col,r);hexPath(g,p.x,p.y,R-1.2,SQ);g.fillStyle=r>=4?'rgba(255,255,230,.16)':'rgba(255,255,255,.08)';g.fill();
@@ -224,12 +224,13 @@ function renderForest(){
   for(let i=0;i<46;i++){const a=rnd(0,Math.PI*2),d=rnd(.97,1.06);trees.push({x:CX+Math.cos(a)*RX*d,y:CY+Math.sin(a)*RY*d,s:rnd(6,9),bush:1});}
   trees.sort((a,b)=>a.y-b.y);
   const circ=(cx,cy,r,col)=>{g.fillStyle=col;for(let dy=-r;dy<=r;dy++){const w=Math.floor(Math.sqrt(r*r-dy*dy));g.fillRect(Math.round(cx-w),Math.round(cy+dy),2*w+1,1);}};
-  for(const t of trees){const{x,y,s}=t;g.fillStyle='rgba(10,30,10,.35)';g.beginPath();g.ellipse(x+3,y+1,s*.95,s*.38,0,0,7);g.fill();let cy=y-s*.55;
-    if(!t.bush){px(x-2,y-9,5,10,'#5a3b24');px(x+1,y-9,2,10,'#3d2716');cy=y-9-s*.6;}
-    circ(x,cy,s,'#1d4527');for(let k=0;k<5;k++){const a=k/5*Math.PI*2+hash(x|0,y|0,k);circ(x+Math.cos(a)*s*.62,cy+Math.sin(a)*s*.5,Math.round(s*.45),'#1d4527');}
-    circ(x-s*.12,cy-s*.12,Math.round(s*.82),'#2c6435');circ(x-s*.28,cy-s*.3,Math.round(s*.55),'#3d7f3d');circ(x-s*.4,cy-s*.45,Math.round(s*.26),'#58a04a');
-    for(let k=0;k<6;k++)px(x+rnd(-s*.6,s*.3),cy+rnd(-s*.7,0),1,1,'#7cc25e');}
-  const vg=g.createRadialGradient(CX,CY-10,80,CX,CY,380);vg.addColorStop(0,'rgba(255,240,180,.10)');vg.addColorStop(.55,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,20,10,.55)');g.fillStyle=vg;g.fillRect(-MX,-MY,TW,TH);
+  const C=P.can;
+  for(const t of trees){const{x,y,s}=t;g.fillStyle='rgba(10,20,10,.35)';g.beginPath();g.ellipse(x+3,y+1,s*.95,s*.38,0,0,7);g.fill();let cy=y-s*.55;
+    if(!t.bush&&P.trunk){px(x-2,y-9,5,10,P.trunk[0]);px(x+1,y-9,2,10,P.trunk[1]);cy=y-9-s*.6;}else if(!t.bush)cy=y-s*.7;
+    circ(x,cy,s,C[0]);for(let k=0;k<5;k++){const a=k/5*Math.PI*2+hash(x|0,y|0,k);circ(x+Math.cos(a)*s*.62,cy+Math.sin(a)*s*.5,Math.round(s*.45),C[0]);}
+    circ(x-s*.12,cy-s*.12,Math.round(s*.82),C[1]);circ(x-s*.28,cy-s*.3,Math.round(s*.55),C[2]);circ(x-s*.4,cy-s*.45,Math.round(s*.26),C[3]);
+    for(let k=0;k<6;k++)px(x+rnd(-s*.6,s*.3),cy+rnd(-s*.7,0),1,1,C[4]);}
+  const vg=g.createRadialGradient(CX,CY-10,80,CX,CY,380);vg.addColorStop(0,P.glow);vg.addColorStop(.55,'rgba(0,0,0,0)');vg.addColorStop(1,P.edge);g.fillStyle=vg;g.fillRect(-MX,-MY,TW,TH);
   return c;
 }
 
@@ -274,16 +275,30 @@ function samplePool(keep=[]){if(MODE.gen)return;MODE.byCost=MODE.byCostAll.map((
 function newRun(strat,keep=[]){
   samplePool(keep);
   const tidal=strat.id==='tidal';
-  run={strat,hp:tidal?125:100,maxHp:tidal?125:100,gold:5,level:2,xp:0,floor:1,streak:0,aug:null,augTier:null,
-    board:{},bench:Array(BENCH_N).fill(null),shop:[],results:[],wins:0,boss:pickBoss(),featured:featured(strat),
+  run={strat,hp:tidal?125:100,maxHp:tidal?125:100,gold:5,level:2,xp:0,floor:1,streak:0,augs:[],augsAt:[],
+    act:0,bossHist:[],board:{},bench:Array(BENCH_N).fill(null),shop:[],results:[],wins:0,boss:null,featured:featured(strat),
     bag:[],relics:[],freeRerolls:0,lastIncome:null,stats:{dmg:{}}};
-  planAct();
+  run.boss=pickBoss();planAct();
 }
+/* ---------- acts ---------- */
+const actOf=()=>(run&&run.act)||0;
+function actDef(a=actOf()){return a<ACTS.length?ACTS[a]:ENDLESS_ACTS[(a-ACTS.length)%ENDLESS_ACTS.length];}
+const actLabel=(a=actOf())=>a<ACTS.length?`Act ${ROMAN[a]}`:`Endless ${a-ACTS.length+1}`;
+const effFloor=f=>f+FLOORS*actOf();
+// past Act III every endless act adds another +12% enemy power on top of the floor curve
+const endlessMul=()=>Math.pow(1.12,Math.max(0,actOf()-(ACTS.length-1)));
+// trainer level the enemies roll their shop at: climbs to 10 through Acts II and III
+const enemyLv=F=>F<=FLOORS?ELEVEL(F):clamp(Math.round(8+(F-FLOORS)/7),8,10);
+const inTheme=r=>{const T=actDef().types;return lineSets(r).some(k=>T.includes(k));};
+// 70% of enemy picks come from the act's theme types (from every line in the mode, not just your shop pool)
+function themedRoot(cost){const all=MODE.byCostAll[cost-1].filter(r=>SM[r]&&inTheme(r));if(all.length&&Math.random()<.7)return pick(all);return pick(MODE.byCost[cost-1].length?MODE.byCost[cost-1]:MODE.byCostAll[cost-1]);}
+function trainerTitle(f){const T=actDef().tr,a=actOf();return`${T[(f*7+run.strat.id.length+a*3)%T.length]} ${TRNAMES[(f*11+a*5)%TRNAMES.length]}`;}
 const hasRelic=id=>run&&run.relics.includes(id);
-const augIs=id=>run&&run.aug&&run.aug.id===id;
 function pickBoss(){
-  const legs=MODE.byCost[4].filter(r=>SM[finalOf(r)]);
-  const r=legs.length?pick(legs):MODE.byCost.slice().reverse().find(l=>l.length)[0];
+  // the guardian is a legendary of the act's theme when the mode has one, never one you've already faced
+  const seen=new Set((run&&run.bossHist)||[]),all=MODE.byCostAll[4].filter(r=>SM[finalOf(r)]),fresh=all.filter(r=>!seen.has(r));
+  const themed=fresh.filter(inTheme),legs=themed.length?themed:fresh.length?fresh:all;
+  const r=legs.length?pick(legs):MODE.byCostAll.slice().reverse().find(l=>l.length)[0];if(run)(run.bossHist=run.bossHist||[]).push(r);
   let d=finalOf(r);for(let i=0;i<5&&!SM[d];i++)d=finalOf(r);
   return{root:r,dex:d};
 }
@@ -306,6 +321,7 @@ function unitSets(u){const s=setsOf(shownDex(u),u.root);for(const it of u.items|
 function countTraits(list){const seen=new Set(),ct={};
   for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of unitSets(u))ct[k]=(ct[k]||0)+1;
     if(run&&run.gimmick==='tera'&&u.shard&&u.uid===run.gimTarget)ct[u.shard]=(ct[u.shard]||0)+1;}
+  if(run&&list.length&&list.some(u=>u&&u.uid!==undefined&&allOwned().includes(u)))augSetBonus(ct);
   return ct;}
 const traitDef=k=>SETS[k];
 // TFT-style set text: the current tier's value is highlighted, other tiers and locked "At N" bonuses are greyed out
@@ -322,15 +338,12 @@ function setColor(k){const S=SETS[k];if(!S)return'#55606a';if(S.cat==='type')ret
 /* ---------- scouting (shop pity) ----------
    Once you've put real investment into a set, shop slots can be steered toward it.
    Unlocks from floor 4 for any set with 3+ different lines and ₽8+ of units. */
-const SCOUT={minFloor:4,minLines:3,minGold:8,base:.15,perGold:.02,perMiss:.07,cap:.55};
+const SCOUT={minFloor:3,minLines:3,minGold:6,base:.15,perGold:.02,perMiss:.12,cap:.6};
 // the National Dex pool is ~7x bigger than one generation's, so scouting starts sooner and stronger there
-const SCOUT_BIG={minFloor:2,minLines:2,minGold:5,base:.3,perGold:.025,perMiss:.08,cap:.65};
+const SCOUT_BIG={minFloor:2,minLines:2,minGold:5,base:.25,perGold:.02,perMiss:.15,cap:.65};
 function scoutCfg(){return MODE&&MODE.roots.length>200?SCOUT_BIG:SCOUT;}
-const FRONT=['Vanguard','Juggernaut'];
-// your team needs a frontliner when fewer than a third of your lines (and fewer than 2) can tank
-function needsFront(){const roots=new Set(allOwned().map(u=>u.root));let f=0;for(const r of roots)if(MODE.lines[r]&&lineSets(r).some(k=>FRONT.includes(k)))f++;return f<2||f<roots.size/3;}
-// weighted pick for scouted slots: tanks are favoured while the team lacks a frontline, lines in both focus sets are favoured too
-function scoutPick(cand,focus){const nf=needsFront();const w=cand.map(r=>{const ls=lineSets(r);let x=1;if(nf&&ls.some(k=>FRONT.includes(k)))x*=4;if(focus.length>1&&focus.every(k=>ls.includes(k)))x*=2;return x;});
+// weighted pick for scouted slots: lines in both focus sets are favoured
+function scoutPick(cand,focus){const w=cand.map(r=>{const ls=lineSets(r);let x=1;if(focus.length>1&&focus.every(k=>ls.includes(k)))x*=2;return x;});
   let t=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<cand.length;i++){t-=w[i];if(t<=0)return cand[i];}return cand[cand.length-1];}
 function investment(){const inv={},lines={};
   for(const u of allOwned()){const w=lineOf(u).cost*Math.pow(3,u.star-1);for(const k of setsOf(u.dex,u.root)){inv[k]=(inv[k]||0)+w;(lines[k]=lines[k]||new Set()).add(u.root);}}
@@ -343,11 +356,11 @@ function scoutState(){
 }
 
 /* ---------- economy ---------- */
-function interestOf(){const per=run.strat.id==='verdant'?8:10,cap=(run.strat.id==='verdant'?7:5)+(hasRelic('coin-case')?3:0);return Math.min(cap,Math.floor(run.gold/per));}
+function interestOf(){const per=run.strat.id==='verdant'?8:10,cap=(run.strat.id==='verdant'?7:5)+(hasRelic('coin-case')?3:0)+augInterestCap();return Math.min(cap,Math.floor(run.gold/per));}
 function streakGold(){const s=Math.abs(run.streak);let g=s>=5?3:s>=4?2:s>=2?1:0;if(run.strat.id==='ember'&&run.streak>0)g*=2;return g;}
 function incomePreview(){return{base:5,interest:interestOf(),streak:streakGold(),extra:augIs('payday')?3:0};}
 function gainXP(n){if(run.level>=MAXLV)return;run.xp+=n;while(run.level<MAXLV&&run.xp>=XPNEXT[run.level]){run.xp-=XPNEXT[run.level];run.level++;if(!SIM.on)toast(`Trainer level ${run.level}! You can field ${teamCap()} Pokémon.`);}if(run.level>=MAXLV)run.xp=0;}
-function buyXP(){if(mode!=='plan'||run.gold<4||run.level>=MAXLV)return false;run.gold-=4;gainXP(4);renderUI();return true;}
+function buyXP(){if(mode!=='plan'||run.gold<4||run.level>=MAXLV)return false;run.gold-=4;gainXP(xpBuyAmount());renderUI();return true;}
 
 /* ---------- shop ---------- */
 // highest cost a trainer level can roll (₽1 at level 2, ₽3 at 4, ₽4 at 5, ₽5 at 7)
@@ -368,7 +381,7 @@ function rollShop(first){
   if(sc.focus.length)run.pity=hit?0:(run.pity||0)+1;
   if(!SIM.on)preload(run.shop,2000);
 }
-function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{if(run.gold<2)return false;run.gold-=2;}rollShop(false);renderUI();return true;}
+function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{const c=rerollCost();if(run.gold<c)return false;run.gold-=c;}rollShop(false);renderUI();return true;}
 function buy(i){
   const root=run.shop[i];if(!root||mode!=='plan')return false;const L=MODE.lines[root];
   if(run.gold<L.cost){toast(`Not enough Pokédollars for ${D[root].n}.`);return false;}
@@ -442,20 +455,22 @@ function craftInBag(i,j){const a=run.bag[i],b=run.bag[j];if(a&&b&&i!==j&&(isEnh(
 /* ---------- enemies ---------- */
 function buildEnemy(f){
   const kind=floorKind(f),nk=nodeK(f),hard=nk==='challenge',big=nk==='alpha'||nk==='timeattack',nd=(run.nodes&&run.nodes[f])||{},list=[];
-  if(kind==='wild'){
-    const n=[2,2,3][f-1]+(hard?1:0);const pool=[...MODE.byCost[0],...MODE.byCost[1]].filter(r=>SM[r]);
-    for(let i=0;i<n;i++)list.push({u:mkEnemy(pick(pool),1),mult:(.5+f*.07)*(hard?1.15:1)});
+  const A=actOf(),F=effFloor(f),em=endlessMul();
+  if(kind==='wild'&&!A){
+    const n=[2,2,3][f-1]+(hard?1:0);const pool=[...MODE.byCost[0],...MODE.byCost[1]].filter(r=>SM[r]),tp=[...MODE.byCostAll[0],...MODE.byCostAll[1]].filter(r=>SM[r]&&inTheme(r));
+    for(let i=0;i<n;i++)list.push({u:mkEnemy(pick(tp.length&&Math.random()<.7?tp:pool),1),mult:(.5+f*.07)*(hard?1.15:1)});
   }else{
-    let n=ECOUNT[f]+(hard?1:0);if(big)n=Math.max(2,n-3);if(nk==='endurance')n=Math.max(2,n-2);
-    const p2=clamp((f-3)*.065+(kind==='elite'?.12:0)+(hard?.15:0),0,.8),p3=clamp((f-12)*.05,0,.2);
-    const mult=(1.14+(f-4)*.03+(kind==='elite'?.06:0)+(hard?.08:0))*(nk==='endurance'?.92:1)*(hasRelic('town-map')?.9:1);
+    // later acts: wild floors are packs of themed wild Pokémon; trainers field more Pokémon, more stars and more items
+    let n=(kind==='wild'?2+f+A:ECOUNT[f]+Math.min(3,A))+(hard?1:0);if(big)n=Math.max(2,n-3);if(nk==='endurance')n=Math.max(2,n-2);n=Math.min(10,n);
+    const p2=clamp((F-3)*.065+(kind==='elite'?.12:0)+(hard?.15:0),0,.85),p3=clamp((F-12)*.022,0,.55);
+    const mult=(1.14+(Math.min(F,60)-4)*.03+(kind==='elite'?.06:0)+(hard?.08:0))*em*(ACTSCALE[Math.min(A,ACTSCALE.length-1)])*(nk==='endurance'?.92:1)*(hasRelic('town-map')?.9:1);
     if(big){let a;if(nd.force&&lineRootOf(nd.force)){a=mkUnit(lineRootOf(nd.force),2);a.dex=nd.force;}else a=bigEnemy(f);
       a[nk==='alpha'?'alpha':'tgt']=1;if(nk==='alpha')a.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:a,mult,big:1});}
-    if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:b,mult:hasRelic('town-map')?.9:1,boss:1});}
-    const o=LVODDS[ELEVEL(f)];
-    for(let i=0;i<n;i++){const root=pick(MODE.byCost[rollCostFor(o)-1]);const x=Math.random();const u=mkEnemy(root,x<p3?3:x<p3+p2?2:1);
-      const pi=clamp((f-4)*.06+(kind==='elite'?.12:0),0,.7);if(Math.random()<pi)u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((f-11)*.1,0,.4))u.items.push({k:randCraft(),mut:[]});
-      if(f>=6&&Math.random()<(hard?.3:.07)+(f>=10?.05:0))u.mut=Math.random()<.5?'shadow':pick(Object.keys(MUTS));
+    if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=Array.from({length:Math.min(3,2+A)},()=>({k:randCraft(),mut:[]}));list.push({u:b,mult:(hasRelic('town-map')?.9:1)*BOSSCALE[Math.min(A,BOSSCALE.length-1)]*em,boss:1});}
+    const o=LVODDS[enemyLv(F)];
+    for(let i=0;i<n;i++){const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkEnemy(root,x<p3?3:x<p3+p2?2:1);
+      const pi=clamp((F-4)*.06+(kind==='elite'?.12:0),0,.85);if(Math.random()<pi)u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((F-11)*.1,0,.6))u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((F-28)*.06,0,.5))u.items.push({k:randCraft(),mut:[]});
+      if(F>=6&&Math.random()<(hard?.3:.07)+(F>=10?.05:0)+A*.05)u.mut=Math.random()<.5?'shadow':pick(Object.keys(MUTS));
       list.push({u,mult:nk==='timeattack'?mult*.75:mult});}
   }
   const taken=new Set();
@@ -463,15 +478,16 @@ function buildEnemy(f){
     for(let r=0;r<4;r++)for(let c=0;c<COLS;c++)if(!taken.has(c+','+r)){taken.add(c+','+r);return{c,r};}};
   return list.map(e=>{const pos=e.boss||e.big?(taken.add('3,1'),{c:3,r:1}):place(unitStats(e.u.dex,1,1).range>1?[0,1]:[3,2,3]);return{...e,...pos};});
 }
-function trainerName(f){const nn=nodeName(f);if(nn)return nn;const k=floorKind(f);if(k==='wild')return'Wild Pokémon';if(k==='boss')return`${D[run.boss.dex].n}, Guardian of the Grove`;if(k==='elite')return RIVALS[f===5?0:1];return TRAINERS[(f*7+run.strat.id.length)%TRAINERS.length];}
+function trainerName(f){const nn=nodeName(f);if(nn)return nn;const k=floorKind(f);if(k==='wild')return'Wild Pokémon';if(k==='boss')return`${D[run.boss.dex].n}, ${actDef().guard}`;if(k==='elite')return RIVALS[f===5?0:1];return trainerTitle(f);}
 
 /* ================= Floor flow ================= */
 async function startFloor(){
   const f=run.floor;
-  if(f>1&&run.incomeFloor!==f){run.incomeFloor=f;const inc=incomePreview();const total=inc.base+inc.interest+inc.streak+inc.extra;run.gold+=total;run.lastIncome={...inc,total};
+  if((f>1||actOf())&&run.incomeFloor!==effFloor(f)){run.incomeFloor=effFloor(f);const inc=incomePreview();const total=inc.base+inc.interest+inc.streak+inc.extra;run.gold+=total;run.lastIncome={...inc,total};
     gainXP(2+(hasRelic('exp-share')?2:0));}
   if(carDue(f)){startCarousel();if(!SIM.on)return;}
   if(hasRelic('shiny-charm'))run.freeRerolls=Math.max(run.freeRerolls,1);
+  if(run.augFloor!==effFloor(f)){run.augFloor=effFloor(f);augOnFloor();}
   chest=null;
   if(NONCOMBAT.has(nodeK(f))){rollShop(false);if(!SIM.on){await preload([...allOwned().map(u=>u.dex),KECLEON]);showGameUI(true);renderUI();}return startNode();}
   return setupCombatFloor(false);
@@ -482,8 +498,8 @@ async function setupCombatFloor(fromEvent){
   if(!SIM.on)await preload([...enemyPreview.map(e=>e.u.dex),...allOwned().map(u=>u.dex),run.boss.dex]);
   mode='plan';if(SIM.on)return;
   showGameUI(true);renderUI();
-  if(f===2&&!run.aug)showAugment();
-  else if(f===GIMMICK_FLOOR&&!run.gimmick)showGimmickChoice();
+  if(augDue())showAugment();
+  else if(gimDue())showGimmickChoice();
   else{banner(`Floor ${f}`,trainerName(f),1400);if(run.lastIncome&&f>1&&!fromEvent){const i=run.lastIncome;toast(`+₽${i.total} income: ₽${i.base} base${i.interest?` + ₽${i.interest} interest`:''}${i.streak?` + ₽${i.streak} streak`:''}${i.extra?` + ₽${i.extra} Pay Day`:''}`);}}
 }
 function autoFill(){
@@ -511,7 +527,7 @@ function startCombat(){
 }
 function teamX(tr){const x={};for(const k in tr){const S=SETS[k],ti=tierOf(k,tr[k]);if(ti&&S.x)Object.assign(x,S.x[ti-1]);if(ti&&S.t)addE(x,S.t[ti-1]);}return x;}
 function startOfBattle(trs){
-  const tx=trs.map(teamX);
+  const tx=trs.map(teamX);augTeamX(tx[0]);
   // weather: your sets first, then the enemy's, then weather abilities; Cloud Nine cancels it
   let w=null;
   for(const side of[0,1])if(!w&&tx[side].weather)w={k:tx[side].weather,pow:tx[side].wPow||1,side};
@@ -570,7 +586,7 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
     if(s==='ember'&&ty.includes('Fire'))addE(E,{dmg:.15});
     if(s==='tidal'){taken*=.9;if(ty.includes('Water'))addE(E,{mana:10});}
     if(s==='verdant'&&ty.includes('Grass'))addE(E,{regen:.01});
-    if(augIs('tailwind'))addE(E,{as:.12});if(augIs('oran'))addE(E,{hpF:150});if(augIs('swords'))addE(E,{dmg:.18});if(augIs('champion'))addE(E,{dmg:.3,as:.15});if(augIs('endure'))E.focus=(E.focus||0)+1;
+    addE(E,augE(u,c,r,tr));
     if(hasRelic('soothe-bell'))addE(E,{regen:.015});if(hasRelic('rainbow-wing'))addE(E,{hpP:.12,dmg:.12});if(hasRelic('silver-wing'))addE(E,{shieldP:.15});
   }
   for(const it of u.items)if(isGear(it))addE(E,gearEffects(it,u,tr));
@@ -604,15 +620,15 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
 const alive=t=>units.filter(u=>!u.dead&&u.team===t);
 const occupied=(c,r,ex)=>units.some(u=>u!==ex&&!u.dead&&((u.c===c&&u.r===r)||(u.move&&u.move.c===c&&u.move.r===r)));
 function setAnim(u,a,loop=false){if(SIM.on)return;u.anim=a;u.animT=0;u.loop=loop;}
-let ACT=null;// unit whose action is running, for crediting heals in the meter
-function schedule(dt,fn){events.push({t:combatT+dt,fn,a:ACT});}
+let MACT=null;// unit whose action is running, for crediting heals in the meter
+function schedule(dt,fn){events.push({t:combatT+dt,fn,a:MACT});}
 const aLen=(u,a)=>SIM.on?.5:animLen(u.dex,a), hTime=(u,a)=>SIM.on?.25:hitTime(u.dex,a);
 const lowHp=(u,f)=>u.hp<u.maxHp*f;
 function effAS(u){let a=u.as*(1+(u.fx.momentum||0)*u.momN);if(u.fx.lowAS&&lowHp(u,.5))a*=1+u.fx.lowAS;if(u.slowT>0)a*=1-u.slowP;return a*statusAS(u);}
 function stepCombat(dt){
   combatT+=dt;tickZones(dt);
-  for(let i=events.length-1;i>=0;i--)if(events[i].t<=combatT){const e=events[i];events.splice(i,1);ACT=e.a||null;e.fn();ACT=null;}
-  for(const u of units){ACT=u;
+  for(let i=events.length-1;i>=0;i--)if(events[i].t<=combatT){const e=events[i];events.splice(i,1);MACT=e.a||null;e.fn();MACT=null;}
+  for(const u of units){MACT=u;
     u.animT+=dt;u.flash=Math.max(0,u.flash-dt);
     if(u.dead){u.deadT+=dt;continue;}
     if(!SIM.on&&!u.loop&&u.animT>=animLen(u.dex,u.anim)&&!u.move)setAnim(u,'Idle',true);
@@ -637,7 +653,7 @@ function stepCombat(dt){
       if(opts.length&&opts[0].d<d+.2){const h=opts[0],p=hexXY(h.c,h.r);u.move={c:h.c,r:h.r,fx:u.x,fy:u.y,tx:p.x,ty:p.y,t:0,dur:.42};u.dir=dirFrom(p.x-u.x,(p.y-u.y)/SQ);setAnim(u,'Walk',true);}
       else u.target=null;}
   }
-  ACT=null;combatEndCheck();
+  MACT=null;combatEndCheck();
 }
 const hpFrac=t=>{const l=units.filter(u=>u.team===t);return l.reduce((s,u)=>s+Math.max(0,u.hp)/u.maxHp,0)/l.length;};
 const tcol=u=>TYPES[(u.mv&&u.mv.t)||D[u.dex].t[0]]||'#fff';
@@ -784,7 +800,7 @@ function damage(src,tg,amt,o={}){
   if(!tg.dead&&!SIM.on&&!tg.move&&tg.busy<=0&&Math.random()<.3){setAnim(tg,'Hurt');tg.busy=.2;}
   return d;
 }
-function heal(u,amt,quiet){if(u.dead)return;if(u.burn)amt*=.5;if(u.griev>combatT)amt*=.67;const h=Math.max(0,Math.min(u.maxHp-u.hp,amt));u.hp+=h;if(h>0){const hr=ACT&&ACT.team===u.team&&!ACT.dead?ACT:u;hr.mHeal=(hr.mHeal||0)+h;}if(u.fx.ohShield&&amt>h)u.shield=Math.min(u.maxHp*u.fx.ohShield,u.shield+amt-h);if(!quiet&&h>1&&!SIM.on){texts.push({x:u.x,y:u.y-24,txt:'+'+Math.round(h),col:'#7dff7a',life:.9});if((u.healFxT||0)<combatT){u.healFxT=combatT+.6;pfx('Heal_Block_Sparkle',0,0,{follow:u,oy:-14,sc:.9,force:1});}}}
+function heal(u,amt,quiet){if(u.dead)return;if(u.burn)amt*=.5;if(u.griev>combatT)amt*=.67;const h=Math.max(0,Math.min(u.maxHp-u.hp,amt));u.hp+=h;if(h>0){const hr=MACT&&MACT.team===u.team&&!MACT.dead?MACT:u;hr.mHeal=(hr.mHeal||0)+h;}if(u.fx.ohShield&&amt>h)u.shield=Math.min(u.maxHp*u.fx.ohShield,u.shield+amt-h);if(!quiet&&h>1&&!SIM.on){texts.push({x:u.x,y:u.y-24,txt:'+'+Math.round(h),col:'#7dff7a',life:.9});if((u.healFxT||0)<combatT){u.healFxT=combatT+.6;pfx('Heal_Block_Sparkle',0,0,{follow:u,oy:-14,sc:.9,force:1});}}}
 function moveValue(c){
   const R5=v=>Math.round(v/5)*5,RR=v=>Math.round(v*20)/20;
   if(c.kind==='heal'&&!c.strike){const b=R5(c.base),r=RR(KIT.healRatio);return{base:b,ratio:r,stat:c.spa,statN:'Sp. Atk',total:(b+r*c.spa)*(1+c.healAmp)};}
@@ -865,12 +881,13 @@ function endCombat(win){
   }
   if(xp)gainXP(xp);
   awardSpecials();
+  const augMsgs=augAfter(win,units.filter(c=>c.team===0&&!c.summon).map(c=>c.u));
   let msg='';const RR=routeResult(win);gold+=RR.gold;
   if(win){run.wins++;run.streak=Math.max(1,run.streak+1);gold+=1;run.results[f]='win';msg=`+₽${gold}`;
     if(hasRelic('oval-charm')){const own=allOwned();if(own.length&&addCopy(pick(own).root))msg+=' · Oval Charm found a Pokémon';}}
-  else{run.streak=Math.min(-1,run.streak-1);const surv=alive(1).reduce((s,u)=>s+u.u.star,0);let dmg=3+Math.round(surv*1.5)+Math.floor(f/3)+(kind==='boss'?8:0)+(kind==='elite'?3:0);if(run.strat.id==='ember')dmg+=2;dmg=Math.round((dmg+RR.dmgAdd)*RR.dmgMul);
+  else{run.streak=Math.min(-1,run.streak-1);const surv=alive(1).reduce((s,u)=>s+u.u.star,0);let dmg=3+Math.round(surv*1.5)+Math.floor(f/3)+actOf()*2+(kind==='boss'?8:0)+(kind==='elite'?3:0);if(run.strat.id==='ember')dmg+=2;dmg=Math.round((dmg+RR.dmgAdd)*RR.dmgMul);
     run.hp=Math.max(0,run.hp-dmg);run.results[f]='loss';msg=`Trainer takes ${dmg} damage`;}
-  run.gold+=gold;
+  run.gold+=gold;if(augMsgs.length)msg+=' · '+augMsgs.join(' · ');
   if(SIM.on){afterResult(win);return;}
   banner(win?'Victory!':'Defeat',RR.label?RR.label+' · '+msg:msg,1600);
   if(grew.length)setTimeout(()=>toast(`Grew stronger: ${grew.join(', ')}`),900);
@@ -880,7 +897,7 @@ function endCombat(win){
 function afterResult(win){
   units=[];proj=[];
   if(run.hp<=0)return SIM.on?(mode='over'):showEnd(false);
-  if(run.floor>=FLOORS)return SIM.on?(mode='over'):showEnd(win);
+  if(run.floor>=FLOORS)return guardianDone(win);
   // loot: a chest after every floor, a relic after beating a rival
   const nk=nodeK(run.floor);
   run.pendingRelic=win&&(floorKind(run.floor)==='elite'||(nk==='alpha'&&Math.random()<.25));
@@ -926,7 +943,9 @@ function nextFloor(){run.floor++;chest=null;return startFloor();}
 function burst(x,y,col,n,pow){pmdBurst(x,y,col,n,pow);}
 function spark(x,y,col,n){pmdSpark(x,y,col,n);}
 function ring(x,y,col){pmdRing(x,y,col);}
-function initLeaves(){leaves=[];for(let i=0;i<22;i++)leaves.push({x:rnd(0,W),y:rnd(-H,H),vx:rnd(4,12),vy:rnd(10,22),ph:rnd(0,7),col:pick(['#9fd16a','#c7d95a','#7fbf4f','#e0c25a'])});}
+function initLeaves(bg){const L=(BGPAL[bg]||BGPAL.forest).leaf;leaves=[];for(let i=0;i<22;i++)leaves.push({x:rnd(0,W),y:rnd(-H,H),vx:rnd(4,12),vy:rnd(10,22),ph:rnd(0,7),col:pick(L)});}
+// repaint the scenery for the current act
+let BGKEY='';function setScenery(bg){bg=bg||'forest';if(bg===BGKEY&&BG)return;BGKEY=bg;BG=renderForest(bg);initLeaves(bg);}
 
 
 /* ================= Camera =================
@@ -987,7 +1006,7 @@ function update(dt){
 }
 const starScale=s=>1+(s-1)*.08;
 function draw(t){
-  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#13201a';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=(BGPAL[BGKEY]||BGPAL.forest).void;ctx.fillRect(0,0,cv.width,cv.height);
   {const z=CAM.z*2*RES,sk=cineShake(1/60);ctx.setTransform(z,0,0,z,RES*(2*(CAM.ax-CAM.cx*CAM.z)+sk.x),RES*(2*(CAM.ay-CAM.cy*CAM.z)+sk.y));}ctx.imageSmoothingEnabled=false;
   if(BG)ctx.drawImage(BG,-BGM.x,-BGM.y);else{ctx.fillStyle='#13201a';ctx.fillRect(0,0,W,H);}
   ctx.save();ctx.globalCompositeOperation='screen';
@@ -1271,14 +1290,14 @@ function renderUI(){
   $('hpnum').textContent=run.hp;const fr=run.hp/run.maxHp,hb=$('hpbar');hb.firstElementChild.style.width=(fr*100)+'%';hb.className='hpbar'+(fr<.3?' low':fr<.6?' mid':'');
   $('goldnum').textContent=run.gold;$('teamnum').innerHTML=`${Object.keys(run.board).length}<small>/${teamCap()}</small>`;
   $('lvl').textContent=run.level;$('xpbar').firstElementChild.style.width=run.level>=MAXLV?'100%':(run.xp/XPNEXT[run.level]*100)+'%';$('xpbar').title=run.level>=MAXLV?'Max level':`${run.xp}/${XPNEXT[run.level]} XP`;
-  $('floorlbl').textContent=`Floor ${f} / ${FLOORS}`;$('actname').textContent=ACTS[0].name;$('modelbl').textContent=MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex';
+  $('floorlbl').textContent=`${actLabel()} · Floor ${f} / ${FLOORS}`;$('actname').textContent=actDef().name;$('modelbl').textContent=MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex';
   let tr='';for(let i=1;i<=FLOORS;i++){const k=floorKind(i),nd=run.nodes&&run.nodes[i];let cls='node';
     if(nd){cls+=' nd'+(nd.k==='shop'?' kec':'');}else if(isRouteFloor(i)&&i>=3)cls+=' unk';else{if(k==='elite')cls+=' elite';if(k==='boss')cls+=' boss';}
-    if(i===2)cls+=' aug';
+    const augF=AUG_FLOORS(actOf()).includes(i);if(augF)cls+=' aug';
     if(run.results[i])cls+=run.results[i]==='loss'?' lost':' done';if(i===f)cls+=' cur';
     const inner=nd?`<img src="${nodeIcon(nd.k)}" alt="">`:isRouteFloor(i)&&i>=3?'?':k==='wild'?`<svg viewBox="0 0 16 16"><path d="M2.5 13.5C2.5 6.5 7 2.5 13.5 2.5c0 6.5-4 11-11 11z" fill="#5fae45" stroke="#24303d" stroke-width="1.2"/></svg>`:k==='boss'?`<img src="${por(run.boss.dex)}" alt="">`:'';
     const ttl=nd?NODES[nd.k].n:isRouteFloor(i)&&i>=3?'Choose a path':k==='wild'?'Wild Pokémon':k==='boss'?'Boss: '+esc(D[run.boss.dex].n):k==='elite'?'Rival (relic and enhancer)':'Trainer';
-    tr+=`${i>1?'<span class="link"></span>':''}<span class="${cls}" title="Floor ${i}: ${ttl}${i===2?' · Augment':''}">${inner}</span>`;}
+    tr+=`${i>1?'<span class="link"></span>':''}<span class="${cls}" title="Floor ${i}: ${ttl}${augF?' · Augment':''}">${inner}</span>`;}
   $('track').innerHTML=tr;
   const ct=countTraits(Object.values(run.board));
   const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||(ct[b]/SETS[b].bp[0])-(ct[a]/SETS[a].bp[0])||a.localeCompare(b));
@@ -1289,7 +1308,7 @@ function renderUI(){
     :`<div class="hint">Place Pokémon on the field to activate sets: types, classes, styles${MODE.gen?'':' and regions'}.</div>`;
   const s=run.strat,inc=incomePreview();
   let mh=`<div class="mod mini"><div class="k">Strategy</div><div class="v">${s.name}</div></div>`;
-  if(run.aug)mh+=`<div class="mod mini ${run.augTier}" title="${esc(run.aug.d)}"><div class="k">${run.augTier} augment</div><div class="v">${run.aug.name}</div></div>`;
+  for(const x of run.augs||[]){const a=AUGMAP[x.id];if(a)mh+=`<div class="mod mini ${x.tier}" title="${esc(a.d)}"><div class="k">${x.tier} augment</div><div class="v">${esc(a.name)}</div></div>`;}
   if(run.gimmick){const GM=GIMMICKS[run.gimmick],el=allOwned().filter(gimEligible);
     const tgt=allOwned().find(u=>u.uid===run.gimTarget&&gimEligible(u));const onField=tgt&&Object.values(run.board).includes(tgt);
     mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${(run.gimmick==='mega'?!u.megaOff:u===tgt)?' on':''}" data-cap="${u.uid}" aria-label="${run.gimmick==='mega'?`Toggle Mega Evolution for ${esc(nameOf(u))}`:`Use ${esc(GM.n)} with ${esc(nameOf(u))}`}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${run.gimmick==='mega'?'Every Pokémon holding its Mega Stone Mega Evolves. Click one (or right-click it on the board) to switch its Mega Evolution on or off.':tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Put a Pokémon on the field to Dynamax it.',tera:'Give a Tera Shard to a Pokémon.'}[run.gimmick]}</p>`}</div>`;}
@@ -1308,7 +1327,7 @@ function renderUI(){
       <div class="body"><img class="por" src="${por(r)}" alt=""><div class="info"><span class="role" style="color:${CLASSCOL[roleOf(r)]}">${kitOf(r).role||roleOf(r)} · ${moveName(r)}</span>${kitOf(r).sig?'<span class="sigtag">Signature</span>':''}<div class="chips">${typeChips(r)}${kitOf(r).styles.map(setChip).join('')}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div></div></div>${G?'<span class="grows">Grows</span>':''}${run.scouted&&run.scouted[i]?'<span class="scouted">Scouted</span>':''}</button>`;}).join('');
   $('minicards').innerHTML=run.shop.map((r,i)=>r?`<button class="mcard c${MODE.lines[r].cost}" data-i="${i}" aria-label="${esc(D[r].n)}, ₽${MODE.lines[r].cost}. Show the shop"><img src="${por(r)}" alt="">₽${MODE.lines[r].cost}</button>`:`<span class="mcard empty"><img alt="" src="data:," style="visibility:hidden"></span>`).join('');
   renderGimBtn();
-  $('reroll').disabled=!plan||(run.gold<2&&run.freeRerolls<=0);$('rerollcost').textContent=run.freeRerolls>0?`Free ×${run.freeRerolls}`:'₽2';
+  $('reroll').disabled=!plan||(run.gold<rerollCost()&&run.freeRerolls<=0);$('rerollcost').textContent=run.freeRerolls>0?`Free ×${run.freeRerolls}`:`₽${rerollCost()}`;
   $('buyxp').disabled=!plan||run.gold<4||run.level>=MAXLV;
   {const o=LVODDS[run.level];$('odds').innerHTML=`<span class="lbl">Lv ${run.level}</span>`+o.map((p,i)=>`<span class="od c${i+1}${p?'':' off'}" title="${i+1}-cost Pokémon: ${Math.round(p*100)}% per shop slot">₽${i+1} <b>${Math.round(p*100)}%</b></span>`).join('');
    $('buyxp').title=run.level>=MAXLV?'Max level':`Buy 4 XP for ₽4 (${run.xp}/${XPNEXT[run.level]} to level ${run.level+1})`;}
@@ -1351,7 +1370,7 @@ let saveT=0;
 function saveRun(){
   if(!run||SIM.on||!MODE||!['plan','loot','augment','route','event','kshop','reward'].includes(mode))return;
   clearTimeout(saveT);saveT=setTimeout(()=>{try{
-    const r={...run,strat:run.strat.id,aug:run.aug?run.aug.id:null};
+    const r={...run,strat:run.strat.id};
     localStorage.setItem(SAVEKEY,JSON.stringify({v:1,t:Date.now(),mode:MODE.id,pool:MODE.gen?null:MODE.byCost,run:r,uidc,
       enemy:enemyPreview.map(e=>({u:e.u,c:e.c,r:e.r,mult:e.mult,boss:e.boss})),state:['loot','route','event','kshop','reward'].includes(mode)?mode:'plan'}));}catch(e){}},120);
 }
@@ -1361,7 +1380,7 @@ async function continueRun(){
   const d=readSave();if(!d)return showTitle();
   MODE=buildMode(d.mode);if(d.pool)MODE.byCost=d.pool;
   run=d.run;run.strat=STRATS.find(x=>x.id===run.strat)||STRATS[0];
-  run.aug=run.aug?Object.values(AUGS).flat().find(a=>a.id===run.aug)||null:null;
+  if(!run.augs){run.augs=run.aug?[{id:run.aug,tier:run.augTier||'gold'}]:[];run.augsAt=run.aug?[2]:[];}delete run.aug;
   enemyPreview=d.enemy||[];uidc=d.uidc||1000;ov.innerHTML='';
   await preload([...enemyPreview.map(e=>e.u.dex),...allOwned().map(u=>shownDex(u)),run.boss.dex,...run.shop.filter(Boolean)]);
   showGameUI(true);
@@ -1369,9 +1388,11 @@ async function continueRun(){
   if(d.state==='route'&&run.route){renderUI();return showRoute();}
   if(d.state==='event'&&run.ev){renderUI();return showEvent();}
   if(d.state==='kshop'&&run.ks){renderUI();return showKecleon();}
+  setScenery(actDef().bg);
+  if(d.state==='reward'&&run.actClear){renderUI();return showActClear();}
   if(d.state==='reward'&&run.enhChoices){renderUI();return showEnhPick();}
   if(d.state==='loot'&&run.loot){mode='loot';chest={x:hexXY(3,2).x,y:hexXY(3,2).y,t:0,open:false,kind:run.pendingRelic?'relic':'item',tier:chestTier()};}
-  else{mode='plan';chest=null;if(run.floor===2&&!run.aug)return showAugment();if(run.floor===GIMMICK_FLOOR&&!run.gimmick)return showGimmickChoice();}
+  else{mode='plan';chest=null;if(augDue())return showAugment();if(gimDue())return showGimmickChoice();}
   renderUI();banner(`Floor ${run.floor}`,mode==='loot'?'Open the chest':trainerName(run.floor),1400);
 }
 
@@ -1381,12 +1402,12 @@ function bestOf(id){try{return localStorage.getItem('pokerun.best.'+id);}catch(e
 function setBest(id,v){try{const b=+(localStorage.getItem('pokerun.best.'+id)||0);if(v>b)localStorage.setItem('pokerun.best.'+id,v);}catch(e){}}
 function setWander(dexes){wander=dexes.map((d,i)=>({dex:d,x:200+(i%5)*60+rnd(-10,10),y:110+Math.floor(i/5)*70+rnd(-10,10),dir:0,anim:'Idle',t:rnd(0,2),wait:rnd(0,2)}));preload(dexes);}
 function showTitle(){
-  mode='title';showGameUI(false);run=null;MODE=null;chest=null;speed=OPTS.speed;$('speed').setAttribute('aria-pressed',speed===2);
+  mode='title';showGameUI(false);run=null;MODE=null;chest=null;setScenery('forest');speed=OPTS.speed;$('speed').setAttribute('aria-pressed',speed===2);
   if(!wander.length||wander.length<14)setWander(shuffle(ROOTS.filter(r=>SM[r])).slice(0,16));
   const d=readSave();
   const sum=d?(()=>{const r=d.run,team=Object.values(r.board).concat(r.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,6);
     const st=STRATS.find(x=>x.id===r.strat);const m=d.mode==='nat'?'National Dex':`Gen ${ROMAN[+d.mode.slice(3)-1]} · ${REGIONS[+d.mode.slice(3)-1]}`;
-    return`<div class="win save"><div class="lbl">Saved run</div><h3>${m}</h3><p>Floor ${r.floor} / ${FLOORS} · Trainer HP ${r.hp} · ₽${r.gold}</p><p>${st?st.name:''}${r.gimmick?' · '+GIMMICKS[r.gimmick].n:''}</p>
+    return`<div class="win save"><div class="lbl">Saved run</div><h3>${m}</h3><p>${r.act?(r.act<ACTS.length?'Act '+ROMAN[r.act]:'Endless '+(r.act-ACTS.length+1))+' · ':''}Floor ${r.floor} / ${FLOORS} · Trainer HP ${r.hp} · ₽${r.gold}</p><p>${st?st.name:''}${r.gimmick?' · '+GIMMICKS[r.gimmick].n:''}</p>
       <div class="team">${team.map(u=>`<img src="${por(shownDex(u))}" alt="${esc(D[u.dex].n)}" title="${esc(D[u.dex].n)} ${'★'.repeat(u.star)}">`).join('')}</div></div>`;})():'';
   ov.innerHTML=`<div class="screen title"><div class="logo">PokéRun<small>Tactics</small></div>
     <div class="menu-row"><nav class="win menu" aria-label="Main menu">
@@ -1449,19 +1470,6 @@ function showStrategy(){
   ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{const s=STRATS[+b.dataset.i];newRun(s,feats.flat());run.featured=feats[+b.dataset.i];ov.innerHTML='';startFloor();});
   $('back').onclick=showModes;
 }
-function rollAugTier(){const x=Math.random();return x<.25?'silver':x<.75?'gold':'prismatic';}
-function applyAug(a){run.aug=a;
-  if(a.id==='berry')run.gold+=8;
-  if(a.id==='egg'){const slot=run.bench.indexOf(null);const root=pick(MODE.roots.filter(r=>MODE.lines[r].cost<=3));
-    if(slot>=0){const u=mkUnit(root);u.star=2;run.bench[slot]=u;if(!SIM.on)ensure(root);evolveStep(u);}}
-  combine();}
-function showAugment(){
-  mode='augment';$('bannerhost').innerHTML='';
-  const tier=rollAugTier();run.augTier=tier;
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner ${tier}">${tier.toUpperCase()} AUGMENT</div><h1 class="h1">Choose an augment</h1><p class="sub">Augments last for the rest of the run.</p>
-    <div class="picks">${AUGS[tier].map((a,i)=>`<button class="pick win aug tier-${tier}" data-i="${i}"><div class="gem"></div><h2>${a.name}</h2><p>${a.d}</p></button>`).join('')}</div></div>`;
-  ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{ov.innerHTML='';mode='plan';applyAug(AUGS[tier][+b.dataset.i]);renderUI();if(!evoOpen)banner(`Floor ${run.floor}`,trainerName(run.floor),1400);});
-}
 function itemCard(it,i,cls=''){const t=isRelicId(it)?'relic':itemTier(it);
   const id=isRelicId(it)?it:itemDef(it).id,name=isRelicId(it)?RELICS[it].n:itemName(it);
   const body=isRelicId(it)?`<p>${RELICS[it].d}</p>`:itemBody(it,true);
@@ -1486,16 +1494,47 @@ function showLootPicks(){
   $('lootteam').onclick=()=>{hideTip();ov.innerHTML='';lootPeek(true);};
 }
 function rerollLoot(){const cost=lootRerollCost();if(mode!=='loot'||!run.loot||run.gold<cost)return;run.gold-=cost;run.lootRolls=(run.lootRolls||0)+1;run.loot=rollLoot(!!run.lootLost);renderUI();showLootPicks();}
-// minimise the item choice to look at the team; a button brings it back
-function lootPeek(on){const b=$('lootback');if(!b)return;b.hidden=!on;if(on){renderUI();b.focus();}}
+// minimise a choice screen (chest, augment) to look at the team; a floating button brings it back
+const PEEK={mode:null,back:null};
+function peekOn(label,back){const b=$('lootback');PEEK.mode=mode;PEEK.back=back;b.textContent=label;b.hidden=false;renderUI();b.focus();}
+function peekOff(){PEEK.mode=null;const b=$('lootback');if(b)b.hidden=true;}
+function lootPeek(on){if(on)peekOn('Back to the chest',showLootPicks);else peekOff();}
 function chooseLoot(i){const r=takeLoot(i);if(r===false)return;lootPeek(false);if(r==='relic')showRelics();}
+function gimDue(){if(!run||run.floor!==GIMMICK_FLOOR)return false;const ga=run.gimAct??(run.gimmick?0:-1);return ga<actOf();}
 function showGimmickChoice(){
   mode='augment';$('bannerhost').innerHTML='';
-  const opts=GIM_ORDER.filter(g=>!(run.gimmicks||[]).includes(g));
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">ACT ${ROMAN[0]} · GENERATION GIMMICK</div><h1 class="h1">Choose your key item</h1><p class="sub">You get one generation gimmick for this act. The others can be chosen in later acts.</p>
+  let opts=GIM_ORDER.filter(g=>!(run.gimmicks||[]).includes(g));if(!opts.length)opts=GIM_ORDER.filter(g=>g!==run.gimmick);
+  const cur=run.gimmick&&GIMMICKS[run.gimmick];
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">${actLabel().toUpperCase()} · GENERATION GIMMICK</div><h1 class="h1">${cur?'Switch your key item?':'Choose your key item'}</h1><p class="sub">${cur?`Each act lets you pick a new gimmick, or keep the ${esc(cur.n)} you have.`:'You get one generation gimmick for this act. The others can be chosen in later acts.'}</p>
     <div class="picks gims">${opts.map(g=>{const G=GIMMICKS[g];return`<button class="pick win item gim" data-g="${g}" style="--gc:${G.col}"><div class="icon"><img src="${iconOf(G.key)}" alt=""></div><span class="tier" style="background:${G.col}">${G.gen}</span><h2 style="font-size:24px">${G.n}</h2><div class="desc"><p>${G.d}</p><p class="sc">${G.start}</p></div></button>`;}).join('')}</div></div>`;
-  ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ov.innerHTML='';mode='plan';chooseGimmick(b.dataset.g);const G=GIMMICKS[run.gimmick];toast(`You received the ${G.keyN}!`);banner(`Floor ${run.floor}`,trainerName(run.floor),1400);});
+  if(cur){const k=document.createElement('button');k.className='btn skip';k.id='gimkeep';k.textContent=`Keep the ${cur.n}`;ov.querySelector('.screen').appendChild(k);
+    k.onclick=()=>{run.gimAct=actOf();ov.innerHTML='';mode='plan';renderUI();banner(`Floor ${run.floor}`,trainerName(run.floor),1400);};}
+  ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ov.innerHTML='';mode='plan';chooseGimmick(b.dataset.g);run.gimAct=actOf();const G=GIMMICKS[run.gimmick];toast(`You received the ${G.keyN}!`);banner(`Floor ${run.floor}`,trainerName(run.floor),1400);});
 }
+/* ---------- act transitions and Endless mode ---------- */
+function guardianDone(win){
+  if(!win)return SIM.on?(mode='over'):showEnd(false);
+  const a=actOf();
+  if(a<ACTS.length-1||run.endless){if(SIM.on){const rc=shuffle(Object.keys(RELICS).filter(r=>!run.relics.includes(r)))[0];if(rc)run.relics.push(rc);return startNextAct();}return showActClear();}
+  return SIM.on?(mode='over'):showEnd(true);
+}
+function showActClear(){
+  mode='reward';chest=null;hideTip();run.actClear=1;const a=actOf(),nx=actDef(a+1);
+  const rc=shuffle(Object.keys(RELICS).filter(r=>!run.relics.includes(r))).slice(0,3);
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">${actLabel(a).toUpperCase()} CLEARED</div><h1 class="h1">${esc(actDef(a).name)} cleared!</h1>
+    <p class="sub">${esc(D[run.boss.dex].n)} steps aside. Your trainer rests up to full HP. Next: <b>${actLabel(a+1)} · ${esc(nx.name)}</b> (${esc(nx.theme)}).</p>
+    ${rc.length?`<p class="sub">Take a relic for the road.</p><div class="picks">${rc.map((r,i)=>itemCard(r,i)).join('')}</div>`:''}
+    <button class="btn go" id="nextact" style="font-size:20px;padding:8px 26px">${rc.length?'Skip relic and continue':'Continue'}</button></div>`;
+  ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{run.relics.push(rc[+b.dataset.i]);startNextAct();});
+  $('nextact').onclick=()=>startNextAct();
+}
+async function startNextAct(){
+  ov.innerHTML='';run.actClear=0;(run.hist=run.hist||[]).push(run.results.slice(1));run.act=actOf()+1;run.floor=1;run.results=[];run.carDone=[];run.hp=run.maxHp;run.centersOffered=0;run.lastCenterOffer=0;
+  run.boss=pickBoss();planAct();
+  if(!SIM.on){setScenery(actDef().bg);showGameUI(true);banner(actLabel(),`${actDef().name} · ${actDef().theme}`,2600);}
+  return startFloor();
+}
+function enterEndless(){run.endless=true;mode='plan';showGameUI(true);startNextAct();}
 function showRelics(){
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">RIVAL DEFEATED</div><h1 class="h1">Choose a relic</h1><p class="sub">Relics affect your whole team for the rest of the run.</p>
     <div class="picks">${run.relicChoices.map((r,i)=>itemCard(r,i)).join('')}</div></div>`;
@@ -1514,16 +1553,16 @@ function showEnd(won){
   const team=Object.values(run.board).concat(run.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,7);
   const where=MODE.gen?MODE.region:'National Dex';
   ov.innerHTML=`<div class="scrim"></div><div class="screen">
-    <h1 class="h1">${won?`${where}: Act I cleared!`:'Your run has ended'}</h1>
-    <p class="sub">${won?`${esc(D[run.boss.dex].n)} steps aside. The path out of the clearing leads on.`:`Your team fell on Floor ${run.floor} of the ${ACTS[0].name}.`}</p>
+    <h1 class="h1">${won?`${where}: Champion!`:'Your run has ended'}</h1>
+    <p class="sub">${won?`${esc(D[run.boss.dex].n)} steps aside. All three acts are cleared. Keep going in Endless mode, where every new act hits harder than the last.`:`Your team fell on Floor ${run.floor} of the ${esc(actDef().name)} (${actLabel()}${run.endless?`, ${actOf()-ACTS.length+1} endless act${actOf()-ACTS.length?'s':''} deep`:''}).`}</p>
     <div class="win" style="padding:14px 20px;display:flex;flex-direction:column;gap:12px;align-items:center">
-      <div class="endstat"><div><span class="lbl">Floors won</span><b>${run.wins}</b></div><div><span class="lbl">Trainer level</span><b>${run.level}</b></div><div><span class="lbl">Strategy</span><b style="font-size:20px">${run.strat.name}</b></div>${run.aug?`<div><span class="lbl">Augment</span><b style="font-size:20px">${run.aug.name}</b></div>`:''}</div>
+      <div class="endstat"><div><span class="lbl">Floors won</span><b>${run.wins}</b></div><div><span class="lbl">Trainer level</span><b>${run.level}</b></div><div><span class="lbl">Strategy</span><b style="font-size:20px">${run.strat.name}</b></div>${(run.augs||[]).length?`<div><span class="lbl">Augments</span><b style="font-size:16px">${run.augs.map(x=>esc((AUGMAP[x.id]||{}).name||x.id)).join(', ')}</b></div>`:''}</div>
       <div style="display:flex;gap:6px">${team.map(u=>`<img src="${por(u.dex)}" alt="${esc(nameOf(u))}" title="${esc(nameOf(u))} ${'★'.repeat(u.star)}" style="width:56px;height:56px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px">`).join('')}</div>
       ${run.relics.length?`<div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" title="${esc(RELICS[r].n)}">`).join('')}</div>`:''}
     </div>
-    ${won?`<div class="acts">${ACTS.map((a,i)=>`<div class="win ${i?'lock':''}"><div class="lbl">Act ${ROMAN[i]}</div><b>${a.name}</b><div class="lbl" style="margin-top:4px">${i?'Coming soon':'Cleared'}</div></div>`).join('')}</div>`:''}
-    <button class="btn go" id="again" style="font-size:22px;padding:10px 30px">New run</button></div>`;
-  $('again').onclick=showTitle;
+    ${won?`<div class="acts">${ACTS.map((a,i)=>`<div class="win"><div class="lbl">Act ${ROMAN[i]}</div><b>${a.name}</b><div class="lbl" style="margin-top:4px">Cleared</div></div>`).join('')}</div>`:''}
+    <div style="display:flex;gap:12px">${won?'<button class="btn go" id="endless" style="font-size:22px;padding:10px 30px">Enter Endless mode</button>':''}<button class="btn${won?'':' go'}" id="again" style="font-size:22px;padding:10px 30px">New run</button></div></div>`;
+  $('again').onclick=()=>{clearSave();showTitle();};if(won)$('endless').onclick=enterEndless;
 }
 
 /* ================= Boot ================= */
@@ -1536,7 +1575,7 @@ function showEnd(won){
   for(const k in spr)SM[+k]=spr[k];
   loadForms(frm);
   loadItemImages();
-  BG=renderForest();initLeaves();
+  setScenery('forest');
   showTitle();
   requestAnimationFrame(frame);
 })();
@@ -1544,5 +1583,5 @@ function showEnd(won){
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>64)im.style.imageRendering='auto';},true);
 // No browser right-click menu anywhere in the game (text fields keep it for copy/paste).
 document.addEventListener('contextmenu',e=>{const t=e.target;if(t&&t.closest&&t.closest('input,textarea,[contenteditable="true"]'))return;e.preventDefault();});
-$('lootback').onclick=()=>showLootPicks();
-(function lootBackLoop(){try{const b=$('lootback');if(b&&!b.hidden&&(!run||mode!=='loot'||!run.loot||ov.innerHTML.trim()))b.hidden=true;}catch(e){}requestAnimationFrame(lootBackLoop);})();
+$('lootback').onclick=()=>{const f=PEEK.back;peekOff();if(f)f();};
+(function lootBackLoop(){try{const b=$('lootback');if(b&&!b.hidden&&(!run||mode!==PEEK.mode||ov.innerHTML.trim()))b.hidden=true;}catch(e){}requestAnimationFrame(lootBackLoop);})();
