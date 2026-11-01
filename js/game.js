@@ -1003,7 +1003,7 @@ function draw(t){
   ctx.setTransform(1,0,0,1,0,0);
   drawWeather(t);
   if(chest&&!chest.open){const bob=Math.sin(t*3)*3;ctx.font='24px PokeEmerald,"Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#1b2430';const txt=chest.kind==='relic'?'Open the rival\'s chest':'Open the chest';
-    const q=w2s(chest.x,chest.y-14*(chest.tier==='silver'?1.2:1));ctx.strokeText(txt,q.x*2,q.y*2-20+bob);ctx.fillStyle='#ffe27a';ctx.fillText(txt,q.x*2,q.y*2-20+bob);}
+    const q=w2s(chest.x,chest.y-14*(chest.tier==='silver'?1.2:1));ctx.strokeText(txt,q.x*2,q.y*2-34+bob);ctx.fillStyle='#ffe27a';ctx.fillText(txt,q.x*2,q.y*2-34+bob);}
   for(const tx of texts){ctx.globalAlpha=Math.min(1,tx.life*2.5);{const zb=CAM.z>1.35?8:0;ctx.font=(tx.big?24+zb:16+zb)+'px PokeEmerald,"Pixelify Sans",sans-serif';}
     ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#1b2430';const q=w2s(tx.x,tx.y);ctx.strokeText(tx.txt,q.x*2,q.y*2);ctx.fillStyle=tx.col;ctx.fillText(tx.txt,q.x*2,q.y*2);}
   ctx.globalAlpha=1;drawCine(1/60);drawRouteHud(t);

@@ -94,9 +94,6 @@ function boxImg(t){return BOXIMG[t]||(BOXIMG[t]=Object.assign(new Image(),{src:'
 function chestTier(){const fk=floorKind(run.floor),nk=typeof nodeK==='function'?nodeK(run.floor):'';return fk==='elite'||fk==='boss'?'silver':(nk==='alpha'||nk==='challenge'||run.pendingRelic)?'rare':'normal';}
 function drawPmdChest(c,t){
   const im=boxImg(c.tier||'normal'),sc=c.tier==='silver'?2.4:c.tier==='rare'?2.2:2,x=Math.round(c.x),bob=c.open?0:-Math.abs(Math.sin(t*3))*2,y=Math.round(c.y-6+bob);
-  // PMD treasure shine behind a closed box
-  if(!c.open){const L=fxImg('Chest_Light'),m=FXM.Chest_Light;if(L.complete&&L.naturalWidth){const f=Math.floor(t/.09)%m[0],s=m[1],w=s*.32;
-    ctx.globalAlpha=.55;ctx.globalCompositeOperation='lighter';ctx.drawImage(L,f*s,0,s,s,Math.round(x-w/2),Math.round(y-w*.62),Math.round(w),Math.round(w));ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;}}
   ctx.fillStyle='rgba(10,30,10,.35)';ctx.beginPath();ctx.ellipse(x,c.y+3,11*sc/2,3.5,0,0,7);ctx.fill();
   if(im.complete&&im.naturalWidth){let w=16*sc,a=1;if(c.open){const k=Math.min(1,(c.t-(c.openAt||0))/.4);a=1-k;w*=1+k*.5;}
     if(a>0){ctx.globalAlpha=a;ctx.drawImage(im,Math.round(x-w/2),Math.round(y-w/2-(c.open?(w-16*sc)*.5:0)),Math.round(w),Math.round(w));ctx.globalAlpha=1;}}
