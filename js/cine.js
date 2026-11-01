@@ -89,6 +89,17 @@ const LEG={
   802:{col:'#5a4878',charge:['Shadow_Force_Smoke_Reverse'],impact:['Shadow_Force_Hit_Dark','Close_Combat']},
   807:{col:'#ffe14d',charge:['Charge_Up'],impact:['Discharge_Hit','Hit_Super_Effective'],sky:'bolt'},
   809:{col:'#c0c8d8',charge:['Metal_Burst_Charge'],impact:['Gigaton_Hammer_PMDO','Metal_Burst_Hit']},
+  888:{col:'#9fd4ff',charge:['Swords_Dance','Mega_Background_Light_Blue'],impact:['Slash_Blue_RSE','Hit_Super_Effective'],sky:'Light_Ball_Blue'},
+  889:{col:'#ff7a7a',charge:['Protect','Mega_Background_Red'],impact:['Close_Combat','Metal_Burst_Hit']},
+  890:{col:'#ff4a6a',charge:['Mega_Background_Red','Dragon_Pulse_Charge'],impact:['Dragon_Pulse_Particle_Red','Explosion'],sky:'Light_Ball_Pink'},
+  892:{col:'#8a6cd6',charge:['Focus_Energy'],impact:['Close_Combat','Shadow_Force_Hit_Dark']},
+  893:{col:'#7fe3a8',charge:['Ingrain'],impact:['Power_Whip_Hit_Front','Leaf_Storm_Hit']},
+  894:{col:'#ffe14d',charge:['Charge_Up'],impact:['Discharge','Charge_Beam_Hit'],sky:'bolt'},
+  895:{col:'#8a6cff',charge:['Dragon_Dance','Mega_Background_White'],impact:['Dragon_Pulse_Particle_Purple','Explosion']},
+  896:{col:'#bff0ff',charge:['Mega_Background_Light_Blue'],impact:['Sheer_Cold_Front','Icicle_Spear']},
+  897:{col:'#8a6cd6',charge:['Shadow_Force_Smoke_Reverse'],impact:['Shadow_Ball','Shadow_Force_Hit']},
+  898:{col:'#7fe3a8',charge:['Psych_Up','Synthesis_Sparkle'],impact:['Leaf_Storm_Hit','Psycho_Boost_Front']},
+  905:{col:'#ff9be6',charge:['Mega_Background_White','Captivate_Hearts'],impact:['Petal_Dance_Front','Light_Ball_Pink']},
 };
 const legOf=u=>LEG[baseOf(u.dex)]||null;
 const CINE={shake:0};
