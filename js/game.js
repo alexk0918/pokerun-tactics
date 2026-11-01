@@ -99,7 +99,7 @@ function unitStats(dex,cost,star){
     atk:off*(.5+.5*r(s[1])), spa:off*(.5+.5*r(s[3])),
     def:clamp(4+30*r(s[2]),5,80), res:clamp(4+30*r(s[4]),5,80),
     as:clamp(.5+.25*r(s[5]),.45,1.1)*(K.type==='rapid'?1.1:1)*(K.asMul||1),
-    range:K.range,mana:K.mana,start:K.start,kind:K.type,cat:K.cat,base,pf,
+    range:K.range>1?K.range+2:K.range,mana:K.mana,start:K.start,kind:K.type,cat:K.cat,base,pf, // ranged units reach 2 hexes further than their kit lists, so the back row can hit the enemy front
   };
 }
 

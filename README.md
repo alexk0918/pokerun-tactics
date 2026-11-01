@@ -141,6 +141,8 @@ Inspired by TFT's Faerie crown and Honkai: Star Rail's Day Demigod gear, some se
 
 The Kit Dex (main menu, or the Dex button next to battle speed) lists every kit by generation, with numbers calculated at 2★. Lines are discovered by owning any member of them, through the shop, Kecleon, events or anything else, and discoveries are saved across runs. Undiscovered lines show only a blurred hint. Every starter line, plus Pikachu and Eevee, is known from the start.
 
+Ranged Pokémon (anything with more than 1 range) reach 2 hexes further than their kit's base range, so casters and artillery in your back row can hit the enemy front line.
+
 ### Reading tooltips and damage
 
 Scaling and damage are color coded:
