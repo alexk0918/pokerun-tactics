@@ -77,6 +77,18 @@ const LEG={
   720:{col:'#c58cff',charge:['Psycho_Cut_Hole'],impact:['Psycho_Cut_Hole','Psycho_Boost_Front']},
   721:{col:'#e0f0ff',charge:['Mega_Background_Red','Water_Spout_Up'],impact:['Water_Spout_Splash','Lava_Plume_Smoke','Explosion']},
   649:{col:'#ff9a3c',charge:['Charge_Beam_Start'],impact:['Charge_Beam_Hit','Explosion']},
+  773:{col:'#e8e8f0',charge:['Swords_Dance'],impact:['Tri_Attack_Hit','Hit_Super_Effective']},
+  785:{col:'#ffe14d',charge:['Charge_Up','Mega_Background_Yellow'],impact:['Discharge_Hit','Charge_Beam_Hit'],sky:'bolt'},
+  786:{col:'#ff9be6',charge:['Mega_Background_White','Psych_Up'],impact:['Psycho_Boost_Front','Light_Ball_Pink']},
+  787:{col:'#7fe3a8',charge:['Mega_Background_Yellow','Ingrain'],impact:['Leaf_Blade','Frenzy_Plant'],sky:'Thorn_Green'},
+  788:{col:'#9fe0ff',charge:['Mega_Background_Light_Blue','Aqua_Ring'],impact:['Hydro_Cannon','Moonlight_Sparkles']},
+  791:{col:'#ffd34d',charge:['Mega_Background_Yellow','Sun'],impact:['Flare_Blitz_Hit_Front','Metal_Burst_Hit','Explosion'],sky:'Light_Ball_Yellow'},
+  792:{col:'#b07aff',charge:['Mega_Background_White','Lunar_Dance_Moon'],impact:['Shadow_Force_Hit_Light','Moonlight_Sparkles']},
+  800:{col:'#fff6c0',charge:['Mega_Background_White','Power_Gem_Charge'],impact:['Light_Ball_White','Explosion'],sky:'Light_Ball_White'},
+  801:{col:'#ffb3e6',charge:['Mega_Background_White','Flash_Cannon_Sparkle_Gather'],impact:['Flash_Cannon_Release','Light_Ball_Pink']},
+  802:{col:'#5a4878',charge:['Shadow_Force_Smoke_Reverse'],impact:['Shadow_Force_Hit_Dark','Close_Combat']},
+  807:{col:'#ffe14d',charge:['Charge_Up'],impact:['Discharge_Hit','Hit_Super_Effective'],sky:'bolt'},
+  809:{col:'#c0c8d8',charge:['Metal_Burst_Charge'],impact:['Gigaton_Hammer_PMDO','Metal_Burst_Hit']},
 };
 const legOf=u=>LEG[baseOf(u.dex)]||null;
 const CINE={shake:0};
