@@ -100,6 +100,9 @@ const LEG={
   897:{col:'#8a6cd6',charge:['Shadow_Force_Smoke_Reverse'],impact:['Shadow_Ball','Shadow_Force_Hit']},
   898:{col:'#7fe3a8',charge:['Psych_Up','Synthesis_Sparkle'],impact:['Leaf_Storm_Hit','Psycho_Boost_Front']},
   905:{col:'#ff9be6',charge:['Mega_Background_White','Captivate_Hearts'],impact:['Petal_Dance_Front','Light_Ball_Pink']},
+  10169:{col:'#c58cff',charge:['Mega_Background_White','Psych_Up'],impact:['Psycho_Boost_Front','Ice_Shard_Hit']},
+  10170:{col:'#ff9a3c',charge:['Focus_Energy'],impact:['Close_Combat','Hit_Super_Effective'],sky:'bolt'},
+  10171:{col:'#8a3060',charge:['Mega_Background_Red','Dark_Pulse_Back'],impact:['Dark_Pulse_Front','Fire_Blast']},
 };
 const legOf=u=>LEG[baseOf(u.dex)]||null;
 const CINE={shake:0};

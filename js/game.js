@@ -15,18 +15,22 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 let D={}, KIDS={}, SM={}, ROOTS=[];
 let MODE=null;
 function family(i){const out=[i];for(const k of KIDS[i]||[])out.push(...family(k));return out;}
-function buildMode(id){
+function buildMode(id,unspr=OPTS.unsprited){
   const gen=id==='nat'?0:+id.slice(3);
+  // without "Enable non-sprited Pokémon", species lacking a PMD sprite are pruned: a branch without sprites is dropped,
+  // and a line that would be left unable to evolve (or whose root has no sprite) is left out
+  const fam=r=>{if(unspr)return family(r);const rec=i=>{if(!SM[i])return null;const k=KIDS[i]||[];if(!k.length)return[i];const ok=k.map(rec).filter(Boolean);return ok.length?[i,...ok.flat()]:null;};return rec(r)||[];};
   let S;
-  if(!gen)S=new Set(ROOTS.flatMap(family)); // base species only; form entries (ids above 10000) are never shop lines
-  else{S=new Set();for(const r of ROOTS){const f=family(r);if(f.some(i=>D[i].g===gen))f.filter(i=>D[i].g<=gen).forEach(i=>S.add(i));}}
+  if(!gen)S=new Set(ROOTS.flatMap(fam)); // battle/mega forms are never shop lines; regional forms are species of their own
+  // a generation pool takes lines with a member from that generation; a regional form only pulls in its line when it's the line's root
+  else{S=new Set();for(const r of ROOTS){const f=fam(r);if(f.some(i=>D[i].g===gen&&(!D[i].rf||i===r)))f.filter(i=>D[i].g<=gen).forEach(i=>S.add(i));}}
   const kids=i=>(KIDS[i]||[]).filter(k=>S.has(k));
   const sub=i=>{const o=[i];for(const k of kids(i))o.push(...sub(k));return o;};
   const roots=[...S].filter(i=>!D[i].f||!S.has(D[i].f)).sort((a,b)=>a-b);
   const lines={};
   for(const r of roots){
     const mem=sub(r),mx=Math.max(...mem.map(i=>D[i].bst)),stages=depth(r,kids);
-    lines[r]={root:r,mem,stages,leg:mem.some(i=>D[i].L||D[i].M),score:mx-(stages-1)*30+mx/1000,region:Math.min(...mem.map(i=>D[i].g))-1};
+    lines[r]={root:r,mem,stages,leg:mem.some(i=>D[i].L||D[i].M),score:mx-(stages-1)*30+mx/1000,region:Math.min(...mem.map(i=>D[i].rg||D[i].g))-1};
   }
   // cost tiers by rank within the mode: 25% / 30% / 28% / 17% of non-legendary lines, legendaries and mythicals = 5
   const ranked=roots.filter(r=>!lines[r].leg).sort((a,b)=>lines[a].score-lines[b].score);
@@ -35,7 +39,7 @@ function buildMode(id){
   for(const r of roots)if(lines[r].leg)lines[r].cost=5;
   const byCost=[1,2,3,4,5].map(c=>roots.filter(r=>lines[r].cost===c));const byCostAll=byCost.map(l=>[...l]);
   const starGen=gen||1+Math.floor(Math.random()*9);
-  return{id,gen,S,kids,roots,lines,byCost,byCostAll,starGen,label:gen?`Gen ${ROMAN[gen-1]}`:'National',region:gen?REGIONS[gen-1]:'National Dex'};
+  return{id,gen,unspr:!!unspr,S,kids,roots,lines,byCost,byCostAll,starGen,label:gen?`Gen ${ROMAN[gen-1]}`:'National',region:gen?REGIONS[gen-1]:'National Dex'};
 }
 function depth(i,kids){return 1+Math.max(0,...kids(i).map(k=>depth(k,kids)));}
 const lineOf=u=>MODE.lines[u.root];
@@ -278,7 +282,7 @@ function newRun(strat,keep=[]){
   run={strat,hp:tidal?125:100,maxHp:tidal?125:100,gold:5,level:2,xp:0,floor:1,streak:0,augs:[],augsAt:[],
     act:0,bossHist:[],board:{},bench:Array(BENCH_N).fill(null),shop:[],results:[],wins:0,boss:null,featured:featured(strat),
     bag:[],relics:[],freeRerolls:0,lastIncome:null,stats:{dmg:{}}};
-  run.boss=pickBoss();planAct();
+  run.unspr=MODE.unspr?1:0;run.boss=pickBoss();planAct();
 }
 /* ---------- acts ---------- */
 const actOf=()=>(run&&run.act)||0;
@@ -1334,8 +1338,8 @@ function renderUI(){
   $('mods').innerHTML=mh;
   const plan=mode==='plan',owned=new Set(allOwned().filter(u=>u.star<3).map(u=>u.root));
   $('cards').innerHTML=run.shop.map((r,i)=>{if(!r)return`<div class="card empty" aria-hidden="true"></div>`;const L=MODE.lines[r];const G=growthOf({root:r});
-    return`<button class="card c${L.cost}${run.gold<L.cost?' poor':''}${owned.has(r)?' owned':''}" data-i="${i}" ${plan?'':'disabled'} aria-label="Buy ${esc(D[r].n)} for ${L.cost}"><div class="band"><span class="name">${esc(D[r].n)}</span><span class="cost">₽${L.cost}</span></div>
-      <div class="body"><img class="por" src="${por(r)}" alt=""><div class="info"><span class="role" style="color:${CLASSCOL[roleOf(r)]}">${kitOf(r).role||roleOf(r)} · ${moveName(r)}</span>${kitOf(r).sig?'<span class="sigtag">Signature</span>':''}<div class="chips">${typeChips(r)}${kitOf(r).styles.map(setChip).join('')}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div></div></div>${G?'<span class="grows">Grows</span>':''}${run.scouted&&run.scouted[i]?'<span class="scouted">Scouted</span>':''}</button>`;}).join('');
+    return`<button class="card c${L.cost}${run.gold<L.cost?' poor':''}${owned.has(r)?' owned':''}" data-i="${i}" ${plan?'':'disabled'} aria-label="Buy ${esc(D[r].n)} for ${L.cost}"><div class="band"><span class="name">${kitOf(r).sig?'<span class="sigstar" title="Signature kit">✦</span>':''}${esc(D[r].n)}</span><span class="cost">₽${L.cost}</span></div>
+      <div class="body"><span class="porwrap"><img class="por" src="${por(r)}" alt="">${run.scouted&&run.scouted[i]?'<span class="pbadge scouted" title="Scouted for your sets">Scout</span>':G?'<span class="pbadge grows" title="Grows stronger over the run">Grows</span>':''}</span><div class="info"><span class="role" style="color:${CLASSCOL[roleOf(r)]}">${kitOf(r).role||roleOf(r)} · ${moveName(r)}</span><div class="chips">${typeChips(r)}${kitOf(r).styles.map(setChip).join('')}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div></div></div></button>`;}).join('');
   $('minicards').innerHTML=run.shop.map((r,i)=>r?`<button class="mcard c${MODE.lines[r].cost}" data-i="${i}" aria-label="${esc(D[r].n)}, ₽${MODE.lines[r].cost}. Show the shop"><img src="${por(r)}" alt="">₽${MODE.lines[r].cost}</button>`:`<span class="mcard empty"><img alt="" src="data:," style="visibility:hidden"></span>`).join('');
   renderGimBtn();
   $('reroll').disabled=!plan||(run.gold<rerollCost()&&run.freeRerolls<=0);$('rerollcost').textContent=run.freeRerolls>0?`Free ×${run.freeRerolls}`:`₽${rerollCost()}`;
@@ -1373,7 +1377,7 @@ addEventListener('keydown',e=>{if(evoOpen||!run||paused||ov.innerHTML.trim())ret
   if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key===' '){e.preventDefault();startCombat();}});
 
 /* ================= Options & saving ================= */
-const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1,meterOpen:1};
+const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1,meterOpen:1,unsprited:0};
 try{Object.assign(OPTS,JSON.parse(localStorage.getItem('pokerun.opts')||'{}'));}catch(e){}
 function saveOpts(){try{localStorage.setItem('pokerun.opts',JSON.stringify(OPTS));}catch(e){}}
 const SAVEKEY='pokerun.save.v1';
@@ -1389,7 +1393,7 @@ function readSave(){try{const d=JSON.parse(localStorage.getItem(SAVEKEY)||'null'
 function clearSave(){try{localStorage.removeItem(SAVEKEY);}catch(e){}}
 async function continueRun(){
   const d=readSave();if(!d)return showTitle();
-  MODE=buildMode(d.mode);if(d.pool)MODE.byCost=d.pool;
+  MODE=buildMode(d.mode,d.run.unspr!==undefined?d.run.unspr:1);if(d.pool)MODE.byCost=d.pool;
   run=d.run;run.strat=STRATS.find(x=>x.id===run.strat)||STRATS[0];
   if(!run.augs){run.augs=run.aug?[{id:run.aug,tier:run.augTier||'gold'}]:[];run.augsAt=run.aug?[2]:[];}delete run.aug;
   enemyPreview=d.enemy||[];uidc=d.uidc||1000;ov.innerHTML='';
@@ -1468,7 +1472,7 @@ function showModes(){
   $('back').onclick=showTitle;
 }
 const MODECOUNT={};
-function buildModeCount(id){if(!MODECOUNT[id])MODECOUNT[id]=buildMode(id).roots.length;return MODECOUNT[id];}
+function buildModeCount(id){const k=id+(OPTS.unsprited?'u':'');if(!MODECOUNT[k])MODECOUNT[k]=buildMode(id).roots.length;return MODECOUNT[k];}
 function showStrategy(){
   mode='strategy';
   const feats=STRATS.map(featured);
@@ -1579,7 +1583,7 @@ function showEnd(won){
 /* ================= Boot ================= */
 (async()=>{
   try{await Promise.all([document.fonts.load('16px PokeEmerald'),document.fonts.load('700 20px "Pixelify Sans"')]);}catch(e){}
-  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=7').then(r=>r.json()),fetch('data/sprites.json?v=8').then(r=>r.json()),fetch('data/kits.json?v=9').then(r=>r.json()),fetch('data/forms.json?v=7').then(r=>r.json())]);
+  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=9').then(r=>r.json()),fetch('data/sprites.json?v=9').then(r=>r.json()),fetch('data/kits.json?v=10').then(r=>r.json()),fetch('data/forms.json?v=7').then(r=>r.json())]);
   KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);

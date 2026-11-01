@@ -316,6 +316,18 @@ Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type
 | Galar (Power Spot) | HP and damage; at 4, the bulkiest grows giant for 8s |
 | Paldea (Terastal Treasure) | Crit, Terastallize after the first move; at 4, +₽1 per win |
 
+### Regional forms
+
+Alolan, Galarian, Hisuian and Paldean forms are lines of their own, with their own sprites, types, stats and signature kits:
+
+- **New lines:** Alolan Rattata, Sandshrew, Vulpix, Diglett, Meowth, Geodude and Grimer; Galarian Meowth (→ Perrserker), Ponyta, Slowpoke (→ Galarian Slowbro or Slowking), Farfetch'd (→ Sirfetch'd), Corsola (→ Cursola), Zigzagoon (→ Obstagoon), Darumaka, Yamask (→ Runerigus), Stunfisk and the three Galarian birds; Hisuian Growlithe, Voltorb, Qwilfish (→ Overqwil), Sneasel (→ Sneasler) and Zorua; White-Striped Basculin (→ Basculegion); the three Paldean Tauros breeds and Paldean Wooper (→ Clodsire).
+- **Branch evolutions** you choose when the Pokémon evolves: Alolan Raichu, Alolan Exeggutor, Alolan Marowak, Galarian Weezing, Galarian Mr. Mime (→ Mr. Rime), Hisuian Typhlosion, Samurott, Lilligant, Braviary, Goodra, Avalugg and Decidueye.
+- Alolan forms belong to the Gen VII pool, Galarian and Hisuian forms to Gen VIII, and Paldean forms to Gen IX (all of them in National Dex). Hisuian lines count as Sinnoh for the region sets.
+
+### Non-sprited Pokémon
+
+A few lines don't have PMD sprites yet. By default they're left out (a branch without sprites is dropped, and a line that couldn't evolve without one is skipped). Turn on **Settings › General › Enable non-sprited Pokémon** to add them as round portrait tokens; it applies to new runs.
+
 ### Starter bonds
 
 Every starter line (Gen I–IX, plus Hisuian Decidueye) grows with its **Friendship**, which it earns in each battle it fights while your Partner set is active. The bond stays even when Partner isn't active, so investing early pays off for the whole run:
