@@ -70,6 +70,12 @@ const LEG={
   646:{hue:'saturate(.6) brightness(1.2)',col:'#bff0ff',charge:['Mega_Background_Light_Blue'],impact:['Sheer_Cold_Front','Ice_Shard_Hit']},
   647:{col:'#7fd8ff',charge:['Swords_Dance'],impact:['Hydro_Cannon','Close_Combat']},
   648:{col:'#ffe27a',charge:['Mega_Background_Yellow'],self:['Uproar','Music_Notes_Uproar']},
+  716:{col:'#ff9be6',charge:['Mega_Background_White','Moonlight_Sparkles'],impact:['Light_Ball_Pink','Moonlight_Sparkles','Explosion'],sky:'Light_Ball_Pink'},
+  717:{col:'#d04060',charge:['Mega_Background_Red','Dark_Pulse_Back'],impact:['Dark_Pulse_Front','Shadow_Force_Hit_Dark']},
+  718:{col:'#7fe3a8',charge:['Mega_Background_Yellow'],impact:['Thorn_Green','Earthquake_Ranger'],sky:'Thorn_Green'},
+  719:{hue:'hue-rotate(290deg) saturate(1.3)',col:'#ff9be6',charge:['Power_Gem_Charge'],impact:['Power_Gem_Hit','Stone_Edge']},
+  720:{col:'#c58cff',charge:['Psycho_Cut_Hole'],impact:['Psycho_Cut_Hole','Psycho_Boost_Front']},
+  721:{col:'#e0f0ff',charge:['Mega_Background_Red','Water_Spout_Up'],impact:['Water_Spout_Splash','Lava_Plume_Smoke','Explosion']},
   649:{col:'#ff9a3c',charge:['Charge_Beam_Start'],impact:['Charge_Beam_Hit','Explosion']},
 };
 const legOf=u=>LEG[baseOf(u.dex)]||null;

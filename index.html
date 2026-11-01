@@ -99,13 +99,11 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
 #shop .side{width:150px;display:flex;flex-direction:column;gap:8px;justify-content:center;}
 .btn{font-family:var(--display);font-size:16px;border:3px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 0 var(--ink);position:relative;}
 .btn:hover:not(:disabled){background:#fff8d6;}
-.btn:hover:not(:disabled)::before{content:"";position:absolute;left:8px;border:6px solid transparent;border-left:8px solid var(--ink);}
 .btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--ink);}
 .btn:disabled{opacity:.45;cursor:default;}
 .btn:focus-visible,.card:focus-visible,.pick:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
 .btn.go{background:var(--ball);color:#fff;font-size:24px;}
 .btn.go:hover:not(:disabled){background:#f05a50;}
-.btn.go:hover:not(:disabled)::before{border-left-color:#fff;}
 .cards{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;min-width:0;}
 .card{position:relative;border:3px solid var(--ink);border-radius:8px;background:#fff;cursor:pointer;display:flex;flex-direction:column;overflow:hidden;color:var(--ink);text-align:left;padding:0;font-family:var(--display);}
 .card .band{height:30px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:0 8px;color:#fff;font-size:16px;}
@@ -513,12 +511,12 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .mi.padhover{background:#e9eef7;}
 .mi.padhover::before{content:"";position:absolute;left:10px;top:50%;margin-top:-8px;border:8px solid transparent;border-left:12px solid var(--ink);border-right:0;}
 .btn.padhover:not(:disabled){background:#fff8d6;}
-.btn.padhover:not(:disabled)::before{content:"";position:absolute;left:8px;border:6px solid transparent;border-left:8px solid var(--ink);}
 .btn.go.padhover:not(:disabled){background:#f05a50;}
 .card.padhover:not(.empty){transform:translateY(-3px);box-shadow:0 4px 0 var(--ink);}
 .pick.padhover,.mode.padhover{transform:translateY(-4px);outline:3px solid var(--gold);outline-offset:2px;}
 .srow.padhover,.stab.padhover:not([aria-selected="true"]){background:#e9eef7;}
 .slot.padhover,.sarr.padhover,.mcard.padhover,.btn-speed.padhover,.shoptog.padhover,.baghead.padhover,.trait.padhover,.cap.padhover{outline:3px solid var(--gold);outline-offset:1px;}
+.btn:hover:not(:disabled),.btn.padhover:not(:disabled),.btn:focus-visible{box-shadow:0 3px 0 var(--ink),0 0 0 3px var(--gold);}
 </style>
 
 </head>
@@ -570,7 +568,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 <script src="js/fx_manifest.js?v=2"></script>
 <script src="js/fx.js?v=4"></script>
 <script src="js/status.js?v=5"></script>
-<script src="js/cine.js?v=4"></script>
+<script src="js/cine.js?v=5"></script>
 <script src="js/forms.js?v=13"></script>
 <script src="js/route.js?v=19"></script>
 <script src="js/carousel.js?v=2"></script>
@@ -580,6 +578,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 <script src="js/kits_gen3.js?v=3"></script>
 <script src="js/kits_gen4.js?v=7"></script>
 <script src="js/kits_gen5.js?v=4"></script>
+<script src="js/kits_gen6.js?v=3"></script>
 <script src="js/kitdex.js?v=3"></script>
 <script src="js/ui.js?v=7"></script>
 <script src="js/gamepad.js?v=15"></script>
