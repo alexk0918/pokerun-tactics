@@ -1521,3 +1521,5 @@ function showEnd(won){
 })();
 // HTML icons: big hi-res item art is shrunk smoothly; small pixel art keeps crisp pixels.
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>64)im.style.imageRendering='auto';},true);
+// No browser right-click menu anywhere in the game (text fields keep it for copy/paste).
+document.addEventListener('contextmenu',e=>{const t=e.target;if(t&&t.closest&&t.closest('input,textarea,[contenteditable="true"]'))return;e.preventDefault();});
