@@ -317,6 +317,12 @@ Built to stay readable on small handheld screens such as the AYN Thor:
 
 Every move effect, impact, projectile, beam, status sparkle and chest is a Pokémon Mystery Dungeon asset from [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset): type-matched particle sheets for hits and projectiles (directional sheets turn to face their flight), column and lightning beams for links and chains, Protect bubbles for shields, and PMD treasure boxes for chests. A brown box follows normal floors, a purple box follows alpha and challenge fights, and a silver box follows the act rivals on floors 5 and 10.
 
+### Move animations and legendary cinematics
+
+Signature moves whose name matches a Pokémon Mystery Dungeon animation (Flamethrower, Close Combat, Earthquake, Head Smash, Draco Meteor and about 150 more) play that animation on what they hit, or on the caster for heals and shields, on top of the type-matched impact.
+
+Legendary Pokémon get a cinematic when they use their move: the screen dims to a spotlight on the caster, a charge-up plays behind it, the move name sweeps across the screen, time slows for a moment, and the move lands with its own stack of PMD effects, a colour flash and a screen shake. Each legendary has its own look: Reshiram's Blue Flare burns blue, Zekrom's Bolt Strike calls down blue lightning, Dialga's Roar of Time tints the field blue, Giratina's Shadow Force darkens it, Arceus's Judgment rains light. The full cinematic plays on each legendary's first cast every battle (Settings › Display › Legendary cinematics: first cast, every cast or off); the impacts always play.
+
 ### Settings
 
 Settings are split into sections like PokéRogue's: General (battle speed, damage numbers, shop and bag behaviour), Display (board auto-fit, zoom speed, move effects, light rays), Audio (no sound yet), Gamepad (cursor speed, stick dead zone, right-stick mode, button list), Controls (keyboard and mouse list) and Data (delete the saved run, forget Kit Dex discoveries, reset settings).
@@ -361,6 +367,7 @@ js/kits_gen3.js     Generation III signature kits (and Gen III branches)
 js/kits_gen4.js     Generation IV signature kits
 js/kits_gen5.js     Generation V signature kits
 js/status.js        stacking status conditions and weather
+js/cine.js          move-name animations and legendary cinematics
 js/kitdex.js        in-game Kit Dex and discoveries
 js/fx.js            PMD particle player, beams, PMD chests
 js/fx_manifest.js   frame layout of every particle sheet

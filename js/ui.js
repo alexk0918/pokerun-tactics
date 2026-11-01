@@ -59,7 +59,8 @@ const SET_TABS=[
     {k:'autoZoom',n:'Fit the board to the screen',v:[1,0],l:['On','Off'],d:'Zooms in on the field when the shop is hidden and during battles.'},
     {k:'zoomSpd',n:'Zoom speed',v:[.6,1,1.6],l:['Slow','Normal','Fast']},
     {k:'fx',n:'Move effects',v:[2,1],l:['Full','Reduced'],d:'Reduced plays fewer particles at once and drops status sparkles.'},
-    {k:'rays',n:'Light rays',v:[1,0],l:['On','Off']}]},
+    {k:'rays',n:'Light rays',v:[1,0],l:['On','Off']},
+    {k:'cine',n:'Legendary cinematics',v:['first','always','off'],l:['First cast','Every cast','Off'],d:'Spotlight, slow motion and the move name across the screen when a legendary uses its move. Their big impact effects always play.'}]},
   {id:'audio',n:'Audio',rows:[],note:'PokéRun has no music or sound effects yet. Volume settings will appear here when it does.'},
   {id:'gamepad',n:'Gamepad',rows:[
     {k:'padSens',n:'Cursor speed',v:[.5,.75,1,1.25,1.5,2],l:['50%','75%','100%','125%','150%','200%']},
@@ -89,7 +90,7 @@ function showSettings(from,tab){
   const sure=(id,fn)=>{const b=$(id);if(!b)return;b.onclick=()=>{if(b.dataset.sure){fn();showSettings();toast('Done.');}else{b.dataset.sure=1;b.querySelector('span').textContent='Press again to confirm';}};};
   sure('o-del',()=>clearSave());
   sure('o-dex',()=>{DEXSEEN.clear();try{localStorage.removeItem(DEXKEY);}catch(e){}});
-  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18},keep);saveOpts();speed=1;});
+  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,cine:'first'},keep);saveOpts();speed=1;});
   $('setclose').onclick=closeSettings;
   const f=ov.querySelector(`.stab[aria-selected="true"]`);if(f)f.focus();
 }

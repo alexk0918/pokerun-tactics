@@ -734,7 +734,7 @@ function damage(src,tg,amt,o={}){
   if(tg.disguise>0&&d>0){tg.disguise--;d=0;formsOnDisguiseBroken(tg);if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Disguise!',col:'#ffe27a',life:1});}
   if(tg.iceFace&&o.cat==='phys'&&d>0){tg.iceFace=0;d=0;formsOnIceFace(tg);}
   tg.hits++;src.dealt+=d;
-  if(!SIM.on&&d>0){tg.flash=.15;if((tg.hitFxT||0)<combatT){tg.hitFxT=combatT+(o.ab?.1:.18);if(o.ab||o.type)typeHit(tg,o.type||typeOf(src),crit?1.15:1);else if(o.auto)typeHit(tg,src.range>1?typeOf(src):'Normal',src.range>1?.75:.8);}if(OPTS.dmg&&!o.quiet)texts.push({x:tg.x+rnd(-6,6),y:tg.y-22,txt:Math.round(d)+(crit?'!':''),col:o.tru?DCOL.tru:o.cat==='spec'?DCOL.spec:DCOL.phys,big:o.ab||crit,life:.9});}
+  if(!SIM.on&&d>0){tg.flash=.15;if(o.ab){moveFxHit(src,tg);legendHit(src,tg);}if((tg.hitFxT||0)<combatT){tg.hitFxT=combatT+(o.ab?.1:.18);if(o.ab||o.type)typeHit(tg,o.type||typeOf(src),crit?1.15:1);else if(o.auto)typeHit(tg,src.range>1?typeOf(src):'Normal',src.range>1?.75:.8);}if(OPTS.dmg&&!o.quiet)texts.push({x:tg.x+rnd(-6,6),y:tg.y-22,txt:Math.round(d)+(crit?'!':''),col:o.tru?DCOL.tru:o.cat==='spec'?DCOL.spec:DCOL.phys,big:o.ab||crit,life:.9});}
   gainMana(tg,Math.min(12,d*.04));
   if(src.ls&&!src.dead)heal(src,d*src.ls,true);
   if(src.fx.lowLs&&lowHp(src,.5)&&!src.dead)heal(src,d*src.fx.lowLs,true);
@@ -804,8 +804,8 @@ function cast(u,tg){
   if(u.casts===1&&u.fx.firstAmp){const a=u.fx.firstAmp;u.dmg+=a;schedule(1.2,()=>{u.dmg-=a;});}
   if(u.casts===1&&u.fx.teraUp){u.dmg+=u.fx.teraUp;if(!SIM.on)texts.push({x:u.x,y:u.y-44,txt:'Terastal!',col:'#7fe7ff',life:1.1,label:1});}
   if(u.fx.mindLink)for(const o of alive(u.team))if(o!==u&&o.fx.mindLink){gainMana(o,u.fx.mindLink);if(!SIM.on)spark(o.x,o.y-16,'#ff9be6',4);}
-  if(K.sig&&!u.zReady&&!u.dmaxOn){const anim=u.range>1||K.type!=='cast'?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);
-    schedule(hTime(u,anim),()=>{if(u.dead)return;if(!SIM.on)texts.push({x:u.x,y:u.y-34,txt:u.mv.n,col:'#ffffff',life:1.1,label:1});K.sig.cast(u,tg,K.si);if(u.spray)u.spa*=1+u.spray;if(u.leppa)gainMana(u,u.leppa);});return;}
+  if(K.sig&&!u.zReady&&!u.dmaxOn){const anim=u.range>1||K.type!=='cast'?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);const lx=legendCast(u);
+    schedule(hTime(u,anim)+lx,()=>{if(u.dead)return;if(!SIM.on){texts.push({x:u.x,y:u.y-34,txt:u.mv.n,col:'#ffffff',life:1.1,label:1});if(!legOf(u))moveFxCast(u);}K.sig.cast(u,tg,K.si);if(u.spray)u.spa*=1+u.spray;if(u.leppa)gainMana(u,u.leppa);});return;}
   const anim=K.type==='heal'||K.type==='guard'||u.range>1?'Shoot':'Attack';setAnim(u,anim);u.busy=Math.min(aLen(u,anim),.7);
   schedule(hTime(u,anim),()=>{if(u.dead)return;
     if((u.zReady||u.dmaxOn)&&K.type!=='cast'&&!tg.dead){useMove(u,tg);if(u.spray)u.spa*=1+u.spray;if(u.leppa)gainMana(u,u.leppa);return;}
@@ -937,8 +937,8 @@ function camReset(){CAM.uz=1;CAM.px=CAM.py=0;}
 /* ================= Loop ================= */
 let last=performance.now();
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;camUpdate(dt);
-  if(!paused){if(mode==='combat')for(let i=0;i<speed;i++)stepCombat(dt);
-  update(dt*(mode==='combat'?speed:1));}try{draw(now/1000);}catch(e){console.error(e);}requestAnimationFrame(frame);}
+  if(!paused){const cs=cineSlow();if(mode==='combat')for(let i=0;i<speed;i++)stepCombat(dt*cs);
+  update(dt*(mode==='combat'?speed*cs:1));}try{draw(now/1000);}catch(e){console.error(e);}requestAnimationFrame(frame);}
 function update(dt){
   if(mode==='combat')for(const u of units)statusFx(u,dt);
   for(const p of fx){p.life-=dt;if(p.pmd){p.t+=dt;continue;}if(!p.ring&&!p.line){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt;}else p.r+=40*dt;}fx=fx.filter(p=>p.life>0);
@@ -958,7 +958,7 @@ function update(dt){
 const starScale=s=>1+(s-1)*.08;
 function draw(t){
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#13201a';ctx.fillRect(0,0,cv.width,cv.height);
-  {const z=CAM.z*2;ctx.setTransform(z,0,0,z,2*(CAM.ax-CAM.cx*CAM.z),2*(CAM.ay-CAM.cy*CAM.z));}ctx.imageSmoothingEnabled=false;
+  {const z=CAM.z*2,sk=cineShake(1/60);ctx.setTransform(z,0,0,z,2*(CAM.ax-CAM.cx*CAM.z)+sk.x,2*(CAM.ay-CAM.cy*CAM.z)+sk.y);}ctx.imageSmoothingEnabled=false;
   if(BG)ctx.drawImage(BG,0,0);else{ctx.fillStyle='#13201a';ctx.fillRect(0,0,W,H);}
   ctx.save();ctx.globalCompositeOperation='screen';
   if(OPTS.rays)for(let i=0;i<3;i++){const x=150+i*150+Math.sin(t*.3+i)*8;ctx.fillStyle=`rgba(255,240,190,${.035+.015*Math.sin(t*.7+i*2)})`;ctx.beginPath();ctx.moveTo(x,-10);ctx.lineTo(x+40,-10);ctx.lineTo(x+150,H);ctx.lineTo(x+90,H);ctx.closePath();ctx.fill();}
@@ -1005,7 +1005,7 @@ function draw(t){
     const q=w2s(chest.x,chest.y-14*(chest.tier==='silver'?1.2:1));ctx.strokeText(txt,q.x*2,q.y*2-20+bob);ctx.fillStyle='#ffe27a';ctx.fillText(txt,q.x*2,q.y*2-20+bob);}
   for(const tx of texts){ctx.globalAlpha=Math.min(1,tx.life*2.5);{const zb=CAM.z>1.35?8:0;ctx.font=(tx.big?24+zb:16+zb)+'px PokeEmerald,"Pixelify Sans",sans-serif';}
     ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#1b2430';const q=w2s(tx.x,tx.y);ctx.strokeText(tx.txt,q.x*2,q.y*2);ctx.fillStyle=tx.col;ctx.fillText(tx.txt,q.x*2,q.y*2);}
-  ctx.globalAlpha=1;drawRouteHud(t);
+  ctx.globalAlpha=1;drawCine(1/60);drawRouteHud(t);
 }
 function badgeTop(cu,s){const sp=SPR[s.dex];return s.y-6+(sp&&sp.m?sp.top*(s.sc||1)*sp.k:-20*(s.sc||1))-9;}
 function drawFormBadges(cu,s,t){
@@ -1302,7 +1302,7 @@ addEventListener('keydown',e=>{if(evoOpen||!run||paused||ov.innerHTML.trim())ret
   if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key===' '){e.preventDefault();startCombat();}});
 
 /* ================= Options & saving ================= */
-const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1};
+const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,cine:'first'};
 try{Object.assign(OPTS,JSON.parse(localStorage.getItem('pokerun.opts')||'{}'));}catch(e){}
 function saveOpts(){try{localStorage.setItem('pokerun.opts',JSON.stringify(OPTS));}catch(e){}}
 const SAVEKEY='pokerun.save.v1';
