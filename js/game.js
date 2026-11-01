@@ -23,7 +23,7 @@ function buildMode(id,unspr=OPTS.unsprited){
   let S;
   if(!gen)S=new Set(ROOTS.flatMap(fam)); // battle/mega forms are never shop lines; regional forms are species of their own
   // a generation pool takes lines with a member from that generation; a regional form only pulls in its line when it's the line's root
-  else{S=new Set();for(const r of ROOTS){const f=fam(r);if(f.some(i=>D[i].g===gen&&(!D[i].rf||i===r)))f.filter(i=>D[i].g<=gen).forEach(i=>S.add(i));}}
+  else{S=new Set();for(const r of ROOTS){const f=fam(r);if(f.some(i=>D[i].g===gen&&(!(D[i].rf||D[i].af)||i===r)))f.filter(i=>D[i].g<=gen).forEach(i=>S.add(i));}}
   const kids=i=>(KIDS[i]||[]).filter(k=>S.has(k));
   const sub=i=>{const o=[i];for(const k of kids(i))o.push(...sub(k));return o;};
   const roots=[...S].filter(i=>!D[i].f||!S.has(D[i].f)).sort((a,b)=>a-b);
@@ -59,7 +59,7 @@ function stylesOf(dex,abs){
   if(anc.some(a=>FOSSIL_IDS.includes(a)))out.push('Fossil');
   if(anc.some(a=>PSEUDO_IDS.includes(a)))out.push('Pseudo');
   for(const a of abs){if(out.length>=2)break;for(const st in STYLE_ABIL)if(STYLE_ABIL[st].includes(a)&&!out.includes(st)){out.push(st);break;}}
-  return out.slice(0,2);
+  const o=out.slice(0,2);for(const k in KIN)if(KIN[k].includes(dex))o.push(k);return o;
 }
 function kitOf(dex){
   if(KITCACHE[dex])return KITCACHE[dex];
@@ -333,6 +333,8 @@ function unitSets(u){const s=setsOf(shownDex(u),u.root);for(const it of u.items|
 function countTraits(list){const seen=new Set(),ct={};
   for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of unitSets(u))ct[k]=(ct[k]||0)+1;
     if(run&&run.gimmick==='tera'&&u.shard&&u.uid===run.gimTarget)ct[u.shard]=(ct[u.shard]||0)+1;}
+  // kinship sets count different members (forms) rather than lines
+  for(const k in KIN){const seen=new Set();for(const u of list)for(const d of kinDex(u))if(KIN[k].includes(d))seen.add(d);if(seen.size)ct[k]=seen.size;}
   if(run&&list.length&&list.some(u=>u&&u.uid!==undefined&&allOwned().includes(u)))augSetBonus(ct);
   return ct;}
 const traitDef=k=>SETS[k];
@@ -415,7 +417,7 @@ function combine(){
     for(const k in groups){const list=groups[k];if(list.length<3)continue;
       const ordered=list.sort((a,b)=>(locate(a).kind==='board'?0:1)-(locate(b).kind==='board'?0:1)||b.items.length-a.items.length);
       const keep=ordered[0];
-      for(const o of[ordered[1],ordered[2]]){removeUnit(o);
+      for(const o of[ordered[1],ordered[2]]){removeUnit(o);if(o.fuse){if(!keep.fuse)keep.fuse=o.fuse;else returnPartner(o.fuse.p);}if(o.forme&&!keep.forme)keep.forme=o.forme;if(o.formeAsked)keep.formeAsked=1;
         for(const it of o.items)if(keep.items.length<3)equipRaw(it,keep);else run.bag.push(it);
         for(const s in o.g)keep.g[s]=(keep.g[s]||0)+o.g[s];keep.gs+=o.gs;if(o.mut&&!keep.mut)keep.mut=o.mut;keep.mgs=Math.max(keep.mgs||0,o.mgs||0);}
       keep.star++;
@@ -430,7 +432,7 @@ function evolveStep(u){
   else if(!SIM.on)toast(`${before} is now ${u.star}★!`);
 }
 function sellValue(u){return lineOf(u).cost*Math.pow(3,u.star-1)-(u.star>1?1:0);}
-function sell(u){run.gold+=sellValue(u);removeUnit(u);for(const it of u.items)run.bag.push(it);if(u.items.length&&!SIM.on)toast(`${nameOf(u)}'s items went back to your bag.`);renderUI();}
+function sell(u){run.gold+=sellValue(u);if(u.fuse){returnPartner(u.fuse.p);u.fuse=null;}removeUnit(u);for(const it of u.items)run.bag.push(it);if(u.items.length&&!SIM.on)toast(`${nameOf(u)}'s items went back to your bag.`);renderUI();}
 
 /* ---------- equipping ---------- */
 function equipRaw(it,u){
@@ -627,6 +629,7 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
     kills:0,casts:0,hits:0,dealt:0,burn:null,poison:null,slowT:0,slowP:0};
   const p=hexXY(c,r);
   Object.assign(x,{x:p.x,y:p.y,dex:u.dex,dir:team?DIR.down:DIR.up,anim:'Idle',animT:Math.random(),loop:true,cd:rnd(.1,.5),target:null,move:null,stun:0,dead:false,deadT:0,flash:0,busy:0});
+  if(team===0&&(u.fuse||u.forme))formStats(x,u.fuse?u.fuse.fid:u.forme,u.fuse?u.fuse.p:null);
   return u.alpha||u.tgt?bigify(x):x;
 }
 
@@ -1583,7 +1586,7 @@ function showEnd(won){
 /* ================= Boot ================= */
 (async()=>{
   try{await Promise.all([document.fonts.load('16px PokeEmerald'),document.fonts.load('700 20px "Pixelify Sans"')]);}catch(e){}
-  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=9').then(r=>r.json()),fetch('data/sprites.json?v=9').then(r=>r.json()),fetch('data/kits.json?v=10').then(r=>r.json()),fetch('data/forms.json?v=7').then(r=>r.json())]);
+  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=10').then(r=>r.json()),fetch('data/sprites.json?v=10').then(r=>r.json()),fetch('data/kits.json?v=11').then(r=>r.json()),fetch('data/forms.json?v=8').then(r=>r.json())]);
   KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);

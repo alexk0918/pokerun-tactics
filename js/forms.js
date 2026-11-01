@@ -88,7 +88,7 @@ function formsOnCast(c){
 }
 function formsOnHp(c){
   const base=baseOf(c.dex),half=c.hp<c.maxHp*.5;
-  if(hasAb(c,'zen-mode')&&half&&!c.zenOn){c.zenOn=1;const f=formOf(555,'battle');if(f){transform(c,f,{label:'Zen Mode!',col:'#ff8a7a'});}}
+  if(hasAb(c,'zen-mode')&&half&&!c.zenOn){c.zenOn=1;const f=formOf(base,'battle');if(f){transform(c,f,{label:'Zen Mode!',col:'#ff8a7a'});}}
   if(hasAb(c,'shields-down')&&half&&!c.coreOn){c.coreOn=1;const f=formOf(774,'battle');if(f)transform(c,f,{label:'Shields Down!',col:'#ff6b6b'});}
   if(hasAb(c,'power-construct')&&half&&!c.pcOn){c.pcOn=1;const f=formOf(718,'battle');if(f){transform(c,f,{label:'Power Construct!',col:'#7dff7a',big:1});c.hp=Math.min(c.maxHp,c.hp+c.maxHp*.35);}}
   if(hasAb(c,'schooling')&&c.hp<c.maxHp*.25&&base===746&&c.dex!==746){transform(c,746,{label:'The school scattered!',col:'#8fd3ff'});}
@@ -97,7 +97,7 @@ function formsOnDisguiseBroken(c){if(baseOf(c.dex)===778){const f=formOf(778,'ba
 function formsOnIceFace(c){if(baseOf(c.dex)===875){const f=formOf(875,'battle');if(f)transform(c,f,{label:'Ice Face melted!',col:'#c6f4ff'});}}
 function formsAfterBattle(u){if(baseOf(u.dex)===964&&(KITS[964].a||[]).includes('zero-to-hero')&&!u.hero){u.hero=1;if(!SIM.on)setTimeout(()=>toast('Palafin became Hero Palafin for the rest of the run!'),1400);}}
 const megaShown=u=>run&&run.gimmick==='mega'&&u.stone&&!u.megaOff&&typeof megaFor==='function'?megaFor(u.dex,u.stone):null;
-const shownDex=u=>{const mg=megaShown(u);if(mg)return mg;if(u.hero){const f=formOf(baseOf(u.dex),'battle');if(f)return f;}if(u.app&&typeof rotomDex==='function')return rotomDex(u);return u.dex;};
+const shownDex=u=>{if(u.fuse)return u.fuse.fid;if(u.forme)return u.forme;const mg=megaShown(u);if(mg)return mg;if(u.hero){const f=formOf(baseOf(u.dex),'battle');if(f)return f;}if(u.app&&typeof rotomDex==='function')return rotomDex(u);return u.dex;};
 
 /* ---------- generation gimmicks ---------- */
 const GIMMICKS={

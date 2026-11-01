@@ -160,7 +160,7 @@ kit({ids:[1022],role:'Future Boulder',cls:'Striker',cat:'phys',range:1,mana:60,p
 kit({ids:[1023],role:'Future Crown',cls:'Mystic',cat:'spec',range:3,mana:65,pf:1.15,names:['Tachyon Cutter'],mvType:'Steel',tail:PARA_F,begin(c){paradox(c,1);}},B.hit(.8,{n:2,to:'strong',col:'#c0d8ff'}));
 
 // --- Treasures of Ruin, box legends and Kitakami ---
-const ruin=(c,stat,p)=>{for(const o of units)if(o.team!==c.team&&!o.dead){if(stat==='def'||stat==='res')o[stat]=Math.max(0,o[stat]*(1-p));else o[stat]*=1-p;}};
+const ruin=(c,stat,p)=>{if(c.fx.ruin2)p*=2;for(const o of units)if(o.team!==c.team&&!o.dead){if(stat==='def'||stat==='res')o[stat]=Math.max(0,o[stat]*(1-p));else o[stat]*=1-p;}};
 kit({ids:[1001],role:'Ruinous Tablets',cls:'Vanguard',type:'guard',cat:'spec',range:1,mana:75,start:25,pf:1.1,names:['Ruination'],mvType:'Dark',tail:()=>'<b>Tablets of Ruin:</b> every enemy has 15% less Attack.',begin(c){ruin(c,'atk',.15);}},
   {d:c=>`${B.shield(.2).d(c,0)} Then Ruination halves the current HP of the target (up to ${DT(c,2)}), and it leeches 2 Leech Seed onto it.`,
    cast(c,tg){B.shield(.2).cast(c,tg,0);if(!tg.dead){damage(c,tg,Math.min(tg.hp*.5,V(c,2)),{ab:1,cat:'spec',tru:1,noCrit:1});addStatus(tg,'seed',2,c);}}});

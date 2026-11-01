@@ -70,6 +70,14 @@ const AUGDEF=[
   {id:'goldtix',t:'prismatic',tag:'econ',icon:'gold-bottle-cap',name:'Golden Ticket',d:'Shop rerolls cost ₽1 instead of ₽2, and you get a free reroll every floor.',floor(){run.freeRerolls=Math.max(run.freeRerolls||0,1);}},
   {id:'harmony',t:'prismatic',tag:'team',icon:'soothe-bell',name:'Harmony',d:'Your team gains +4% damage and +4% max HP for every active set you have.',ef:x=>{const n=Object.keys(x.tr).filter(k=>SETS[k]&&tierOf(k,x.tr[k])).length;return{dmg:.04*n,hpP:.04*n};}},
   {id:'hyperdrive',t:'prismatic',tag:'combat',icon:'power-herb',name:'Hyperdrive',d:'Your Pokémon\'s moves cost 25% less PP and they start with +15 PP.',e:{ppCut:.25,mana:15}},
+  /* ---------------- forms and kinship ---------------- */
+  {id:'regional',t:'silver',tag:'team',icon:'town-map',name:'Regional Tour',d:'Your regional-form Pokémon (Alolan, Galarian, Hisuian, Paldean) gain +20% max HP and +10% damage.',ef:x=>D[x.u.dex]&&D[x.u.dex].rf?{hpP:.2,dmg:.1}:null},
+  {id:'formchange',t:'gold',tag:'team',icon:'reveal-glass',name:'Form Change',d:'Your Pokémon in an alternate form (regional forms, Oricorio styles, Lycanroc, Wormadam cloaks, Deoxys formes, fusions) gain +15% max HP, damage and Attack Speed.',
+    ef:x=>{const d=shownDex(x.u),dd=D[d];return(dd&&(dd.rf||dd.af))||x.u.fuse||x.u.forme?{hpP:.15,dmg:.15,as:.15}:null;}},
+  {id:'fusionreactor',t:'prismatic',tag:'team',icon:'prison-bottle',name:'Fusion Reactor',d:'Fused Pokémon gain +30% max HP, damage and Attack Speed. If you have none, a random fusion-ready legendary (Kyurem, Necrozma or Calyrex) joins your bench.',
+    ef:x=>x.u.fuse?{hpP:.3,dmg:.3,as:.3}:null,gain(){if(allOwned().some(u=>[646,800,898].includes(baseOf(u.dex))))return;const p=[646,800,898].filter(r=>MODE.lines[r]);if(p.length)gainUnit(pick(p),1);}},
+  {id:'gathering',t:'prismatic',tag:'set',icon:'soul-dew',name:'Legendary Gathering',d:'Every kinship set you have active (Wolf Pack, Tao Trio, Island Guardians, Eeveelutions…) counts one extra member.',kin:1},
+  {id:'packleader',t:'gold',tag:'set',icon:'razor-claw',name:'Pack Leader',d:'Kinship sets need one fewer member: each counts one extra as long as you have at least one member.',kinAll:1},
 ];
 // set augments for every type and class: Heart (+1), Crest (+1 and a Pokémon), Crown (+2 and a 2★ Pokémon)
 for(const k of Object.keys(SETS).filter(k=>SETS[k].cat==='type'||SETS[k].cat==='class')){
@@ -94,7 +102,7 @@ function augE(u,col,row,tr){
 // team-wide battle flags (weather, intimidate, ...)
 function augTeamX(tx){for(const a of myAugs())if(a.x)for(const k in a.x){if(typeof a.x[k]==='number')tx[k]=(tx[k]||0)+a.x[k];else if(!tx[k])tx[k]=a.x[k];}}
 // extra set counts from Hearts, Crests and Crowns
-function augSetBonus(ct){for(const a of myAugs())if(a.sets)for(const k in a.sets)if(ct[k])ct[k]+=a.sets[k];}
+function augSetBonus(ct){for(const a of myAugs()){if(a.sets)for(const k in a.sets)if(ct[k])ct[k]+=a.sets[k];if(a.kin||a.kinAll)for(const k in ct)if(SETS[k]&&SETS[k].kin&&(a.kinAll||tierOf(k,ct[k])))ct[k]+=1;}}
 function augOnFloor(){for(const a of myAugs())if(a.floor)a.floor();}
 function augAfter(win,fought){const msgs=[];for(const a of myAugs())if(a.after){const m=a.after(win,fought);if(m)msgs.push(m);}return msgs;}
 const augInterestCap=()=>augIs('richer')?3:0;

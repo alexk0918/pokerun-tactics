@@ -335,6 +335,14 @@ Alolan, Galarian, Hisuian and Paldean forms are lines of their own, with their o
 - **Branch evolutions** you choose when the Pokémon evolves: Alolan Raichu, Alolan Exeggutor, Alolan Marowak, Galarian Weezing, Galarian Mr. Mime (→ Mr. Rime), Hisuian Typhlosion, Samurott, Lilligant, Braviary, Goodra, Avalugg and Decidueye.
 - Alolan forms belong to the Gen VII pool, Galarian and Hisuian forms to Gen VIII, and Paldean forms to Gen IX (all of them in National Dex). Hisuian lines count as Sinnoh for the region sets.
 
+### Alternate forms, fusions and kinship sets
+
+- **Form units:** Sandy and Trash Wormadam (Burmy branches), Pom-Pom, Pa'u and Sensu Oricorio (their own shop units), Midnight and Dusk Lycanroc (Rockruff branches), Low Key Toxtricity and Rapid Strike Urshifu (branches). Each has its own sprite, type and kit.
+- **Fusions:** own Kyurem with Zekrom or Reshiram (DNA Splicers), Necrozma with Solgaleo or Lunala (N-Solarizer / N-Lunarizer), or Calyrex with Glastrier or Spectrier (Reins of Unity), and its menu (right-click / RT) offers the fusion. A cut-in plays, the partner joins the fusion, and the fused Pokémon gets its fused stats, a new move and +10% max HP and damage per star of its partner. Separate them from the same menu (selling a fusion returns the partner). A fused Necrozma **Ultra Bursts** into Ultra Necrozma at half HP.
+- **Deoxys:** a meteorite falls when you get one and you pick its forme (Normal, Attack, Defense or Speed); change it from its menu between battles. Each forme plays its Psycho Boost differently.
+- **Kinship sets** count different members rather than lines, so two Lycanroc forms from the same Rockruff line both count: Wolf Pack (Lycanroc forms), Dance Troupe (Oricorio styles), Cloak Society (Wormadam cloaks), Two Styles (Urshifu), Duet (Toxtricity), Eeveelutions, Tao Trio (a fused Kyurem counts as its partner too), Weather Trio, Island Guardians, Ruinous Treasures, Swords of Justice, Lake Guardians, Legendary Beasts, Ancient and Future Paradox Pokémon, and Ultra Beasts.
+- **Augments:** Regional Tour, Form Change, Fusion Reactor, Legendary Gathering and Pack Leader play into forms and kinship sets.
+
 ### Non-sprited Pokémon
 
 A few lines don't have PMD sprites yet. By default they're left out (a branch without sprites is dropped, and a line that couldn't evolve without one is skipped). Turn on **Settings › General › Enable non-sprited Pokémon** to add them as round portrait tokens; it applies to new runs.

@@ -54,6 +54,24 @@ const SETS={
   Regrowth:{cat:'style',bp:[2,4,6],m:[{regen:.02},{regen:.04},{regen:.06}],t:[{regen:.005},{regen:.01},{regen:.02}],d:'Regrowth Pokémon restore 2% / 4% / 6% max HP per second, and your team restores 0.5% / 1% / 2%.'},
   Phantom:{cat:'style',bp:[2,4,6],m:[{dodge:.15},{dodge:.3},{dodge:.45}],t:[{dodge:.05},{dodge:.1},{dodge:.2}],d:'Phantoms dodge 15% / 30% / 45% of attacks; the rest of your team dodges 5% / 10% / 20%.'},
   Charged:{cat:'style',bp:[2,4,6],m:[{zap:45,as:.1},{zap:100,as:.2},{zap:180,as:.35}],d:'Every 3rd attack from a Charged Pokémon zaps up to 3 enemies for 45 / 100 / 180 special damage. +10% / +20% / +35% Attack Speed.'},
+  /* Kinship sets: alternate forms and legendary groups. They count different members, not lines,
+     so two Lycanroc forms or three Eeveelutions from the same Eevee line all count. */
+  'Wolf Pack':{cat:'style',kin:1,bp:[2,3],m:[{as:.15,dmg:.15},{as:.25,dmg:.25,crit:.15,killPP:15}],d:'<b>Pack Hunt:</b> Lycanroc forms (Midday, Midnight, Dusk) fight as a pack: +15% / +25% Attack Speed and damage. With all three, +15% crit chance and each knockout gives that Lycanroc 15 PP.'},
+  'Dance Troupe':{cat:'style',kin:1,bp:[2,4],m:[{mana:20,ab:.15},{mana:40,ab:.35,as:.15}],d:'<b>Revelation Dance:</b> Oricorio styles (Baile, Pom-Pom, Pa\'u, Sensu) start with +20 / +40 PP and their moves deal +15% / +35% damage. With all four, +15% Attack Speed.'},
+  'Cloak Society':{cat:'style',kin:1,bp:[2,3],m:[{def:20,res:20,shieldP:.1},{def:40,res:40,shieldP:.2}],d:'<b>Cloaked:</b> Wormadam cloaks (Plant, Sandy, Trash) gain +20 / +40 Defense and Sp. Def and start with a 10% / 20% max HP shield.'},
+  'Two Styles':{cat:'style',kin:1,bp:[2],m:[{dmg:.25,crit:.15}],d:'<b>Martial Masters:</b> Single Strike and Rapid Strike Urshifu together: both gain +25% damage and +15% crit chance.'},
+  'Duet':{cat:'style',kin:1,bp:[2],m:[{ab:.25,mana:20}],d:'<b>Punk Duet:</b> Amped and Low Key Toxtricity together: both start with +20 PP and their moves deal +25% damage.'},
+  'Eeveelutions':{cat:'style',kin:1,bp:[2,3,4],m:[{hpP:.1,dmg:.1},{hpP:.2,dmg:.2},{hpP:.35,dmg:.35}],d:'<b>Adaptability:</b> different Eeveelutions gain +10% / +20% / +35% max HP and damage.'},
+  'Tao Trio':{cat:'style',kin:1,bp:[2,3],m:[{dmg:.15,hpP:.15},{dmg:.3,hpP:.3}],d:'<b>Yin and Yang:</b> Reshiram, Zekrom and Kyurem gain +15% / +30% max HP and damage. A fused Kyurem counts as both itself and its partner.'},
+  'Weather Trio':{cat:'style',kin:1,bp:[2,3],m:[{ab:.15},{ab:.3,hpP:.2}],d:'<b>Super-Ancient:</b> Groudon, Kyogre and Rayquaza\'s moves deal +15% / +30% damage (+20% max HP with all three).'},
+  'Island Guardians':{cat:'style',kin:1,bp:[2,4],m:[{ab:.15,regen:.005},{ab:.3,regen:.01}],d:'<b>Guardian Deities:</b> the Tapus\' moves deal +15% / +30% damage and they restore 0.5% / 1% max HP per second.'},
+  'Ruinous Treasures':{cat:'style',kin:1,bp:[2,4],m:[{dmg:.15},{dmg:.3,ruin2:1}],d:'<b>Ruin:</b> the Treasures of Ruin deal +15% / +30% damage. With all four, their ruinous auras are twice as strong.'},
+  'Swords of Justice':{cat:'style',kin:1,bp:[2,4],m:[{crit:.15,as:.1},{crit:.3,as:.25}],d:'<b>Justice:</b> Cobalion, Terrakion, Virizion and Keldeo gain +15% / +30% crit chance and +10% / +25% Attack Speed.'},
+  'Lake Guardians':{cat:'style',kin:1,bp:[3],m:[{mana:30,ab:.25}],d:'<b>Being of Knowledge, Emotion and Willpower:</b> with Uxie, Mesprit and Azelf together, each starts with +30 PP and its move deals +25% damage.'},
+  'Legendary Beasts':{cat:'style',kin:1,bp:[3],m:[{as:.3,dmg:.2}],d:'<b>Burned Tower:</b> with Raikou, Entei and Suicune together, each gains +30% Attack Speed and +20% damage.'},
+  'Ancient':{cat:'style',kin:1,bp:[2,4],m:[{atkP:.1,spaP:.1},{atkP:.25,spaP:.25}],x:[{},{weather:'sun'}],d:'<b>Area Zero, past:</b> ancient Paradox Pokémon gain +10% / +25% Attack and Sp. Atk. With 4, every battle starts in harsh sun (Protosynthesis).'},
+  'Future':{cat:'style',kin:1,bp:[2,4],m:[{as:.1,dmg:.1},{as:.25,dmg:.25}],d:'<b>Area Zero, future:</b> future Paradox Pokémon gain +10% / +25% Attack Speed and damage.'},
+  'Ultra Beast':{cat:'style',kin:1,bp:[2,4],m:[{killHeal:.1},{killHeal:.2,dmg:.2}],d:'<b>Ultra Space:</b> Ultra Beasts heal 10% / 20% max HP on every knockout (+20% damage at 4).'},
   Partner:{cat:'style',bp:[2,3],m:[{hpP:.1,dmg:.1,friend:1},{hpP:.2,dmg:.2,friend:2}],d:'<b>Friendship:</b> starters, Pikachu and Eevee gain +10% / +20% max HP and damage. Each battle a Partner Pokémon fights while this is active, it gains 1 Friendship (2 at 3), forever: +1.5% max HP and damage per point, up to 20. At 10 Friendship it <b>hangs on for you</b>, surviving its first fainting blow each battle. At 2, you also receive the Partner Ribbon, gear for one Partner Pokémon.'},
   Fossil:{cat:'style',bp:[2,3],m:[{revive:.3},{revive:.5}],d:'<b>Ancient Power:</b> the first time a Fossil Pokémon faints, it revives with 30% / 50% HP. At 2, you receive the Ancient Amber, gear that makes its Fossil wearer come back even stronger.'},
   Pseudo:{cat:'style',bp:[2,3],m:[{hpP:.15,dmg:.1},{hpP:.25,dmg:.2}],d:'<b>Apex:</b> pseudo-legendary lines gain +15% / +25% max HP and +10% / +20% damage. At 2, you receive the Apex Fang: whoever wears it becomes the Apex, with +35% max HP, damage and Attack Speed. At 3, the fang turns Radiant (+60%).'},
@@ -74,6 +92,14 @@ const CLASSCOL={Vanguard:'#5b7fa8',Juggernaut:'#7a6a55',Bruiser:'#b5532f',Strike
 const STYLECOL='#24303d';
 
 /* Styles that come from real abilities (any of the species' abilities) */
+const KIN={
+  'Wolf Pack':[745,10126,10152],'Dance Troupe':[741,10123,10124,10125],'Cloak Society':[413,10004,10005],'Two Styles':[892,10191],'Duet':[849,10184],
+  'Eeveelutions':[134,135,136,196,197,470,471,700],'Tao Trio':[643,644,646,10022,10023],'Weather Trio':[382,383,384],'Island Guardians':[785,786,787,788],
+  'Ruinous Treasures':[1001,1002,1003,1004],'Swords of Justice':[638,639,640,647],'Lake Guardians':[480,481,482],'Legendary Beasts':[243,244,245],
+  'Ancient':[984,985,986,987,988,989,1005,1009,1020,1021],'Future':[990,991,992,993,994,995,1006,1010,1022,1023],'Ultra Beast':[793,794,795,796,797,798,799,803,804,805,806],
+};
+// a fused Kyurem counts as the Tao member it absorbed too
+const kinDex=u=>{const d=typeof shownDex==='function'?shownDex(u):u.dex,o=[d];if(u.fuse&&u.fuse.p)o.push(u.fuse.p.dex);return o;};
 const STYLE_ABIL={
   Sun:['drought','chlorophyll','solar-power','flower-gift','leaf-guard','harvest','protosynthesis','orichalcum-pulse','desolate-land'],
   Rain:['drizzle','swift-swim','rain-dish','hydration','dry-skin','primordial-sea'],
