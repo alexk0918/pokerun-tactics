@@ -282,7 +282,7 @@ Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type
 
 ### Scouting
 
-Once you've invested in a set (3+ different lines and ₽8+ worth of units, from floor 4), shop slots have a chance to show Pokémon from your two most-invested sets. The chance grows with investment and with every shop that misses. Scouted cards are tagged in the shop.
+Once you've invested in a set (3+ different lines and ₽8+ worth of units, from floor 4), shop slots have a chance to show Pokémon from your two most-invested sets. The chance grows with investment and with every shop that misses. Scouted cards are tagged in the shop. While fewer than a third of your lines (or fewer than 2) are Vanguard or Juggernaut, scouted slots strongly favour tanks from your sets, and lines in both of your top sets are favoured too. The National Dex pool is about seven times bigger than a single generation's, so there scouting starts on floor 2 at 2 lines and ₽5, with a higher base chance (30%, up to 65%).
 
 ### Kits: real moves and abilities
 

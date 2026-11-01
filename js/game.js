@@ -323,13 +323,22 @@ function setColor(k){const S=SETS[k];if(!S)return'#55606a';if(S.cat==='type')ret
    Once you've put real investment into a set, shop slots can be steered toward it.
    Unlocks from floor 4 for any set with 3+ different lines and ₽8+ of units. */
 const SCOUT={minFloor:4,minLines:3,minGold:8,base:.15,perGold:.02,perMiss:.07,cap:.55};
+// the National Dex pool is ~7x bigger than one generation's, so scouting starts sooner and stronger there
+const SCOUT_BIG={minFloor:2,minLines:2,minGold:5,base:.3,perGold:.025,perMiss:.08,cap:.65};
+function scoutCfg(){return MODE&&MODE.roots.length>200?SCOUT_BIG:SCOUT;}
+const FRONT=['Vanguard','Juggernaut'];
+// your team needs a frontliner when fewer than a third of your lines (and fewer than 2) can tank
+function needsFront(){const roots=new Set(allOwned().map(u=>u.root));let f=0;for(const r of roots)if(MODE.lines[r]&&lineSets(r).some(k=>FRONT.includes(k)))f++;return f<2||f<roots.size/3;}
+// weighted pick for scouted slots: tanks are favoured while the team lacks a frontline, lines in both focus sets are favoured too
+function scoutPick(cand,focus){const nf=needsFront();const w=cand.map(r=>{const ls=lineSets(r);let x=1;if(nf&&ls.some(k=>FRONT.includes(k)))x*=4;if(focus.length>1&&focus.every(k=>ls.includes(k)))x*=2;return x;});
+  let t=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<cand.length;i++){t-=w[i];if(t<=0)return cand[i];}return cand[cand.length-1];}
 function investment(){const inv={},lines={};
   for(const u of allOwned()){const w=lineOf(u).cost*Math.pow(3,u.star-1);for(const k of setsOf(u.dex,u.root)){inv[k]=(inv[k]||0)+w;(lines[k]=lines[k]||new Set()).add(u.root);}}
   return Object.keys(inv).map(k=>({k,gold:inv[k],lines:lines[k].size})).sort((a,b)=>b.gold-a.gold||b.lines-a.lines);}
 function scoutState(){
   const inv=investment();
-  const ok=run.floor>=SCOUT.minFloor?inv.filter(x=>x.lines>=SCOUT.minLines&&x.gold>=SCOUT.minGold).slice(0,2):[];
-  const p=ok.length?Math.min(SCOUT.cap,SCOUT.base+SCOUT.perGold*(ok[0].gold-SCOUT.minGold)+SCOUT.perMiss*(run.pity||0)):0;
+  const C=scoutCfg(),ok=run.floor>=C.minFloor?inv.filter(x=>x.lines>=C.minLines&&x.gold>=C.minGold).slice(0,2):[];
+  const p=ok.length?Math.min(C.cap,C.base+C.perGold*(ok[0].gold-C.minGold)+C.perMiss*(run.pity||0)):0;
   return{focus:ok.map(x=>x.k),p,top:inv[0]||null};
 }
 
@@ -352,7 +361,7 @@ function rollShop(first){
   for(let i=0;i<5;i++){let cost=rollCostFor(o),r=null;
     if(sc.focus.length&&Math.random()<sc.p){
       const costs=[cost,...[1,2,3,4,5].filter(c=>c!==cost&&o[c-1]>0).sort((a,b)=>Math.abs(a-cost)-Math.abs(b-cost))];
-      for(const c of costs){const cand=MODE.byCost[c-1].filter(x=>lineSets(x).some(k=>sc.focus.includes(k)));if(cand.length){r=pick(cand);break;}}
+      for(const c of costs){const cand=MODE.byCost[c-1].filter(x=>lineSets(x).some(k=>sc.focus.includes(k)));if(cand.length){r=scoutPick(cand,sc.focus);break;}}
       if(r){run.scouted[i]=true;hit=true;}}
     run.shop.push(r||pick(MODE.byCost[cost-1]));}
   if(first)run.shop[0]=run.featured[0];
