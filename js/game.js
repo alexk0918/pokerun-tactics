@@ -876,7 +876,7 @@ function afterResult(win){
   const nk=nodeK(run.floor);
   run.pendingRelic=win&&(floorKind(run.floor)==='elite'||(nk==='alpha'&&Math.random()<.25));
   run.pendingEnh=win&&(floorKind(run.floor)==='elite'||nk==='alpha');
-  run.loot=rollLoot(!win);
+  run.loot=rollLoot(!win);run.lootLost=!win;run.lootRolls=0;
   mode='loot';
   if(SIM.on)return;
   chest={x:hexXY(3,2).x,y:hexXY(3,2).y,t:0,open:false,kind:run.pendingRelic?'relic':'item',tier:chestTier()};
@@ -884,7 +884,8 @@ function afterResult(win){
 }
 function rollLoot(lost){
   const q=lootQuality(!lost),f=run.floor,n=3+(hasRelic('dowsing-machine')?1:0)+(q>=1?1:0),elite=(floorKind(f)==='elite'||q>=2)&&!lost,out=[];
-  const pCraft=elite?1:q===1?.6:clamp(.08+f*.025,0,.45)*(lost?.5:1),pUse=.15;
+  // regular chests hold components only; completed items come from better chests
+  const pCraft=elite?1:q===1&&!lost?.6:0,pUse=.15;
   for(let i=0;i<n;i++){const x=Math.random();
     if(x<pCraft)out.push({k:randCraft(),mut:rollMut(.3+f*.015+q*.1)});
     else if(x<pCraft+pUse&&!elite)out.push({k:pick(USE_COMMON),mut:[]});
@@ -1302,7 +1303,7 @@ function renderUI(){
   $('buyxp').disabled=!plan||run.gold<4||run.level>=MAXLV;
   {const o=LVODDS[run.level];$('odds').innerHTML=`<span class="lbl">Lv ${run.level}</span>`+o.map((p,i)=>`<span class="od c${i+1}${p?'':' off'}" title="${i+1}-cost Pokémon: ${Math.round(p*100)}% per shop slot">₽${i+1} <b>${Math.round(p*100)}%</b></span>`).join('');
    $('buyxp').title=run.level>=MAXLV?'Max level':`Buy 4 XP for ₽4 (${run.xp}/${XPNEXT[run.level]} to level ${run.level+1})`;}
-  $('fight').disabled=!plan;$('fight').textContent=mode==='combat'?'Battling…':mode==='loot'?'Open chest':'Battle!';
+  $('fight').disabled=!plan;$('fight').textContent=mode==='combat'?'Battling…':mode==='loot'?(chest&&chest.open?'Back to chest':'Open chest'):'Battle!';
   if(mode==='loot')$('fight').disabled=false;
   // bag
   $('bagct').textContent=`${run.bag.length}/${BAGMAX}`;
@@ -1325,7 +1326,7 @@ $('traits').addEventListener('pointermove',e=>{const ct=countTraits(Object.value
 $('traits').addEventListener('pointerleave',hideTip);
 $('reroll').onclick=reroll;
 $('buyxp').onclick=buyXP;
-$('fight').onclick=()=>{if(mode==='loot')openChest();else startCombat();};
+$('fight').onclick=()=>{if(mode==='loot'){if(chest&&chest.open)showLootPicks();else openChest();}else startCombat();};
 $('dexbtn').onclick=()=>{if(ov.innerHTML.trim()&&!$('dexclose'))return toast('Finish this choice first.');if($('dexclose'))return closeKitDex();$('pause').hidden=true;showKitDex('game');};
 $('speed').onclick=()=>{speed=speed===1?2:1;$('speed').setAttribute('aria-pressed',speed===2);};
 addEventListener('keydown',e=>{if(evoOpen||!run||paused||ov.innerHTML.trim())return;
@@ -1461,14 +1462,24 @@ const isRelicId=x=>typeof x==='string'&&RELICS[x];
 function openChest(){
   if(mode!=='loot'||!run.loot||(chest&&chest.open))return;
   if(chest){chest.open=true;openChestFx(chest);}
-  hideTip();
+  showLootPicks();
+}
+const lootRerollCost=()=>2+(run.lootRolls||0);
+function showLootPicks(){
+  if(mode!=='loot'||!run.loot)return;hideTip();lootPeek(false);
+  const cost=lootRerollCost();
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${run.results[run.floor]==='win'?'Treasure!':'Consolation chest'}</h1><p class="sub">Choose one item. Two components on the same Pokémon combine into a completed item.</p>
     <div class="picks">${run.loot.map((it,i)=>itemCard(it,i)).join('')}</div>
-    <button class="btn skip" id="skip">Skip and take ₽2</button></div>`;
+    <div class="lootacts"><button class="btn" id="lootteam">View team</button><button class="btn" id="lootroll" ${run.gold<cost?'disabled':''}>Reroll items ₽${cost}</button><button class="btn skip" id="skip">Skip and take ₽2</button></div></div>`;
   ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>chooseLoot(+b.dataset.i));
   $('skip').onclick=()=>chooseLoot(-1);
+  $('lootroll').onclick=rerollLoot;
+  $('lootteam').onclick=()=>{hideTip();ov.innerHTML='';lootPeek(true);};
 }
-function chooseLoot(i){const r=takeLoot(i);if(r===false)return;if(r==='relic')showRelics();}
+function rerollLoot(){const cost=lootRerollCost();if(mode!=='loot'||!run.loot||run.gold<cost)return;run.gold-=cost;run.lootRolls=(run.lootRolls||0)+1;run.loot=rollLoot(!!run.lootLost);renderUI();showLootPicks();}
+// minimise the item choice to look at the team; a button brings it back
+function lootPeek(on){const b=$('lootback');if(!b)return;b.hidden=!on;if(on){renderUI();b.focus();}}
+function chooseLoot(i){const r=takeLoot(i);if(r===false)return;lootPeek(false);if(r==='relic')showRelics();}
 function showGimmickChoice(){
   mode='augment';$('bannerhost').innerHTML='';
   const opts=GIM_ORDER.filter(g=>!(run.gimmicks||[]).includes(g));
@@ -1524,3 +1535,5 @@ function showEnd(won){
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>64)im.style.imageRendering='auto';},true);
 // No browser right-click menu anywhere in the game (text fields keep it for copy/paste).
 document.addEventListener('contextmenu',e=>{const t=e.target;if(t&&t.closest&&t.closest('input,textarea,[contenteditable="true"]'))return;e.preventDefault();});
+$('lootback').onclick=()=>showLootPicks();
+(function lootBackLoop(){try{const b=$('lootback');if(b&&!b.hidden&&(!run||mode!=='loot'||!run.loot||ov.innerHTML.trim()))b.hidden=true;}catch(e){}requestAnimationFrame(lootBackLoop);})();

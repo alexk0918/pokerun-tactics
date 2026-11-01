@@ -182,7 +182,9 @@ While you drag a Pokémon, or hover one on the field, the hexes it can reach fro
 - The **Eject Pack** takes every item off a Pokémon and puts them back in your bag. It turns up in rival, alpha and challenge chests (and sometimes at Kecleon's).
 - Drag a component over another component (in the bag, or onto a Pokémon holding one) to see what they'd make. In chest choices, hover any recipe to see the finished item.
 
-- A chest appears after every battle. Open it and pick one of three items, or skip for ₽2.
+- A chest appears after every battle. Open it and pick one of three items, or skip for ₽2. Regular chests hold components (plus the odd consumable or gimmick item); completed items come from challenge, alpha and rival chests (or the Super Rod relic).
+- **Reroll items** in a chest for ₽2, going up ₽1 each time for that chest.
+- **View team** hides the chest choice so you can check your board, sets and items; **Back to the chest** (or the Battle button) brings it back.
 - Items work like TFT: 8 components (Protein, Calcium, Carbos, Iron, Zinc, HP Up, PP Up, Dire Hit) combine into 36 completed items. Put two components on the same Pokémon, or drop one on another in your bag. Each Pokémon holds up to 3 items, and selling it returns them to the bag.
 - Items can roll mutators (Shiny, Blazing, Vampiric, Swift, Sturdy, Charged, Lucky, Golden, Growing, Thorny, Blessed, Shadow) that carry over when components combine.
 - Consumables: Rare Candy (copy a Pokémon), Potion, Nugget, Honey.

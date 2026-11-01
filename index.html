@@ -556,6 +556,9 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .mps{font-family:var(--label);font-size:12px;opacity:.75;line-height:1;}
 .mtot{display:flex;justify-content:space-between;font-family:var(--label);font-size:12px;border-top:1px solid #c5d1d9;padding-top:4px;margin-top:2px;}.mtot small{opacity:.7;}
 .mempty{font-family:var(--label);font-size:13px;opacity:.7;padding:4px 0;}
+#lootback{position:absolute;left:50%;top:478px;transform:translateX(-50%);z-index:30;padding:8px 22px;font-size:18px;box-shadow:0 4px 0 #0005;}
+.lootacts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px;}.lootacts .btn{width:auto;padding:8px 18px;}.lootacts .btn.skip{margin:0;}
+.lootacts .btn[disabled]{opacity:.5;cursor:not-allowed;}
 </style>
 
 </head>
@@ -581,6 +584,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
   <div id="meter" class="win" hidden><button class="baghead" id="mtog" aria-expanded="true"><span class="lbl" id="mlbl">Battle meter</span><span class="caret" aria-hidden="true"></span></button>
     <div class="mbody"><div class="mtabs"><button data-mtab="dmg">Damage</button><button data-mtab="heal">Healing</button><button data-mtab="taken">Taken</button></div>
     <div class="mside"><button data-mside="0">Your team</button><button data-mside="1">Enemies</button></div><div id="mrows"></div></div></div>
+  <button id="lootback" class="btn go" hidden>Back to the chest</button>
   <img id="ghost" alt="" hidden>
   <div id="shop" class="win" hidden>
     <button class="shoptog" id="shoptog" aria-expanded="true" title="Hide or show the shop (Tab · LB)"><span class="caret" aria-hidden="true"></span><span id="shoptogl">Hide shop</span></button>
@@ -606,7 +610,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 
 <script src="js/data.js?v=16"></script>
 <script src="js/sets.js?v=18"></script>
-<script src="js/game.js?v=36"></script>
+<script src="js/game.js?v=38"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=6x"></script>
