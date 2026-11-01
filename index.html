@@ -526,6 +526,19 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .trait.m-prism .hex{background:linear-gradient(135deg,#ff8de1,#8ad8ff 35%,#ffe27a 65%,#9dff9a);animation:prism 3s linear infinite;background-size:200% 200%;}
 .trait.m-prism{border-color:#ffd0f4;box-shadow:0 0 10px #ff8de188;}
 @keyframes prism{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+/* unit menu */
+.umwin{display:grid;grid-template-columns:330px 300px;gap:18px;padding:16px 18px;max-height:640px;}
+.umdetails{font-size:16px;max-height:600px;overflow:auto;}
+.umdetails img{width:80px;height:80px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#e8efe2;}
+.umdetails .top{display:flex;gap:10px;align-items:center;} .umdetails h3{margin:0;font-size:24px;}
+.umdetails .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 10px;margin:10px 0 8px;} .umdetails .stats div{display:flex;flex-direction:column;}
+.umside{display:flex;flex-direction:column;gap:6px;}
+.umslot{display:flex;align-items:center;gap:10px;border:2px solid #c5d1d9;border-radius:8px;padding:6px 8px;background:#fff;font-size:16px;cursor:help;}
+.umslot img{width:32px;height:32px;image-rendering:pixelated;}
+.umslot.empty{background:repeating-linear-gradient(135deg,#eef0ea 0 6px,#e3e7df 6px 12px);color:var(--muted);cursor:default;min-height:36px;}
+.umslot.t-epic{border-color:#c9961d;background:#fff4d6;} .umslot.t-gear{border-color:#8a6ce0;background:#f1ebff;} .umslot.t-enh{border-color:#2fb8a0;}
+.umslot.gim{border-color:#ff7ad9;background:#fff0fa;}
+.umacts{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:12px;}
 </style>
 
 </head>
@@ -573,12 +586,12 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 
 <script src="js/data.js?v=16"></script>
 <script src="js/sets.js?v=18"></script>
-<script src="js/game.js?v=30"></script>
+<script src="js/game.js?v=32"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=6"></script>
 <script src="js/cine.js?v=6"></script>
-<script src="js/forms.js?v=14"></script>
+<script src="js/forms.js?v=15"></script>
 <script src="js/route.js?v=20"></script>
 <script src="js/carousel.js?v=3"></script>
 <script src="js/kits.js?v=22"></script>
@@ -589,7 +602,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 <script src="js/kits_gen5.js?v=5"></script>
 <script src="js/kits_gen6.js?v=4"></script>
 <script src="js/kitdex.js?v=4"></script>
-<script src="js/ui.js?v=8"></script>
-<script src="js/gamepad.js?v=16"></script>
+<script src="js/ui.js?v=10"></script>
+<script src="js/gamepad.js?v=17"></script>
 </body>
 </html>

@@ -303,7 +303,7 @@ Form-change Pokémon transform the way they do in the games:
 
 On floor 4 of each act you choose one key item. The others become available in later acts.
 
-- **Mega Bracelet (Gen VI):** Mega Stones drop only for Pokémon you own (96 Megas, including Legends: Z-A). Pick which Pokémon is your Mega; it Mega Evolves early in each battle with its real Mega stats and ability.
+- **Mega Bracelet (Gen VI):** Mega Stones drop only for Pokémon you own (96 Megas, including Legends: Z-A). There's no cap: every Pokémon holding its stone Mega Evolves the moment the stone is dropped on it, and starts each battle in Mega form with its real Mega stats and ability. Toggle any Mega off or on from its unit menu.
 - **Z-Power Ring (Gen VII):** Z-Crystals let a Pokémon with a matching move type turn its first move each battle into a Z-Move.
 - **Dynamax Band (Gen VIII):** Max Mushrooms raise a Pokémon's Dynamax Level (up to 10). Your Dynamax pick grows huge for 10 seconds with Max Moves that change the battlefield. Pokémon with a Gigantamax form unlock it at 3 mushrooms and use their G-Max Move.
 - **Tera Orb (Gen IX):** Tera Shards work like emblems: the holder counts as that type for sets. Your Tera pick Terastallizes each battle, counting twice toward its Tera type.
@@ -320,7 +320,8 @@ Built to stay readable on small handheld screens such as the AYN Thor:
 - A slim top bar holds trainer HP, the route tracker, level, Pokédollars, battle speed and the Menu button.
 - The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (strategy, augment, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
 - The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
-- The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan by dragging empty ground (any mouse button) or with the right stick. 0 or R3 resets.
+- The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan by dragging empty ground (any mouse button, in planning and in battle) or with the right stick.
+- **Unit menu:** right-click a Pokémon (or press RT on a controller) to open a panel with its full details, all held items and gimmick items (hover for tooltips), the Mega Evolution toggle and Rotom's Catalog. Battles pause while it's open. 0 or R3 resets.
 
 ### Visual effects
 
@@ -347,6 +348,7 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 | Input | Action |
 |---|---|
 | Left stick | Move the cursor (speed and dead zone in Settings › Gamepad) |
+| RT | Open the unit menu for the hovered Pokémon |
 | Right stick | Zoom (up/down) and pan (left/right) the board, or a fine cursor nudge if set in Settings |
 | D-pad | Snap to the next button, card, item, carousel Pokémon or board Pokémon |
 | A | Select. Press A on a Pokémon or item to pick it up, move, then press A again to place it (holding A and dragging also works) |

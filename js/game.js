@@ -929,7 +929,8 @@ function camTarget(){
   if(!camOn())return{z:1,cx:W/2,cy:H/2,ax:W/2,ay:H/2};
   const A=CAM.av,C=camContent(),z=clamp(camFitZ()*CAM.uz,1,3.4),ax=W/2,ay=(A.t+A.b)/2;
   let cx=(C.x0+C.x1)/2+CAM.px,cy=(C.y0+C.y1)/2+CAM.py;
-  cx=clamp(cx,ax/z,W-(W-ax)/z);cy=clamp(cy,ay/z,H-(H-ay)/z); // never show past the background
+  // keep the background filling the screen unless the player has panned or zoomed themselves
+  if(!CAM.px&&!CAM.py&&CAM.uz<=1.001){cx=clamp(cx,ax/z,W-(W-ax)/z);cy=clamp(cy,ay/z,H-(H-ay)/z);}else{cx=clamp(cx,60,W-60);cy=clamp(cy,40,H-40);}
   return{z,cx,cy,ax,ay};}
 function camUpdate(dt){
   if(!CAM.av||(CAM.avT-=dt)<=0){CAM.av=camAvail();CAM.avT=.15;}
@@ -1089,6 +1090,7 @@ function dropTarget(x,y){
 }
 let camDrag=null;
 cv.addEventListener('pointerdown',e=>{const p=toInternal(e);
+  if(e.button===2&&!drag&&!itemDrag){const h=unitAt(p.x,p.y);if(h&&h.u&&typeof showUnitMenu==='function'){e.preventDefault();showUnitMenu(h.u,h);return;}}
   if(e.button===1||e.button===2){camDrag={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
   if(mode==='carousel'){carouselClick(p);return;}
   if(mode==='loot'&&chest&&!chest.open&&Math.abs(p.x-chest.x)<22&&Math.abs(p.y-chest.y)<20){openChest();return;}
@@ -1196,8 +1198,8 @@ function showTip(u,e,hit={}){
   const c=hit.cu||makeCombatant(u,enemy?1:0,0,0,{},hit.mult||1,hit.boss||(hit.cu&&hit.cu.boss));
   const K=c.kit,G=growthOf(u),evo=MODE.kids(u.dex).map(k=>D[k].n);
   const hp=hit.cu?`${Math.round(c.hp)}/${Math.round(c.maxHp)}`:Math.round(c.maxHp);
-  const sets=unitSets(u);
-  tip.innerHTML=`<div class="top"><img src="${por(u.dex)}" alt=""><div><div class="lbl">${u.alpha?'Alpha Pokémon':u.tgt?'Time Attack target':enemy?'Opponent':`Cost ₽${L.cost}`} · ${K.role?`<span class="sigrole">${K.role}</span> · `:''}${K.cls}</div><h3>${u.mut?`<span style="color:${MUTCOL[u.mut]==='#fff6d0'?'#b59a3a':MUTCOL[u.mut]}">${unitMutName(u)}</span> `:''}${esc(D[u.dex].n)}</h3>
+  const sets=unitSets(u),sd=hit.cu?(hit.cu.dex||u.dex):(typeof shownDex==='function'?shownDex(u):u.dex);
+  tip.innerHTML=`<div class="top"><img src="${por(sd)}" alt=""><div><div class="lbl">${u.alpha?'Alpha Pokémon':u.tgt?'Time Attack target':enemy?'Opponent':`Cost ₽${L.cost}`} · ${K.role?`<span class="sigrole">${K.role}</span> · `:''}${K.cls}</div><h3>${u.mut?`<span style="color:${MUTCOL[u.mut]==='#fff6d0'?'#b59a3a':MUTCOL[u.mut]}">${unitMutName(u)}</span> `:''}${esc(D[sd].n)}</h3>
     <div class="stars">${'★'.repeat(u.star)}</div><div class="chips">${sets.map(k=>SETS[k]&&SETS[k].cat==='type'?chip(k,TYPES[k]):setChip(k)).join('')}</div></div></div>
     <div class="stats"><div><span class="lbl">HP</span><b>${hp}</b></div><div><span class="lbl">Atk</span><b>${Math.round(c.atk)}</b></div><div><span class="lbl">Sp.Atk</span><b>${Math.round(c.spa)}</b></div><div><span class="lbl">Speed</span><b>${c.as.toFixed(2)}</b></div>
     <div><span class="lbl">Def</span><b>${Math.round(c.def)}</b></div><div><span class="lbl">Sp.Def</span><b>${Math.round(c.res)}</b></div><div><span class="lbl">Range</span><b>${c.range}</b></div><div><span class="lbl">PP</span><b>${c.maxMana?Math.round(c.mana)+'/'+c.maxMana:'—'}</b></div></div>
@@ -1272,7 +1274,7 @@ function renderUI(){
   if(run.aug)mh+=`<div class="mod mini ${run.augTier}" title="${esc(run.aug.d)}"><div class="k">${run.augTier} augment</div><div class="v">${run.aug.name}</div></div>`;
   if(run.gimmick){const GM=GIMMICKS[run.gimmick],el=allOwned().filter(gimEligible);
     const tgt=allOwned().find(u=>u.uid===run.gimTarget&&gimEligible(u));const onField=tgt&&Object.values(run.board).includes(tgt);
-    mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${u===tgt?' on':''}" data-cap="${u.uid}" aria-label="Use ${esc(GM.n)} with ${esc(nameOf(u))}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Put a Pokémon on the field to Dynamax it.',tera:'Give a Tera Shard to a Pokémon.'}[run.gimmick]}</p>`}</div>`;}
+    mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${(run.gimmick==='mega'?!u.megaOff:u===tgt)?' on':''}" data-cap="${u.uid}" aria-label="${run.gimmick==='mega'?`Toggle Mega Evolution for ${esc(nameOf(u))}`:`Use ${esc(GM.n)} with ${esc(nameOf(u))}`}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${run.gimmick==='mega'?'Every Pokémon holding its Mega Stone Mega Evolves. Click one (or right-click it on the board) to switch its Mega Evolution on or off.':tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Put a Pokémon on the field to Dynamax it.',tera:'Give a Tera Shard to a Pokémon.'}[run.gimmick]}</p>`}</div>`;}
   if(run.relics.length)mh+=`<div class="mod"><div class="k">Relics</div><div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" data-relic="${r}">`).join('')}</div></div>`;
   mh+=`<div class="mod mini"><div class="k">Next floor income</div><div class="v inc">₽${inc.base+inc.interest+inc.streak+inc.extra}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}</p></div>`;
   {const sc=scoutState();
@@ -1304,7 +1306,7 @@ $('cards').addEventListener('pointermove',e=>{const c=e.target.closest('.card');
 $('cards').addEventListener('pointerleave',hideTip);
 $('mods').addEventListener('pointermove',e=>{const r=e.target.dataset&&e.target.dataset.relic;if(r)showInfoTip(`<div class="top"><img src="${iconOf(r)}" alt="" style="width:48px;height:48px"><div><div class="lbl">Relic</div><h3 style="font-size:19px">${RELICS[r].n}</h3></div></div><div class="ab"><p>${RELICS[r].d}</p></div>`,e);else hideTip();});
 $('mods').addEventListener('pointerleave',hideTip);
-$('mods').addEventListener('click',e=>{const b=e.target.closest('[data-cap]');if(!b)return;const id=+b.dataset.cap;run.gimTarget=run.gimTarget===id?0:id;renderUI();});
+$('mods').addEventListener('click',e=>{const b=e.target.closest('[data-cap]');if(!b)return;const id=+b.dataset.cap;if(run.gimmick==='mega'){const u=allOwned().find(x=>x.uid===id);if(u)u.megaOff=!u.megaOff;renderUI();return;}run.gimTarget=run.gimTarget===id?0:id;renderUI();});
 $('traits').addEventListener('pointermove',e=>{const ct=countTraits(Object.values(run.board));
   if(e.target.closest('[data-more]')){const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||ct[b]-ct[a]);
     showInfoTip(`<div class="lbl">All sets on the field</div><div class="setlist">${keys.map(k=>`<div><span class="dot" style="background:${setColor(k)}"></span>${k}<b>${ct[k]}</b><span class="sc">/ ${SETS[k].bp.join(', ')}</span></div>`).join('')}</div>`,e);return;}

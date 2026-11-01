@@ -66,8 +66,8 @@ const SET_TABS=[
     {k:'padSens',n:'Cursor speed',v:[.5,.75,1,1.25,1.5,2],l:['50%','75%','100%','125%','150%','200%']},
     {k:'padDZ',n:'Stick dead zone',v:[.1,.18,.26],l:['Small','Normal','Large']},
     {k:'padRS',n:'Right stick',v:['zoom','fine'],l:['Zoom and pan','Fine cursor']}],
-   info:[['Left stick','Move the cursor'],['D-pad','Jump between buttons and Pokémon'],['A','Select · press on a Pokémon or item to pick it up, again to place it'],['B','Back · put down what you are carrying'],['X','Reroll the shop'],['Y','Level up'],['LB','Hide or show the shop'],['RB','Release the Pokémon under the cursor'],['Right stick','Zoom (up/down) and pan (left/right)'],['R3','Reset the zoom'],['L3','Battle speed'],['Start','Battle · open the chest · confirm'],['Select','Menu']]},
-  {id:'controls',n:'Controls',rows:[],info:[['Click','Select, buy, open the chest'],['Click, then click','Pick up a Pokémon or item, then place it (dragging also works)'],['Right-drag','Pan the board'],['Mouse wheel','Zoom the board'],['+ / − / 0','Zoom in, out, reset'],['Space','Battle · open the chest'],['D','Reroll'],['F','Level up'],['Tab','Hide or show the shop'],['B','Hide or show the bag'],['Esc','Menu']]},
+   info:[['Left stick','Move the cursor'],['D-pad','Jump between buttons and Pokémon'],['A','Select · press on a Pokémon or item to pick it up, again to place it'],['B','Back · put down what you are carrying'],['X','Reroll the shop'],['Y','Level up'],['LB','Hide or show the shop'],['RB','Release the Pokémon under the cursor'],['RT','Open the menu of the Pokémon under the cursor (items, details, Mega toggle)'],['Right stick','Zoom (up/down) and pan (left/right)'],['R3','Reset the zoom'],['L3','Battle speed'],['Start','Battle · open the chest · confirm'],['Select','Menu']]},
+  {id:'controls',n:'Controls',rows:[],info:[['Click','Select, buy, open the chest'],['Click, then click','Pick up a Pokémon or item, then place it (dragging also works)'],['Drag empty ground','Pan the board'],['Right-click a Pokémon','Its menu: items, details, Mega toggle'],['Mouse wheel','Zoom the board'],['+ / − / 0','Zoom in, out, reset'],['Space','Battle · open the chest'],['D','Reroll'],['F','Level up'],['Tab','Hide or show the shop'],['B','Hide or show the bag'],['Esc','Menu']]},
   {id:'data',n:'Data',rows:[],acts:[['o-del','Delete saved run'],['o-dex','Forget Kit Dex discoveries'],['o-reset','Reset all settings']]},
 ];
 let setTab='general',setFrom='title';
@@ -117,3 +117,28 @@ addEventListener('keydown',e=>{
     e.preventDefault();navMove(root,dir[0],dir[1]);return;}
   if(root&&(e.key==='Escape'||e.key==='Backspace')&&!run){const b=ov.querySelector('#back,#setclose,#dexclose,#skip');if(b){e.preventDefault();b.click();}}
 });
+
+/* ---------- unit menu (right-click a Pokémon, or RT on a controller) ---------- */
+let umWasPaused=false;
+function showUnitMenu(u,h={}){
+  if(!run||ov.innerHTML.trim()||evoOpen)return;
+  const owned=allOwned().includes(u);hideTip();
+  showTip(u,{clientX:-9999,clientY:-9999},h);$('tip').querySelectorAll('.items').forEach(n=>n.remove());const details=$('tip').innerHTML;hideTip();
+  const slots=[0,1,2].map(i=>{const it=u.items[i];return it?`<div class="umslot t-${{epic:'epic',gear:'gear',enh:'enh'}[itemTier(it)]||'common'}" data-uitem="${i}"><img src="${iconOf(itemDef(it).id)}" alt=""><span>${esc(itemName(it))}</span></div>`:`<div class="umslot empty"><span>Empty slot</span></div>`;}).join('');
+  const gims=[['stone','Mega Stone','stone'],['crystal','Z-Crystal','z'],['shard','Tera Shard','shard']].filter(([k])=>u[k]).map(([k,n,p])=>{const it={k:`g:${p}:${u[k]}`,mut:[]};return`<div class="umslot gim" data-ugim="${p}:${u[k]}"><img src="${iconOf(itemDef(it).id)}" alt=""><span>${esc(itemDef(it).n)}</span></div>`;}).join('')+(u.mush?`<div class="umslot gim"><span>Dynamax Level ${u.mush}${u.gmax?' · Gigantamax':''}</span></div>`:'');
+  const mg=u.stone&&run.gimmick==='mega'&&megaFor(u.dex,u.stone);
+  const acts=[];
+  if(owned&&mg)acts.push(`<button class="btn" id="um-mega">${u.megaOff?'Mega Evolution: Off':'Mega Evolution: On'}</button>`);
+  if(owned&&u.root===479&&typeof showRotomCatalog==='function'&&mode==='plan')acts.push(`<button class="btn" id="um-rotom">Rotom Catalog</button>`);
+  umWasPaused=paused;if(mode==='combat')paused=true;
+  ov.innerHTML=`<div class="scrim" id="um-scrim"></div><div class="screen"><div class="win umwin"><div class="umdetails">${details}</div>
+    <div class="umside"><div class="lbl">Held items</div>${slots}${gims?`<div class="lbl" style="margin-top:8px">Gimmick</div>${gims}`:''}
+    <div class="umacts">${acts.join('')}<button class="btn" id="back">Close</button></div></div></div></div>`;
+  ov.querySelector('.umwin').addEventListener('pointermove',e=>{const s=e.target.closest('[data-uitem]');const g=e.target.closest('[data-ugim]');
+    if(s){showItemTip(u.items[+s.dataset.uitem],e);return;}if(g){const[p,v]=g.dataset.ugim.split(':');showItemTip({k:`g:${p}:${v}`,mut:[]},e);return;}hideTip();});
+  const close=()=>{hideTip();ov.innerHTML='';paused=umWasPaused;renderUI();};
+  $('back').onclick=close;$('um-scrim').onclick=close;
+  if($('um-mega'))$('um-mega').onclick=()=>{u.megaOff=!u.megaOff;close();if(!u.megaOff&&!SIM.on){const p=locate(u);if(p){toast(`${nameOf(u)} Mega Evolved!`);['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach(col=>burst(p.x,p.y-12,col,10,1.4));}}else toast(`${nameOf(u)} will stay in its normal form.`);};
+  if($('um-rotom'))$('um-rotom').onclick=()=>{ov.innerHTML='';paused=umWasPaused;showRotomCatalog(u);};
+  $('back').focus();
+}

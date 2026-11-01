@@ -97,6 +97,8 @@ function padPoll(dt){
   if(padEdge(gp,BTN.SELECT)&&run&&!document.querySelector('#overlay .screen')){if(paused)closePause();else openPause();}
   if(padEdge(gp,BTN.LB)&&run&&!paused)toggleShop();
   if(padEdge(gp,BTN.L3))$('speed').click();
+  // RT opens the unit menu for the Pokémon under the cursor (same as right-click)
+  if(padEdge(gp,BTN.RT)&&run&&!document.querySelector('#overlay .screen')){const p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const h=unitAt(q.x,q.y);if(h&&h.u)showUnitMenu(h.u,h);}
   if(padEdge(gp,BTN.R3))camReset();
   if(padEdge(gp,BTN.RB)&&run&&(mode==='plan'||mode==='loot')){const r=padStageRect(),p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const o=ownedAt(q.x,q.y);if(o)sell(o.u);}
   PAD.prev=gp.buttons.map(b=>b.pressed);

@@ -96,7 +96,8 @@ function formsOnHp(c){
 function formsOnDisguiseBroken(c){if(baseOf(c.dex)===778){const f=formOf(778,'battle');if(f)transform(c,f,{label:'Its disguise was busted!',col:'#ffe27a'});}}
 function formsOnIceFace(c){if(baseOf(c.dex)===875){const f=formOf(875,'battle');if(f)transform(c,f,{label:'Ice Face melted!',col:'#c6f4ff'});}}
 function formsAfterBattle(u){if(baseOf(u.dex)===964&&(KITS[964].a||[]).includes('zero-to-hero')&&!u.hero){u.hero=1;if(!SIM.on)setTimeout(()=>toast('Palafin became Hero Palafin for the rest of the run!'),1400);}}
-const shownDex=u=>{if(u.hero){const f=formOf(baseOf(u.dex),'battle');if(f)return f;}if(u.app&&typeof rotomDex==='function')return rotomDex(u);return u.dex;};
+const megaShown=u=>run&&run.gimmick==='mega'&&u.stone&&!u.megaOff&&typeof megaFor==='function'?megaFor(u.dex,u.stone):null;
+const shownDex=u=>{const mg=megaShown(u);if(mg)return mg;if(u.hero){const f=formOf(baseOf(u.dex),'battle');if(f)return f;}if(u.app&&typeof rotomDex==='function')return rotomDex(u);return u.dex;};
 
 /* ---------- generation gimmicks ---------- */
 const GIMMICKS={
@@ -161,7 +162,8 @@ function equipGim(bi,u){
   if(u[slot])run.bag.push({k:`g:${p[1]}:${p[1]==='shard'?u[slot]:u[slot]}`,mut:[]});
   u[slot]=val;
   if(!run.gimTarget||!allOwned().some(o=>o.uid===run.gimTarget))if(gimEligible(u))run.gimTarget=u.uid;
-  if(!SIM.on)toast(`${nameOf(u)} is holding the ${gimDef(it).n}.`);renderUI();return true;
+  if(slot==='stone'&&run.gimmick==='mega'&&megaFor(u.dex,val)){u.megaOff=false;const fid=megaFor(u.dex,val);if(!SIM.on){ensure(fid);toast(`${nameOf(u)} Mega Evolved into ${D[fid].n}!`);const p=locate(u);if(p)['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach((col,i)=>{burst(p.x,p.y-12,col,10,1.4);schedule&&ring(p.x,p.y-8,col);});}}
+  else if(!SIM.on)toast(`${nameOf(u)} is holding the ${gimDef(it).n}.`);renderUI();return true;
 }
 const lineHasMega=(root,stone)=>MODE.lines[root]&&MODE.lines[root].mem.some(m=>(FORMS_BY_BASE[m]||[]).some(f=>FORMS[f].kind==='mega'&&FORMS[f].item===stone));
 function ownedMegaStones(){const out=new Set();for(const u of allOwned())for(const m of MODE.lines[u.root].mem)for(const f of FORMS_BY_BASE[m]||[])if(FORMS[f].kind==='mega')out.add(FORMS[f].item);return[...out];}
@@ -185,7 +187,9 @@ function chooseGimmick(id){run.gimmick=id;(run.gimmicks=run.gimmicks||[]).push(i
 
 /* ---------- applying a gimmick in battle ---------- */
 function applyGimmicks(){
-  if(run.gimmick){const cap=units.find(c=>c.team===0&&c.u.uid===run.gimTarget);if(cap&&gimEligible(cap.u))startGimmick(cap,run.gimmick,{mush:cap.u.mush||0,gmax:cap.u.gmax});}
+  // Mega Evolution has no cap: every Pokémon holding its Mega Stone (and not switched off in its menu) Mega Evolves
+  if(run.gimmick==='mega'){for(const c of units.filter(c=>c.team===0&&!c.u.megaOff&&gimEligible(c.u)))startGimmick(c,'mega',{});}
+  else if(run.gimmick){const cap=units.find(c=>c.team===0&&c.u.uid===run.gimTarget);if(cap&&gimEligible(cap.u))startGimmick(cap,run.gimmick,{mush:cap.u.mush||0,gmax:cap.u.gmax});}
   // rivals, late trainers and the boss bring a gimmick of their own
   const f=run.floor,k=floorKind(f);
   if(k==='elite'||k==='boss'||(k==='trainer'&&f>=13&&Math.random()<.35)){
@@ -196,9 +200,8 @@ function applyGimmicks(){
 function startGimmick(c,g,o){
   c.gim=g;
   if(g==='mega'){const fid=o.enemy?formOf(baseOf(c.dex),'mega'):megaFor(c.dex,c.u.stone);if(!fid)return;
-    schedule(1.8,()=>{if(c.dead||SIM.on)return;texts.push({x:c.x,y:c.y-40,txt:`${D[c.dex].n}'s ${GIMMICKS.mega.keyN} is reacting!`,col:'#ffd1f2',life:1.2,label:1});
-      ['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach((col,i)=>schedule(i*.1,()=>ring(c.x,c.y-10,col)));});
-    schedule(2.5,()=>{if(c.dead)return;transform(c,fid,{label:'Mega Evolution!',col:'#ff9be6',big:1});c.mega=1;c.dmg+=.1;c.as*=1.1;
+    // Mega Evolution pops right away
+    schedule(.05,()=>{if(c.dead)return;transform(c,fid,{label:'Mega Evolution!',col:'#ff9be6',big:1});c.mega=1;c.dmg+=.1;c.as*=1.1;
       if(!SIM.on)['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach(col=>burst(c.x,c.y-12,col,10,1.5));});}
   if(g==='zmove'){c.zReady=1;c.mana=Math.min(c.maxMana,c.mana+30);if(o.enemy)c.zType=kitOf(c.dex).mv.t;}
   if(g==='tera'){const t=o.enemy?D[c.dex].t[0]:c.u.shard;c.tera=t;c.teraOn=1;c.maxHp*=1.12;c.hp*=1.12;
