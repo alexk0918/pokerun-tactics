@@ -101,3 +101,4 @@ kit({ids:[10253],role:'Poison Mudfish',cls:'Juggernaut',cat:'phys',range:1,mana:
 
 // tuning pass: regional forms against generic units of the same line cost (kitbalF)
 for(const[d,m]of Object.entries({10100:.6,10115:1.3,10240:.65,10232:.8,10165:.8,10242:1.2}))tuneSig(+d,m);
+for(const[d,m]of Object.entries({10250:1.2,10251:1.2}))tuneSig(+d,m);
