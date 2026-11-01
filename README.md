@@ -129,6 +129,7 @@ Every Generation I–VII line now has a hand-designed signature kit (78 + 51 + 7
 | Gible → Garchomp | Land Shark | Leaps onto the back line, area stun |
 | Mareanie → Toxapex | Fortress | Baneful Bunker: immune for a moment and poisons attackers, then Regenerator |
 | Rowlet → Decidueye | Arrow Quill | Spirit Shackle pins the farthest enemy: stun, slow and 20% armor pierce |
+| Dartrix → Hisuian Decidueye | Bow Ronin | Branch evolution. Triple Arrows rain on the target and its neighbours, shredding Defense; each cast stacks crit chance, and every 3 takedowns over the run add an arrow (up to 6) |
 | Litten → Incineroar | Heel Wrestler (Fire tank) | Shielded Darkest Lariat spins through every adjacent enemy and heals; Intimidate at the start of battle |
 | Popplio → Primarina | Soprano | Sparkling Aria: a barrage of singing bubbles, then heals and cleanses the whole team |
 | Pikipek → Toucannon | Beak Cannon | Beak Blast heats up for 1s (burning anyone who touches it), then blasts the biggest group |
@@ -304,6 +305,14 @@ Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type
 | Alola (Totem Trial) | Regeneration; at 4, the strongest becomes a Totem with an Attack Speed aura |
 | Galar (Power Spot) | HP and damage; at 4, the bulkiest grows giant for 8s |
 | Paldea (Terastal Treasure) | Crit, Terastallize after the first move; at 4, +₽1 per win |
+
+### Starter bonds
+
+Every starter line (Gen I–IX, plus Hisuian Decidueye) grows with its **Friendship**, which it earns in each battle it fights while your Partner set is active. The bond stays even when Partner isn't active, so investing early pays off for the whole run:
+
+- **Grass starters (Overgrow Bond):** +2% max HP and +1% move damage per Friendship. At 20, your whole team restores 1% max HP per second.
+- **Fire starters (Blaze Bond):** +2% move damage and +1% Attack Speed per Friendship. At 20, they start every battle with +30 PP.
+- **Water starters (Torrent Bond):** +2% move damage and +1 Defense and Sp. Def per Friendship. At 20, they start every battle with a 25% max HP shield.
 
 ### Augments
 

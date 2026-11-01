@@ -312,6 +312,14 @@ function mkEnemy(root,star){const u=mkUnit(root,star);for(let s=2;s<=star;s++){c
 const boardUnits=()=>Object.entries(run.board).map(([k,u])=>{const[c,r]=k.split(',').map(Number);return{u,c,r};});
 const allOwned=()=>[...run.bench.filter(Boolean),...Object.values(run.board)];
 const teamCap=()=>run.level+(augIs('resolve')?1:0);
+/* ---------- starter bonds: every starter line grows with Friendship (earned while the Partner set is active) ---------- */
+const BOND=[
+  {n:'Overgrow Bond',e:f=>({hpP:.02*f,ab:.01*f}),full:{bondRegen:.01},d:f=>`+${2*f}% max HP and +${f}% move damage`,fd:'your whole team also restores 1% max HP per second'},
+  {n:'Blaze Bond',e:f=>({ab:.02*f,as:.01*f}),full:{mana:30},d:f=>`+${2*f}% move damage and +${f}% Attack Speed`,fd:'it also starts every battle with +30 PP'},
+  {n:'Torrent Bond',e:f=>({ab:.02*f,def:f,res:f}),full:{shieldP:.25},d:f=>`+${2*f}% move damage and +${f} Defense and Sp. Def`,fd:'it also starts every battle with a shield of 25% max HP'},
+];
+const STARTER_SLOT={};STARTERS.forEach(g=>g.forEach((r,i)=>STARTER_SLOT[r]=i));
+const bondOf=u=>{const s=STARTER_SLOT[u.root];return s===undefined?null:BOND[s];};
 const growthOf=u=>{const L=MODE.lines[u.root];if(!L)return null;return GROWTH.find(g=>L.mem.some(i=>g.ids.includes(i)))||null;};
 
 /* ---------- sets ---------- */
@@ -553,6 +561,7 @@ function startOfBattle(trs){
   for(const u of units){
     const F=u.fx,foes=units.filter(o=>o.team!==u.team),near=r=>foes.filter(o=>hdist(o,u)<=r);
     if(F.intim)for(const o of near(2))if(!o.fx.clear){o.atk*=1-F.intim;}
+    if(F.bondRegen)for(const a of units)if(a.team===u.team&&!a.dead)a.regen+=F.bondRegen;
     if(F.pressure)for(const o of near(2))o.ppMul*=1-F.pressure;
     if(F.slowAura)for(const o of near(2))o.as*=1-F.slowAura;
     if(F.shredAura)for(const o of near(2)){o.def-=F.shredAura;o.res-=F.shredAura;schedule(8,()=>{o.def+=F.shredAura;o.res+=F.shredAura;});}
@@ -595,6 +604,7 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
   if(E.adapt){const nt=Object.keys(tr).filter(k=>SETS[k]&&SETS[k].cat==='type').length;addE(E,{hpP:E.adapt*nt,dmg:E.adapt*nt});}
   if(E.hoard&&team===0)E.dmg=(E.dmg||0)+Math.min(.4,(run.hoard||0)*.01);
   if(E.friend&&team===0&&u.fr){const f=Math.min(20,u.fr);addE(E,{hpP:f*.015,dmg:f*.015});if(f>=10)E.focus=(E.focus||0)+1;}
+  {const BD=bondOf(u);if(BD&&team===0&&u.fr){const f=Math.min(20,u.fr);addE(E,BD.e(f));if(f>=20)addE(E,BD.full);}}
   if(E.dr)taken*=1-Math.min(.6,E.dr);
   const bm=boss?{hp:5.5,atk:1.55,def:15}:{hp:1,atk:1,def:0};
   let hp=(st.hp*mult+(g.hp||0))*bm.hp+(E.hpF||0);hp*=1+(E.hpP||0);
@@ -1246,6 +1256,7 @@ function showTip(u,e,hit={}){
     ${gimLines(u,enemy)}
     ${G?`<div class="grow"><b>${G.n}</b>: ${G.d}${u.gs?`<br>Grown ${u.gs} time${u.gs>1?'s':''} this run.`:''}${(()=>{const S=!enemy&&specialFor(u);if(!S)return'';const got=run&&(run.specials||[]).includes(S.id);return`<br><b>${S.n}:</b> ${got?'earned!':`${Math.min(u.gs||0,S.need)}/${S.need} (${S.how})`}`;})()}</div>`:''}
     ${!enemy&&u.uid&&setsOf(u.dex,u.root).includes('Partner')?`<div class="grow"><b>Friendship ${u.fr||0}/20</b>: +${((u.fr||0)*1.5).toFixed(1)}% max HP and damage while Partner is active.${(u.fr||0)>=10?' Hangs on through its first fainting blow.':` Hangs on at 10.`}</div>`:''}
+    ${!enemy&&u.uid&&bondOf(u)?(()=>{const B=bondOf(u),f=Math.min(20,u.fr||0);return`<div class="grow"><b>${B.n} (Friendship ${f}/20)</b>: ${B.d(f)}. At 20, ${B.fd}. Friendship grows each battle it fights while your Partner set is active.</div>`;})():''}
     ${!enemy&&u.star<3&&evo.length?`<div class="lbl" style="margin-top:8px">${u.star===1?'At 2★':'At 3★'}: ${evo.length>1?'choose '+esc(evo.join(' / ')):'evolves into '+esc(evo[0])}</div>`:''}${hit.cu?statusTipHtml(hit.cu):''}`;
   placeTip(e);
 }
@@ -1568,7 +1579,7 @@ function showEnd(won){
 /* ================= Boot ================= */
 (async()=>{
   try{await Promise.all([document.fonts.load('16px PokeEmerald'),document.fonts.load('700 20px "Pixelify Sans"')]);}catch(e){}
-  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=6').then(r=>r.json()),fetch('data/sprites.json?v=7').then(r=>r.json()),fetch('data/kits.json?v=8').then(r=>r.json()),fetch('data/forms.json?v=7').then(r=>r.json())]);
+  const[dex,spr,kit,frm]=await Promise.all([fetch('data/pokedex.json?v=7').then(r=>r.json()),fetch('data/sprites.json?v=8').then(r=>r.json()),fetch('data/kits.json?v=9').then(r=>r.json()),fetch('data/forms.json?v=7').then(r=>r.json())]);
   KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);

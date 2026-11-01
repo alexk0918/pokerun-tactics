@@ -270,3 +270,13 @@ kit({ids:[808,809],role:'Hex Nut',cls:'Juggernaut',cat:'phys',range:1,mana:[60,7
 // tuning pass: Gen VII kit damage against generic units of the same cost (set from kitbal7)
 for(const[d,m]of Object.entries({733:.8,746:.4,774:.75,740:.9,730:.72,741:.72,724:.9,780:.8,727:.7,776:.65,775:.9,779:.9,754:1.25,763:1.15}))tuneSig(+d,m);
 for(const[d,m]of Object.entries({784:.85,796:.7,797:.65,806:.65,798:.9,804:.9,799:.8,785:.75,786:.85,807:1.2,809:1.1}))tuneSig(+d,m);
+
+// Hisuian Decidueye (Dartrix's other branch): Triple Arrows, with more arrows as its takedowns pile up over the run
+const hdArrows=c=>3+Math.min(3,Math.floor(((c.u&&c.u.hk)||0)/3));
+kit({ids:[10244],role:'Bow Ronin',cls:'Striker',cat:'phys',range:3,mana:65,pf:1.1,names:['Triple Arrows'],mvType:'Fighting',
+  tail:c=>`<b>Scrappy:</b> each cast also raises its critical-hit chance by 10% for the battle (stacks). <b>Archer's Tally:</b> every 3 takedowns over the run add another arrow, up to 6 (now ${(c.u&&c.u.hk)||0} takedowns).`},
+  {d:c=>`Kicks off and looses <b>${hdArrows(c)}</b> Triple Arrows at the target and the enemies nearest it, each dealing ${DT(c,.6)} and lowering <span class="s-def">Defense</span> by 10.`,
+   kill(c){if(c.u&&c.team===0)c.u.hk=(c.u.hk||0)+1;},
+   cast(c,tg){const n=hdArrows(c),ts=[tg,...foesOf(c).filter(f=>f!==tg).sort((a,b)=>hdist(a,tg)-hdist(b,tg))].filter(Boolean);c.crit+=.1;
+     for(let k=0;k<n;k++)schedule(k*.09,()=>{if(c.dead)return;const a=ts.filter(f=>!f.dead);if(!a.length)return;const t=a[k%Math.min(a.length,3)];
+       fire(c,t,'#ffb36b',()=>{hitAb(c,t,.6);t.def=Math.max(0,t.def-10);},{sp:380,size:3});});}});
