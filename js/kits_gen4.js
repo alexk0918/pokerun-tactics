@@ -117,7 +117,7 @@ kit({ids:[479],role:'Appliance Ghost',cls:'Mystic',cat:'spec',range:3,mana:60,pf
 const CATIMG=Object.assign(new Image(),{src:'assets/items/rotom-catalog.png'});
 function rotomOwned(){if(!run)return[];const out=[];for(const b of boardUnits())if(b.u.root===479){const p=hexXY(b.c,b.r);out.push({u:b.u,x:p.x+10,y:p.y-30});}
   run.bench.forEach((u,i)=>{if(u&&u.root===479){const p=benchXY(i);out.push({u,x:p.x+10,y:p.y-30});}});return out;}
-function drawRotomChips(t){if(mode!=='plan'||drag||itemDrag)return;for(const r of rotomOwned()){const y=r.y+Math.sin(t*3)*1.5;ctx.fillStyle='#1b2430';ctx.fillRect(r.x-6,y-6,12,12);ctx.fillStyle='#f7f6ee';ctx.fillRect(r.x-5,y-5,10,10);if(CATIMG.complete&&CATIMG.naturalWidth)ctx.drawImage(CATIMG,r.x-5,y-5,10,10);}}
+function drawRotomChips(t){if(mode!=='plan'||drag||itemDrag)return;for(const r of rotomOwned()){const y=r.y+Math.sin(t*3)*1.5;ctx.fillStyle='#1b2430';ctx.fillRect(r.x-6,y-6,12,12);ctx.fillStyle='#f7f6ee';ctx.fillRect(r.x-5,y-5,10,10);if(CATIMG.complete&&CATIMG.naturalWidth)drawIcon(CATIMG,r.x-5,y-5,10,10);}}
 function rotomChipAt(x,y){if(mode!=='plan')return null;return rotomOwned().find(r=>Math.abs(x-r.x)<8&&Math.abs(y-r.y)<8)||null;}
 function showRotomCatalog(u){hideTip();
   const opts=[[null,479,'Unplugged','Electric','Lightning strikes on random enemies across the board (5 strikes, 2 Paralysis each)']].concat(Object.entries(ROTOM_APP).map(([k,A])=>[k,A.fid,A.n,A.ty,`${A.obj}: ${A.d}`]));

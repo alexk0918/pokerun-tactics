@@ -107,7 +107,12 @@ function unitStats(dex,cost,star){
 const W=640,H=360;
 const cv=$('cv'), ctx=cv.getContext('2d');
 const stage=$('stage');
-function fit(){const w=innerWidth-32,h=innerHeight-16;const s=Math.min(w/1280,h/720);stage.style.transform=`scale(${s})`;stage.style.margin=`${(720*s-720)/2}px ${(1280*s-1280)/2}px`;}
+let RES=1;
+function fit(){const w=innerWidth-32,h=innerHeight-16;const s=Math.min(w/1280,h/720);stage.style.transform=`scale(${s})`;stage.style.margin=`${(720*s-720)/2}px ${(1280*s-1280)/2}px`;
+  // Render the canvas at the real on-screen resolution so pixel art is scaled once (not twice), keeping pixels even.
+  const r=Math.min(3,Math.max(.5,s*(window.devicePixelRatio||1)));if(Math.abs(r-RES)>.01||cv.width!==Math.round(1280*r)){RES=r;cv.width=Math.round(1280*r);cv.height=Math.round(720*r);}}
+// Draw an icon: nearest-neighbour when enlarging pixel art, smooth when shrinking (big icons turned to mush otherwise).
+function drawIcon(im,x,y,w,h){const m=ctx.getTransform(),k=Math.abs(m.a)*w/(im.naturalWidth||w);if(k<.95){ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';}ctx.drawImage(im,x,y,w,h);ctx.imageSmoothingEnabled=false;}
 addEventListener('resize',fit);fit();
 const R=17,HW=Math.sqrt(3)*R,SQ=0.78,RS=1.5*R*SQ,COLS=7,ROWS=8;
 const BX=320-(COLS*HW+HW/2)/2+HW/2, BY=56;
@@ -970,7 +975,7 @@ function update(dt){
 const starScale=s=>1+(s-1)*.08;
 function draw(t){
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#13201a';ctx.fillRect(0,0,cv.width,cv.height);
-  {const z=CAM.z*2,sk=cineShake(1/60);ctx.setTransform(z,0,0,z,2*(CAM.ax-CAM.cx*CAM.z)+sk.x,2*(CAM.ay-CAM.cy*CAM.z)+sk.y);}ctx.imageSmoothingEnabled=false;
+  {const z=CAM.z*2*RES,sk=cineShake(1/60);ctx.setTransform(z,0,0,z,RES*(2*(CAM.ax-CAM.cx*CAM.z)+sk.x),RES*(2*(CAM.ay-CAM.cy*CAM.z)+sk.y));}ctx.imageSmoothingEnabled=false;
   if(BG)ctx.drawImage(BG,0,0);else{ctx.fillStyle='#13201a';ctx.fillRect(0,0,W,H);}
   ctx.save();ctx.globalCompositeOperation='screen';
   if(OPTS.rays)for(let i=0;i<3;i++){const x=150+i*150+Math.sin(t*.3+i)*8;ctx.fillStyle=`rgba(255,240,190,${.035+.015*Math.sin(t*.7+i*2)})`;ctx.beginPath();ctx.moveTo(x,-10);ctx.lineTo(x+40,-10);ctx.lineTo(x+150,H);ctx.lineTo(x+90,H);ctx.closePath();ctx.fill();}
@@ -1011,7 +1016,7 @@ function draw(t){
   for(const l of leaves){ctx.fillStyle=l.col;ctx.fillRect(Math.round(l.x),Math.round(l.y),2,1);ctx.fillRect(Math.round(l.x)+1,Math.round(l.y)+1,1,1);}
   drawRotomChips(t);
   if(drag)drawSprite(shownDex(drag.u),'Walk',t,DIR.down,drag.x,drag.y-6);
-  ctx.setTransform(1,0,0,1,0,0);
+  ctx.setTransform(RES,0,0,RES,0,0);
   drawWeather(t);
   if(chest&&!chest.open){const bob=Math.sin(t*3)*3;ctx.font='24px PokeEmerald,"Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#1b2430';const txt=chest.kind==='relic'?'Open the rival\'s chest':'Open the chest';
     const q=w2s(chest.x,chest.y-14*(chest.tier==='silver'?1.2:1));ctx.strokeText(txt,q.x*2,q.y*2-34+bob);ctx.fillStyle='#ffe27a';ctx.fillText(txt,q.x*2,q.y*2-34+bob);}
@@ -1022,7 +1027,7 @@ function draw(t){
 function badgeTop(cu,s){const sp=SPR[s.dex];return s.y-6+(sp&&sp.m?sp.top*(s.sc||1)*sp.k:-20*(s.sc||1))-9;}
 function drawFormBadges(cu,s,t){
   const F=FORMS[cu.dex],x=Math.round(s.x),top=badgeTop(cu,s);
-  const icon=(id,yy,z=10)=>{const im=ITEMIMG[id]||(ITEMIMG[id]=Object.assign(new Image(),{src:iconOf(id)}));if(im.complete&&im.naturalWidth)ctx.drawImage(im,x-z/2,Math.round(yy-z/2),z,z);};
+  const icon=(id,yy,z=10)=>{const im=ITEMIMG[id]||(ITEMIMG[id]=Object.assign(new Image(),{src:iconOf(id)}));if(im.complete&&im.naturalWidth)drawIcon(im,x-z/2,Math.round(yy-z/2),z,z);};
   // Mega: Key Stone badge with a rainbow ring
   if(cu.mega||(F&&F.kind==='mega')){const yy=top-4+Math.sin(t*3)*1;const cols=['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'];
     for(let i=0;i<5;i++){const a=t*2+i*1.2566;ctx.fillStyle=cols[i];ctx.fillRect(Math.round(x+Math.cos(a)*7)-1,Math.round(yy+Math.sin(a)*3)-1,2,2);}icon('key-stone',yy,10);}
@@ -1056,8 +1061,8 @@ function drawBar(s){
 }
 function drawItems(s){
   const u=s.cu?s.cu.u:s.pu;if(!u||!u.items||!u.items.length)return;
-  const n=u.items.length,z=9,x0=Math.round(s.x-(n*(z+1))/2),y=Math.round(s.y+3);
-  u.items.forEach((it,i)=>{const id=itemDef(it).id;if(!ITEMIMG[id]){const im0=new Image();im0.src=iconOf(id);ITEMIMG[id]=im0;}const im=ITEMIMG[id];const x=x0+i*(z+1);ctx.fillStyle=it.enh?'#2fb8a0':isCraft(it)?'#c9961d':'#1b2430';ctx.fillRect(x-1,y-1,z+2,z+2);ctx.fillStyle='#f7f6ee';ctx.fillRect(x,y,z,z);if(im&&im.complete)ctx.drawImage(im,x,y,z,z);});
+  const n=u.items.length,z=11,x0=Math.round(s.x-(n*(z+1))/2),y=Math.round(s.y+3);
+  u.items.forEach((it,i)=>{const id=itemDef(it).id;if(!ITEMIMG[id]){const im0=new Image();im0.src=iconOf(id);ITEMIMG[id]=im0;}const im=ITEMIMG[id];const x=x0+i*(z+1);ctx.fillStyle=it.enh?'#2fb8a0':isCraft(it)?'#c9961d':'#1b2430';ctx.fillRect(x-1,y-1,z+2,z+2);ctx.fillStyle='#f7f6ee';ctx.fillRect(x,y,z,z);if(im&&im.complete&&im.naturalWidth)drawIcon(im,x,y,z,z);});
 }
 function star3(x,y,c){ctx.fillStyle='#1b2430';ctx.fillRect(x-2,y-1,5,3);ctx.fillRect(x-1,y-2,3,5);ctx.fillStyle=c;ctx.fillRect(x-1,y,3,1);ctx.fillRect(x,y-1,1,3);}
 
@@ -1512,3 +1517,5 @@ function showEnd(won){
   showTitle();
   requestAnimationFrame(frame);
 })();
+// HTML icons: big hi-res item art is shrunk smoothly; small pixel art keeps crisp pixels.
+document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>64)im.style.imageRendering='auto';},true);

@@ -106,7 +106,7 @@ const imgOk=im=>im.complete&&im.naturalWidth;
 function drawWeather(t){
   const w=battle&&(mode==='combat'||mode==='result')?battle.weather:null;const dt=Math.min(.05,Math.max(0,t-WX.last));WX.last=t;
   if(!w){WX.drops=[];return;}
-  const g=ctx,Wd=cv.width,Ht=cv.height;g.save();g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;
+  const g=ctx,Wd=1280,Ht=720;g.save();g.setTransform(RES,0,0,RES,0,0);g.imageSmoothingEnabled=false;
   const tint={sun:'rgba(255,190,80,.08)',rain:'rgba(30,60,120,.16)',sand:'rgba(170,120,40,.12)',snow:'rgba(220,235,255,.12)'}[w];g.fillStyle=tint;g.fillRect(0,0,Wd,Ht);
   const tile=(im,fw,fh,f,sc,ox,oy,a)=>{if(!imgOk(im))return;g.globalAlpha=a;const W2=fw*sc,H2=fh*sc;ox=((ox%W2)+W2)%W2;oy=((oy%H2)+H2)%H2;
     for(let y=-H2+oy;y<Ht;y+=H2)for(let x=-W2+ox;x<Wd;x+=W2)g.drawImage(im,f*fw,0,fw,fh,Math.floor(x),Math.floor(y),W2,H2);g.globalAlpha=1;};
