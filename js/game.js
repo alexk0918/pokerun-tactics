@@ -1302,7 +1302,7 @@ addEventListener('keydown',e=>{if(evoOpen||!run||paused||ov.innerHTML.trim())ret
   if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key===' '){e.preventDefault();startCombat();}});
 
 /* ================= Options & saving ================= */
-const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,cine:'first'};
+const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1};
 try{Object.assign(OPTS,JSON.parse(localStorage.getItem('pokerun.opts')||'{}'));}catch(e){}
 function saveOpts(){try{localStorage.setItem('pokerun.opts',JSON.stringify(OPTS));}catch(e){}}
 const SAVEKEY='pokerun.save.v1';

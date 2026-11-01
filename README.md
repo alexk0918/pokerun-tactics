@@ -321,7 +321,7 @@ Every move effect, impact, projectile, beam, status sparkle and chest is a Poké
 
 Signature moves whose name matches a Pokémon Mystery Dungeon animation (Flamethrower, Close Combat, Earthquake, Head Smash, Draco Meteor and about 150 more) play that animation on what they hit, or on the caster for heals and shields, on top of the type-matched impact.
 
-Legendary Pokémon get a cinematic when they use their move: the screen dims to a spotlight on the caster, a charge-up plays behind it, the move name sweeps across the screen, time slows for a moment, and the move lands with its own stack of PMD effects, a colour flash and a screen shake. Each legendary has its own look: Reshiram's Blue Flare burns blue, Zekrom's Bolt Strike calls down blue lightning, Dialga's Roar of Time tints the field blue, Giratina's Shadow Force darkens it, Arceus's Judgment rains light. The full cinematic plays on each legendary's first cast every battle (Settings › Display › Legendary cinematics: first cast, every cast or off); the impacts always play.
+Legendary Pokémon get dramatic effects that stay on the board and never cover the field or slow the game: a big charge-up behind them, a shockwave ring, their own stack of PMD impacts on every target, strikes from the sky for some, a lingering afterglow and a short screen shake (Settings › Display can turn the shake off). Each has its own look: Reshiram's Blue Flare burns blue, Zekrom's Bolt Strike calls down a triple blue lightning strike, Dialga's Roar of Time sends time-warp clouds, Giratina's Shadow Force bursts from the shadows, Arceus's Judgment rains light.
 
 ### Settings
 
