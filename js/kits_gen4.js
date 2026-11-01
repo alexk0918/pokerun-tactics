@@ -108,9 +108,11 @@ function rotomHit(c,tg,f){const A=ROTOM_APP[f],ty=A?A.ty:'Electric';
 kit({ids:[479],role:'Appliance Ghost',cls:'Mystic',cat:'spec',range:3,mana:60,pf:1.1,names:['Thunderbolt'],mvType:'Electric',
   tail:c=>'<b>Rotom Catalog:</b> tap the catalog icon over Rotom while planning to choose its appliance; you can change it any time. Each appliance also changes its type (and sets) and raises its stats.'},
   {d:c=>{const a=c&&c.u&&c.u.app,A=ROTOM_APP[a];return A?`${A.n}: possesses the ${A.obj.toLowerCase()} and attacks the target for ${DT(c,1.1)} (${A.ty}), which ${A.d}.`:
-     `Unplugged: possesses a random appliance each cast and attacks the target for ${DT(c,1.1)}: oven (4 Burn), washer (knock back, 2 Confusion), fridge (4 Chill), fan (hits enemies behind), mower (4 Leech Seed), or a plain Thunderbolt (4 Paralysis).`;},
+     `Unplugged: calls down 5 lightning strikes on random enemies anywhere on the board, each dealing ${DT(c,.45)} and adding 2 Paralysis.`;},
    begin(c){const A=ROTOM_APP[c.u&&c.u.app];if(A){transform(c,A.fid,{label:A.n+'!',col:TYPES[A.ty]});c.app=c.u.app;}},
-   cast(c,tg){rotomHit(c,tg,c.app||pick(['heat','wash','frost','fan','mow','bolt']));}});
+   cast(c,tg){if(c.app)return rotomHit(c,tg,c.app);
+     for(let k=0;k<5;k++)schedule(k*.13,()=>{if(c.dead)return;const fs=foesOf(c);if(!fs.length)return;const t=pick(fs);hitAb(c,t,.45,{type:'Electric'});addStatus(t,'para',2,c);
+       if(!SIM.on){fx.push({line:1,x1:t.x+rnd(-6,6),y1:t.y-150,x2:t.x,y2:t.y-8,life:.3,max:.3,col:'#ffe14d',w:2});pfx('Discharge_Hit',t.x,t.y-10,{sc:.35,force:1});}});}});
 // catalog icon over owned Rotom while planning
 const CATIMG=Object.assign(new Image(),{src:'assets/items/rotom-catalog.png'});
 function rotomOwned(){if(!run)return[];const out=[];for(const b of boardUnits())if(b.u.root===479){const p=hexXY(b.c,b.r);out.push({u:b.u,x:p.x+10,y:p.y-30});}
@@ -118,7 +120,7 @@ function rotomOwned(){if(!run)return[];const out=[];for(const b of boardUnits())
 function drawRotomChips(t){if(mode!=='plan'||drag||itemDrag)return;for(const r of rotomOwned()){const y=r.y+Math.sin(t*3)*1.5;ctx.fillStyle='#1b2430';ctx.fillRect(r.x-6,y-6,12,12);ctx.fillStyle='#f7f6ee';ctx.fillRect(r.x-5,y-5,10,10);if(CATIMG.complete&&CATIMG.naturalWidth)ctx.drawImage(CATIMG,r.x-5,y-5,10,10);}}
 function rotomChipAt(x,y){if(mode!=='plan')return null;return rotomOwned().find(r=>Math.abs(x-r.x)<8&&Math.abs(y-r.y)<8)||null;}
 function showRotomCatalog(u){hideTip();
-  const opts=[[null,479,'Unplugged','Electric','A random appliance every cast']].concat(Object.entries(ROTOM_APP).map(([k,A])=>[k,A.fid,A.n,A.ty,`${A.obj}: ${A.d}`]));
+  const opts=[[null,479,'Unplugged','Electric','Lightning strikes on random enemies across the board (5 strikes, 2 Paralysis each)']].concat(Object.entries(ROTOM_APP).map(([k,A])=>[k,A.fid,A.n,A.ty,`${A.obj}: ${A.d}`]));
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Rotom Catalog</h1><p class="sub">Pick an appliance for ${esc(nameOf(u))}. You can switch any time while planning.</p>
     <div class="evo">${opts.map(([k,fid,n,ty,d])=>`<button class="pick win${(u.app||null)===k?' cur':''}" data-k="${k||''}"><img src="${por(fid)}" alt=""><h2>${esc(n)}</h2><div class="chips">${typeChips(fid)}</div><div class="lbl">${esc(d)}</div></button>`).join('')}</div>
     <button class="btn" id="back">Keep it as it is</button></div>`;
