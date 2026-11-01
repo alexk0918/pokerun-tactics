@@ -29,7 +29,7 @@ kit({ids:[84,85],role:'Triple Threat',cls:'Combo',cat:'phys',range:1,mana:[60,65
   {d:(c,i)=>`Each of its ${i?'three':'two'} heads pecks a different nearby enemy for ${DT(c,.6)}${i?', and every peck burns, freezes or paralyzes at random':''}.`,
    cast(c,tg,i){const ts=foesOf(c).filter(f=>hdist(f,c)<=2).sort((a,b)=>hdist(a,c)-hdist(b,c));const n=i?3:2;for(let k=0;k<n;k++){const t=ts[k%Math.max(1,ts.length)]||tg;schedule(k*.1,()=>{if(c.dead||t.dead)return;hitAb(c,t,.6);if(i)applyFx(c,t,{tri:1},i);spark(t.x,t.y-12,'#ffd8a0',6);});}}});
 kit({ids:[83],role:'Leek Knight',cls:'Bruiser',cat:'phys',range:1,mana:60,pf:1.25,names:['Leaf Blade'],mvType:'Grass',
-  d:c=>`Slashes with its leek for ${DT(c,1.2)} with +40% crit chance. <b>Keen Eye:</b> every cast adds +6% crit chance for the battle.`,
+  d:c=>`Slashes with its leek for ${DT(c,1.2)} with +40% crit chance. <b>Keen Eye:</b> every cast adds +5% crit chance for the battle.`,
   cast(c,tg){hitAb(c,tg,1.2,{cr:.4});c.crit+=.06;boom(tg,'#8fd16a');}});
 kit({ids:[19,20],role:'Gnawer',cls:'Bruiser',cat:'phys',range:1,mana:[60,65],pf:[.9,1.1],names:['Hyper Fang','Super Fang'],mvType:'Normal'},
   {d:(c,i)=>`Bites the target for ${DT(c,.8)}${i?` plus <span class="s-true">true</span> damage equal to 20% of its current HP — devastating against big targets`:' with a 30% chance to flinch'}.`,
@@ -40,13 +40,13 @@ kit({ids:[52,53],role:'Cat Burglar',cls:'Striker',cat:'phys',range:1,mana:[55,60
 kit({ids:[174,39,40],role:'Singer',cls:'Juggernaut',type:'guard',cat:'spec',range:1,mana:[80,80,85],start:20,pf:[.8,.9,1.1],names:['Sing','Sing','Hyper Voice'],mvType:'Normal'},
   staged(B.control({sleep:1.2},{say:'Sings a lullaby to',n:2}),B.control({sleep:1.5},{say:'Sings a lullaby to',n:3}),seq(B.control({sleep:1.5},{say:'Sings a lullaby to',n:3}),B.nova(.8,{say:'Then belts out a Hyper Voice',r:2}))));
 kit({ids:[108,463],role:'Licker',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[75,80],start:20,pf:[.9,1.1],names:['Lick','Power Whip'],mvType:'Normal'},
-  staged(seq(B.shield(.18),B.hit(.9,{proj:false,fx:{stun:1}})),seq(B.shield(.22),B.hit(.8,{to:'far',fx:{pull:1,stun:1}}))));
+  staged(seq(B.shield(.2),B.hit(.9,{proj:false,fx:{stun:1}})),seq(B.shield(.2),B.hit(.8,{to:'far',fx:{pull:1,stun:1}}))));
 kit({ids:[115],role:'Parent',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:75,start:20,pf:1.1,names:['Dizzy Punch'],mvType:'Normal',
   tail:()=>'<b>Parental Bond:</b> her baby joins in, hitting again for 50%.'},B.hit(1,{proj:false,echo:.5,fx:{stun:.6}}));
 kit({ids:[128],role:'Raging Bull',cls:'Bruiser',cat:'phys',range:1,mana:65,pf:1.2,names:['Raging Bull'],mvType:'Normal'},
   {d:c=>`Charges the target, shattering any shield it has, then hits it for ${DT(c,1.2)} and knocks it back.`,cast(c,tg){tg.shield=0;hitAb(c,tg,1.2);knock(c,tg);boom(tg,'#d8a878',2);}});
 kit({ids:[137,233,474],role:'Program',cls:'Mystic',cat:'spec',range:3,mana:[65,65,70],pf:[.9,1.1,1.35],names:['Tri Attack','Tri Attack','Hyper Beam'],mvType:'Normal',
-  tail:(c,i)=>i===2?'<b>Adaptability:</b> each cast adds +8% damage for the battle.':''},
+  tail:(c,i)=>i===2?'<b>Adaptability:</b> each cast adds +10% damage for the battle.':''},
   staged(B.hit(1.1,{fx:{tri:1}}),B.chain(2,.9,{fx:{tri:1},col:'#ff9be6'}),{d:(c,i)=>B.beam(1.5,{charge:.6}).d(c,i),cast(c,tg,i){B.beam(1.5,{charge:.6,col:'#ffb0e8'}).cast(c,tg,i);c.dmg+=.08;}}));
 kit({ids:[132],role:'Mimic',cls:'Trickster',cat:'phys',range:1,mana:70,pf:1,names:['Transform'],mvType:'Normal'},
   {d:()=>`<b>Transform:</b> at the start of battle, it turns into a copy of the strongest enemy, taking its move, range and PP (but keeping its own stats).`,
@@ -57,7 +57,7 @@ kit({ids:[133],role:'Evolution',cls:'Bruiser',cat:'phys',range:1,mana:70,pf:1.1,
   {d:c=>`Hits the target for ${DT(c,1.1)}, +25% for every different type on your field (Adaptability).`,cast(c,tg){const nt=new Set(alive(c.team).flatMap(a=>D[a.dex].t)).size;hitAb(c,tg,1.1*(1+.25*Math.max(0,nt-1)/3));boom(tg,'#d8c0a0',2);}});
 kit({ids:[134],role:'Tide Guardian',cls:'Juggernaut',type:'heal',cat:'spec',range:2,mana:80,start:20,pf:1,names:['Aqua Ring'],mvType:'Water'},
   seq(B.shield(.2,{def:25}),B.zone(0,{at:'self',r:1,dur:5,heal:.025,say:'Surrounds itself with a ring of water',col:'#6fb8ff'})));
-kit({ids:[135],role:'Needle Storm',cls:'Striker',cat:'phys',range:2,mana:60,pf:1,names:['Pin Missile'],mvType:'Electric',tail:()=>'Each cast also adds +8% <span class="s-as">Attack Speed</span> for the battle.'},
+kit({ids:[135],role:'Needle Storm',cls:'Striker',cat:'phys',range:2,mana:60,pf:1,names:['Pin Missile'],mvType:'Electric',tail:()=>'Each cast also adds +10% <span class="s-as">Attack Speed</span> for the battle.'},
   seq(B.barrage(6,.3,{what:'electrified needles',col:'#ffe14d'}),B.ramp({as:.08})));
 kit({ids:[136],role:'Flare Blitzer',cls:'Bruiser',cat:'phys',range:1,mana:70,pf:1.3,names:['Flare Blitz'],mvType:'Fire',tail:()=>'It takes recoil equal to 15% of the damage dealt.'},
   {d:c=>B.hit(1.4,{dash:1,fx:{burn:.02}}).d(c,0),cast(c,tg){const x={};B.hit(1.4,{dash:1,fx:{burn:.02}}).cast(c,tg,0,x);schedule(.3,()=>{if(!c.dead)hurt(c,V(c,1.4)*.15*.5,null);});}});
@@ -66,7 +66,7 @@ kit({ids:[136],role:'Flare Blitzer',cls:'Bruiser',cat:'phys',range:1,mana:70,pf:
 kit({ids:[23,24],role:'Constrictor',cls:'Trickster',cat:'phys',range:1,mana:[65,70],pf:[.9,1.15],names:['Wrap','Glare'],mvType:'Poison'},
   staged(B.hit(.9,{fx:{stun:.8}}),seq(B.control({stun:1.4},{say:'Glares at the',to:'strong'}),B.hit(1.1,{dash:1,fx:{psn:.02}}))));
 kit({ids:[29,30,31],role:'Matriarch',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:[75,80,85],start:20,pf:[.8,1,1.2],names:['Double Kick','Body Slam','Earth Power'],mvType:'Ground'},
-  staged(B.hit(.5,{n:2,proj:false}),seq(B.shield(.18),B.hit(1,{proj:false,fx:{stun:.5}})),seq(B.shield(.2,{who:'adjacent'}),B.nova(.8,{say:'Then the ground erupts around her',r:1,fx:{sdef:8}}))));
+  staged(B.hit(.5,{n:2,proj:false}),seq(B.shield(.2),B.hit(1,{proj:false,fx:{stun:.5}})),seq(B.shield(.2,{who:'adjacent'}),B.nova(.8,{say:'Then the ground erupts around her',r:1,fx:{sdef:8}}))));
 kit({ids:[32,33,34],role:'Tyrant',cls:'Bruiser',cat:'phys',range:1,mana:[65,70,75],pf:[.8,1,1.2],names:['Poison Jab','Horn Attack','Earth Power'],mvType:'Ground',tail:(c,i)=>i===2?'<b>Sheer Force:</b> deals +25% move damage.':''},
   staged(B.hit(1,{fx:{psn:.015}}),B.hit(1.15,{dash:1,fx:{psn:.02}}),B.blast(1.3,{what:'an Earth Power eruption',r:1,fx:{sdef:10}})));
 kit({ids:[41,42,169],role:'Bloodsucker',cls:'Striker',cat:'phys',range:1,mana:[55,55,50],pf:[.8,1,1.15],as:1.1,names:['Leech Life','Leech Life','Cross Poison'],mvType:'Flying'},
@@ -79,7 +79,7 @@ kit({ids:[69,70,71],role:'Pitcher',cls:'Bruiser',cat:'phys',range:1,mana:[65,70,
 kit({ids:[72,73],role:'Jellyfish',cls:'Artillery',cat:'spec',range:2,mana:[70,75],pf:[.8,1.05],names:['Acid','Sludge Wave'],mvType:'Poison'},
   staged(B.hit(1,{fx:{sdef:8}}),B.nova(.85,{say:'Releases a Sludge Wave',r:2,fx:{psn:.02}})));
 kit({ids:[88,89],role:'Sludge',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[75,80],start:20,pf:[.8,1],names:['Sludge','Toxic Pool'],mvType:'Poison'},
-  staged(B.hit(1,{proj:false,fx:{psn:.02}}),seq(B.shield(.18),B.zone(.12,{at:'self',r:1,dur:5,say:'Oozes a toxic pool',fx:{psn:.015},col:'#a35bd6'}))));
+  staged(B.hit(1,{proj:false,fx:{psn:.02}}),seq(B.shield(.2),B.zone(.12,{at:'self',r:1,dur:5,say:'Oozes a toxic pool',fx:{psn:.015},col:'#a35bd6'}))));
 kit({ids:[109,110],role:'Smog Cloud',cls:'Trickster',cat:'spec',range:3,mana:[70,75],pf:[.8,1],names:['Smog','Toxic Fumes'],mvType:'Poison',tail:()=>'<b>Aftermath:</b> when it faints, it bursts a final cloud where it stood.'},
   {d:(c,i)=>B.zone(.14,{at:'cluster',r:1,dur:i?5:3,say:'Blankets',fx:{psn:.015,slow:[.2,1]}}).d(c,i),cast(c,tg,i){B.zone(.14,{at:'cluster',r:1,dur:i?5:3,fx:{psn:.015,slow:[.2,1]},col:'#9b8fb0'}).cast(c,tg,i);},
    hitBy(c,src,o,d){if(c.hp-d<=0&&!c.aftermath){c.aftermath=1;zone(c,c,1,3,'#9b8fb0',z=>{for(const q of inZone(z,1-c.team))hitAb(c,q,.12,{noCrit:1,quiet:1});});}}});
@@ -93,15 +93,15 @@ kit({ids:[50,51],role:'Burrower',cls:'Striker',cat:'phys',range:1,mana:[60,65],p
    cast(c,tg,i){B.airborne(.6).cast(c);schedule(.6,()=>{if(c.dead)return;const t=pickT(c,tg,'weak');dashTo(c,t,true,.12);for(let k=0;k<(i?3:1);k++)schedule(.15+k*.1,()=>{if(!c.dead&&!t.dead){hitAb(c,t,i?.5:1.1);if(!SIM.on)burst(t.x,t.y,'#b08a5a',8,.8);}});});}});
 kit({ids:[74,75,76],role:'Boulder',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:[75,80,85],start:25,pf:[.8,1,1.2],names:['Rock Throw','Rock Blast','Heavy Slam'],mvType:'Rock',
   tail:(c,i)=>i===2?`<b>Explosion:</b> when it faints, it blows up, dealing ${HPT(c,.3)} as <span class="s-atk">physical</span> damage to enemies within 1 hex.`:''},
-  {d:(c,i)=>staged(B.hit(1,{fx:{flinch:.3}}),seq(B.shield(.18),B.hit(.35,{n:4})),seq(B.shield(.22,{def:20}),B.hit(1.2,{proj:false,fx:{stun:.8}}))).d(c,i),
-   cast(c,tg,i){staged(B.hit(1,{fx:{flinch:.3}}),seq(B.shield(.18),B.hit(.35,{n:4})),seq(B.shield(.22,{def:20}),B.hit(1.2,{proj:false,fx:{stun:.8}}))).cast(c,tg,i);},
+  {d:(c,i)=>staged(B.hit(1,{fx:{flinch:.3}}),seq(B.shield(.2),B.hit(.35,{n:4})),seq(B.shield(.2,{def:20}),B.hit(1.2,{proj:false,fx:{stun:.8}}))).d(c,i),
+   cast(c,tg,i){staged(B.hit(1,{fx:{flinch:.3}}),seq(B.shield(.2),B.hit(.35,{n:4})),seq(B.shield(.2,{def:20}),B.hit(1.2,{proj:false,fx:{stun:.8}}))).cast(c,tg,i);},
    hitBy(c,src,o,d,i){if(c.kit.si===2&&c.hp-d<=0&&!c.boomed){c.boomed=1;for(const q of foesOf(c).filter(f=>hdist(f,c)<=1))damage(c,q,c.maxHp*.3,{ab:1,cat:'phys',noCrit:1,refl:1});boom(c,'#ffb35c',3);}}});
 kit({ids:[95,208],role:'Rock Serpent',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[80,85],start:20,pf:[.9,1.1],names:['Sand Tomb','Iron Tail'],mvType:'Rock'},
   staged(seq(B.shield(.2),B.hit(.9,{proj:false,fx:{stun:1.2,shred:8}})),seq(B.shield(.25,{def:25}),B.cone(1,{say:'Sweeps its iron tail',fx:{knock:1}}))));
 kit({ids:[111,112,464],role:'Stampede',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[75,80,85],start:20,pf:[.8,1,1.2],names:['Horn Attack','Drill Run','Rock Wrecker'],mvType:'Ground'},
-  staged(B.hit(1.1,{proj:false}),seq(B.shield(.18),B.beam(.9,{what:'a horn charge',fx:{knock:1}})),seq(B.shield(.2),B.blast(1.2,{what:'a Rock Wrecker boulder',at:'cluster',r:1,arc:1,fx:{stun:.8}}))));
+  staged(B.hit(1.1,{proj:false}),seq(B.shield(.2),B.beam(.9,{what:'a horn charge',fx:{knock:1}})),seq(B.shield(.2),B.blast(1.2,{what:'a Rock Wrecker boulder',at:'cluster',r:1,arc:1,fx:{stun:.8}}))));
 kit({ids:[138,139],role:'Spike Shell',cls:'Vanguard',type:'guard',cat:'spec',range:2,mana:[75,80],start:20,pf:[.8,1.05],names:['Water Gun','Spike Cannon'],mvType:'Rock'},
-  staged(seq(B.shield(.18),B.hit(1)),seq(B.shield(.2,{def:15}),B.hit(.3,{n:5,fx:{shred:2}}))));
+  staged(seq(B.shield(.2),B.hit(1)),seq(B.shield(.2,{def:15}),B.hit(.3,{n:5,fx:{shred:2}}))));
 kit({ids:[140,141],role:'Scythe Fossil',cls:'Bruiser',cat:'phys',range:1,mana:[60,65],pf:[.8,1.1],names:['Aqua Jet','Razor Shell'],mvType:'Water'},
   staged(B.hit(1.1,{dash:1}),seq(B.hit(.9,{dash:1,to:'weak'}),B.nova(.6,{say:'Then whirls its scythes',r:1,fx:{shred:8}}))));
 kit({ids:[142],role:'Sky Raptor',cls:'Striker',cat:'phys',range:1,mana:70,pf:1.25,names:['Stone Edge'],mvType:'Rock'},B.hit(1.3,{dash:1,to:'far',cr:.3}));
@@ -115,7 +115,7 @@ kit({ids:[77,78],role:'Charger',cls:'Striker',cat:'phys',range:1,mana:[60,60],pf
   seq(B.hit(.9,{dash:1,to:'far',fx:{burn:.015}}),B.ramp({as:.1})));
 kit({ids:[240,126,467],role:'Flame Cannon',cls:'Artillery',cat:'spec',range:3,mana:[70,75,80],pf:[.8,1,1.25],names:['Ember','Flamethrower','Fire Blast'],mvType:'Fire'},
   staged(B.hit(1,{fx:{burn:.01}}),B.cone(.95,{say:'Blasts flames',fx:{burn:.015}}),B.blast(1.2,{what:'a Fire Blast shell',at:'cluster',r:1,arc:1,fx:{burn:.02}})));
-kit({ids:[146],role:'Flame Phoenix',cls:'Mystic',cat:'spec',range:3,mana:85,pf:1.35,names:['Fire Spin'],mvType:'Fire',tail:()=>'<b>Overheat:</b> each cast also lowers its own <span class="s-spa">Sp. Atk</span> by 8%.'},
+kit({ids:[146],role:'Flame Phoenix',cls:'Mystic',cat:'spec',range:3,mana:85,pf:1.35,names:['Fire Spin'],mvType:'Fire',tail:()=>'<b>Overheat:</b> each cast also lowers its own <span class="s-spa">Sp. Atk</span> by 10%.'},
   {d:c=>seq(B.blast(1.4,{what:'an Overheat blast',at:'cluster',r:1}),B.zone(.15,{at:'cluster',r:1,dur:4,say:'Then leaves a Fire Spin',fx:{burn:.01}})).d(c,0),
    cast(c,tg){seq(B.blast(1.4,{what:'an Overheat blast',at:'cluster',r:1,col:'#ff7a2c'}),B.zone(.15,{at:'cluster',r:1,dur:4,fx:{burn:.01},col:'#ff7a2c'})).cast(c,tg,0);c.spa*=.92;}});
 
@@ -124,14 +124,14 @@ kit({ids:[54,55],role:'Headache',cls:'Mystic',cat:'spec',range:3,mana:[70,70],pf
   {d:(c,i)=>`Its headache builds as it takes damage. Releases it at the target for ${DT(c,1)} plus <b>30%</b> of all damage it has taken this battle${c&&c.ache?` (now +${Math.round(c.ache*.3)})`:''}${i?', and confuses the target (stunned for 0.8s)':''}.`,
    hitBy(c,src,o,d){c.ache=(c.ache||0)+d;},cast(c,tg,i){fire(c,tg,'#ffe48a',()=>{damage(c,tg,V(c,1)+(c.ache||0)*.3,{ab:1,cat:'spec',type:'Psychic'});if(i)stun(tg,.8);boom(tg,'#ffe48a',2);},{size:5,sp:260});c.ache=(c.ache||0)*.5;}});
 kit({ids:[60,61,62],role:'Brawling Tadpole',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:[70,75,80],start:20,pf:[.8,1,1.2],names:['Bubble','Hypnosis','Circle Throw'],mvType:'Water'},
-  staged(B.hit(1,{fx:{slow:[.25,2]}}),seq(B.shield(.18),B.control({sleep:1.5},{to:'strong',say:'Hypnotizes'})),seq(B.shield(.22),B.hit(1.2,{proj:false,fx:{knock:1,stun:.8}}))));
+  staged(B.hit(1,{fx:{slow:[.25,2]}}),seq(B.shield(.2),B.control({sleep:1.5},{to:'strong',say:'Hypnotizes'})),seq(B.shield(.2),B.hit(1.2,{proj:false,fx:{knock:1,stun:.8}}))));
 kit({ids:[79,80],role:'Slowpoke Tail',cls:'Medic',type:'heal',cat:'spec',range:2,mana:[80,85],pf:[.9,1.1],names:['Slack Off','Yawn'],mvType:'Water'},
   staged(B.heal(1,{who:'self'}),{d:c=>`Slacks off, healing itself for ${HT(c,.9)}, then yawns at the strongest enemy: 1.5s later, it falls asleep for 2s.`,
     cast(c,tg){heal(c,HEALV(c,.9));const t=pickT(c,tg,'strong');if(!SIM.on)texts.push({x:t.x,y:t.y-30,txt:'*yawn*',col:'#c6b3ff',life:1,label:1});schedule(1.5,()=>{if(!t.dead)applyFx(c,t,{sleep:2},1);});}}));
 kit({ids:[81,82,462],role:'Magnet Array',cls:'Mystic',cat:'spec',range:3,mana:[70,75,80],pf:[.8,.95,1.15],names:['Zap Cannon','Zap Cannon','Zap Cannon'],mvType:'Electric'},
   {d:(c,i)=>B.barrage(i+1,1,{what:'slow Zap Cannon orbs',fx:{stun:1}}).d(c,i),cast(c,tg,i){B.barrage(i+1,1,{fx:{stun:1},col:'#ffe14d',size:5}).cast(c,tg,i);}});
 kit({ids:[86,87],role:'Iceberg',cls:'Vanguard',type:'guard',cat:'spec',range:2,mana:[75,80],start:20,pf:[.8,1.05],names:['Ice Shard','Ice Beam'],mvType:'Ice'},
-  staged(seq(B.shield(.18),B.hit(1,{fx:{slow:[.3,2]}})),seq(B.shield(.2),B.beam(.9,{what:'an Ice Beam',fx:{freeze:.8}}))));
+  staged(seq(B.shield(.2),B.hit(1,{fx:{slow:[.3,2]}})),seq(B.shield(.2),B.beam(.9,{what:'an Ice Beam',fx:{freeze:.8}}))));
 kit({ids:[90,91],role:'Spike Shell',cls:'Combo',cat:'phys',range:[1,2],mana:[65,70],pf:[.8,1.1],names:['Clamp','Shell Smash'],mvType:'Ice',tail:(c,i)=>i?'Shell Smash lowers its <span class="s-def">Defense</span> by 10 each time.':''},
   staged(B.hit(.9,{proj:false,fx:{stun:.6}}),{d:c=>`Smashes its shell for +20% <span class="s-atk">Attack</span> and <span class="s-as">Attack Speed</span> (stacks), then fires 5 Icicle Spears at the target for ${DT(c,.3)} each.`,
     cast(c,tg){c.atk*=1.2;c.as*=1.2;c.def=Math.max(0,c.def-10);B.hit(.3,{n:5,col:'#dff6ff'}).cast(c,tg,1,{});}}));

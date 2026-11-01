@@ -96,3 +96,24 @@ function showSettings(from,tab){
 }
 function closeSettings(){if(setFrom==='game'){ov.innerHTML='';if(paused)$('pause').hidden=false;}else showTitle();}
 function showOptions(){showSettings('title','general');}
+
+/* ---------- keyboard menu navigation (arrow keys move between buttons in menus; the board stays mouse/controller) ---------- */
+const NAVSEL='button:not(:disabled):not([hidden]),.pick,.mode,.srow,.stab,[tabindex="0"]';
+function menuRoot(){const sc=ov.querySelector('.screen');if(sc&&sc.offsetParent!==null)return ov;const pz=$('pause');if(pz&&!pz.hidden)return pz;return null;}
+function navMove(root,dx,dy){
+  const els=[...root.querySelectorAll(NAVSEL)].filter(el=>{const b=el.getBoundingClientRect();return b.width>0&&b.height>0&&!el.closest('[hidden]');});if(!els.length)return;
+  const cur=document.activeElement&&root.contains(document.activeElement)?document.activeElement:null;
+  if(!cur){els[0].focus();return;}
+  const c=cur.getBoundingClientRect(),cx=c.left+c.width/2,cy=c.top+c.height/2;let best=null,bs=1e9;
+  for(const el of els){if(el===cur||el.contains(cur)||cur.contains(el))continue;const b=el.getBoundingClientRect(),vx=b.left+b.width/2-cx,vy=b.top+b.height/2-cy,d=Math.hypot(vx,vy);if(d<2)continue;
+    const along=(vx*dx+vy*dy)/d;if(along<.4)continue;const sc=d+Math.abs(vx*dy-vy*dx)*2;if(sc<bs){bs=sc;best=el;}}
+  if(best){best.focus();best.scrollIntoView&&best.scrollIntoView({block:'nearest'});}}
+addEventListener('keydown',e=>{
+  if(e.defaultPrevented)return;const ae=document.activeElement;if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;const root=menuRoot();
+  const dir={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];
+  if(root&&dir){
+    // settings rows use left/right to change their value
+    if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&document.activeElement&&document.activeElement.classList.contains('srow'))return;
+    e.preventDefault();navMove(root,dir[0],dir[1]);return;}
+  if(root&&(e.key==='Escape'||e.key==='Backspace')&&!run){const b=ov.querySelector('#back,#setclose,#dexclose,#skip');if(b){e.preventDefault();b.click();}}
+});

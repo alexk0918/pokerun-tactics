@@ -77,7 +77,7 @@ function spawnWave(){
   if(mode!=='combat'||!battle||battle.node!=='endurance')return;
   battle.wave++;const f=run.floor,w=battle.wave;
   const n=Math.min(2+Math.ceil(w/2),5),room=Math.max(0,9-alive(1).length);
-  const o=LVODDS[ELEVEL(f)],mult=(1.02+(f-4)*.03)*(1+w*.1)*(hasRelic('town-map')?.92:1);
+  const o=LVODDS[ELEVEL(f)],mult=(1.02+(f-4)*.03)*(1+w*.1)*(hasRelic('town-map')?.9:1);
   for(let i=0;i<Math.min(n,room);i++){
     const root=pick(MODE.byCost[rollCostFor(o)-1]);const u=mkEnemy(root,Math.random()<clamp((f-4)*.05+w*.05,0,.6)?2:1);
     const pos=freeHex([0,1,2]);if(!pos)break;
@@ -175,16 +175,16 @@ function eN(c,base,ratio,stat){const sn={atk:'Attack',spa:'Sp. Atk',hp:'max HP'}
   const v=base+ratio*(stat==='hp'?c.maxHp:c[stat]);return`<b class="${cl}">${Math.round(v)}</b> <span class="sc">(${f})</span>`;}
 const ENH={
   'quick-powder':{n:'Quick Powder',e:{as:.25,qpRamp:.03},d:()=>`+25% ${eAS}. Each basic attack adds +3% ${eAS} for the battle (up to 15 times). At 15 stacks, every attack also ricochets to an enemy within 2 hexes of the target for 50% damage.`},
-  'metal-coat':{n:'Metal Coat',e:{def:30,res:30,dr:.08,ironShield:.12},d:c=>`+30 ${eDF} and ${eSD}, and takes 8% less damage. When an enemy move hits it, gains a shield of ${eN(c,0,.12,'hp')} (once every 3s).`},
+  'metal-coat':{n:'Metal Coat',e:{def:30,res:30,dr:.1,ironShield:.12},d:c=>`+30 ${eDF} and ${eSD}, and takes 10% less damage. When an enemy move hits it, gains a shield of ${eN(c,0,.12,'hp')} (once every 3s).`},
   'thick-club':{n:'Thick Club',e:{atkP:.35,pctHit:.03,clubStun:.6},d:()=>`+35% ${eA}. Basic attacks deal bonus ${ePH} damage equal to 3% of the target's ${eHP}, and every 5th attack bonks the target, stunning it for 0.6s.`},
   'light-ball':{n:'Light Ball',e:{spaP:.3,mana:15,lightChain:.25},d:()=>`+30% ${eSA} and +15 starting PP. Moves arc lightning to the 2 nearest other enemies for 25% of the damage dealt.`},
   'lucky-punch':{n:'Lucky Punch',e:{crit:.25,critD:.3,abCrit:1,critPP:5},d:()=>`+25% crit chance and +30% crit damage. Moves can crit, and every critical hit restores 5 PP.`},
-  'big-root':{n:'Big Root',e:{ls:.18,healAmp:.25,ohShield:.25},d:c=>`Heals for 18% of all damage dealt and its heals are 25% stronger. Healing past full HP becomes a shield, up to ${eN(c,0,.25,'hp')}.`},
+  'big-root':{n:'Big Root',e:{ls:.2,healAmp:.25,ohShield:.25},d:c=>`Heals for 20% of all damage dealt and its heals are 25% stronger. Healing past full HP becomes a shield, up to ${eN(c,0,.25,'hp')}.`},
   'starf-berry':{n:'Starf Berry',e:{lowAS:.5,lowLs:.2,lowDef:20},d:()=>`While below half HP: +50% ${eAS}, +20% lifesteal and +20 ${eDF}.`},
   'enigma-berry':{n:'Enigma Berry',e:{sitrus:.35,enigma:25},d:c=>`The first time it drops below half HP: heals ${eN(c,0,.35,'hp')}, gains +25 ${eDF} and ${eSD}, and heals allies within 1 hex for 15% of their ${eHP}.`},
   'deep-sea-tooth':{n:'Deep Sea Tooth',e:{as:.15,kraken:1},stack:'triggers',d:(c,it)=>{const st=(it&&it.st)||0;return`+15% ${eAS}. Every 3rd basic attack deals ${eN(c,30,.3,'atk')} bonus ${eTR} damage. <b>Grows:</b> +1% for every time this tooth has triggered this run${st?` (now +${st}%)`:''}.`;}},
   'rare-bone':{n:'Rare Bone',e:{atkF:20},stack:'takedowns',d:(c,it)=>{const st=(it&&it.st)||0;return`+20 ${eA}. Each takedown heals ${eN(c,0,.1,'hp')} and permanently adds +2 ${eA} and ${eSA} to this bone${st?` (now +${2*st})`:''}.`;}},
-  'soul-dew':{n:'Soul Dew',e:{mana:20,archangel:.08},d:()=>`+20 starting PP. Every 4 seconds in battle: +8% ${eSA}, stacking for the rest of the fight.`},
+  'soul-dew':{n:'Soul Dew',e:{mana:20,archangel:.1},d:()=>`+20 starting PP. Every 4 seconds in battle: +10% ${eSA}, stacking for the rest of the fight.`},
   'electric-seed':{n:'Electric Seed',e:{as:.15,chainHit:1},d:c=>`+15% ${eAS}. Every 3rd basic attack chains lightning to the 3 enemies nearest the target for ${eN(c,40,.4,'spa')} ${eSP} damage, paralyzing them for 0.3s.`},
   'black-sludge':{n:'Black Sludge',e:{toxic:1},d:()=>`Basic attacks add 1 Poison and moves add 2; poisoned targets heal a third less. (Poison: 0.3% of the target's ${eHP} per second per stack, up to 20.)`},
   'reaper-cloth':{n:'Reaper Cloth',e:{curse:1},d:()=>`Moves curse the target for 5s. Cursed enemies take 15% more damage from everyone, and when one faints it bursts for 20% of its ${eHP} as ${eSP} damage to enemies within 1 hex.`},
@@ -195,10 +195,10 @@ const ENH={
   'adrenaline-orb':{n:'Adrenaline Orb',e:{adren:.15,killPP:25},d:()=>`Each time an ally faints: +15% ${eAS} and +10% damage for the battle (up to 3 times). Each takedown restores 25 PP.`},
   'room-service':{n:'Room Service',e:{slowAura:.2,shredAura:20},d:()=>`At the start of battle, enemies within 2 hexes lose 20% ${eAS} and 20 ${eDF} and ${eSD} for 8 seconds.`},
   'charcoal':{n:'Charcoal',e:{onBurn:1,abBurn:3,burnDmg:.25},d:()=>`Basic attacks add 1 Burn and moves add 3. Burns it applies deal +25% damage. (Burn: 0.25% of the target's ${eHP} per second per stack, and it deals 15% less ${ePH} damage.)`},
-  'toxic-orb':{n:'Toxic Orb',e:{onPsn:1,abPsn:3,vsPsn:.12},d:()=>`Basic attacks add 1 Poison and moves add 3. Deals +12% damage to poisoned enemies. (Poison: 0.3% of the target's ${eHP} per second per stack, and its healing is cut by a third.)`},
+  'toxic-orb':{n:'Toxic Orb',e:{onPsn:1,abPsn:3,vsPsn:.1},d:()=>`Basic attacks add 1 Poison and moves add 3. Deals +10% damage to poisoned enemies. (Poison: 0.3% of the target's ${eHP} per second per stack, and its healing is cut by a third.)`},
   'cell-battery':{n:'Cell Battery',e:{onPara:1,abPara:3,as:.1},d:()=>`+10% ${eAS}. Basic attacks add 1 Paralysis and moves add 3. (Paralysis: −5% ${eAS} per stack, up to 10.)`},
   'never-melt-ice':{n:'Never-Melt Ice',e:{onChill:1,abChill:2,vsChill:.15},d:()=>`Basic attacks add 1 Chill and moves add 2. Deals +15% damage to chilled enemies. (Chill: −4% ${eDF} and ${eSD} per stack, up to 10.)`},
-  'twisted-spoon':{n:'Twisted Spoon',e:{abConf:3,spaP:.15},d:()=>`+15% ${eSA}. Moves add 3 Confusion. (Confusion: each attack has an 8% chance per stack to hurt itself instead.)`},
+  'twisted-spoon':{n:'Twisted Spoon',e:{abConf:3,spaP:.15},d:()=>`+15% ${eSA}. Moves add 3 Confusion. (Confusion: each attack has an 10% chance per stack to hurt itself instead.)`},
   'miracle-seed':{n:'Miracle Seed',e:{onSeed:1,abSeed:2,seedHeal:.5},d:()=>`Basic attacks plant 1 Leech Seed and moves plant 2. Its seeds heal it 50% more. (Leech Seed: drains 0.3% of the target's ${eHP} per second per stack into whoever planted it.)`},
   'sacred-ash':{n:'Sacred Ash',e:{revive:.5,ashFull:.25},d:c=>`Revives once with ${eN(c,0,.5,'hp')} and full PP, then deals +25% damage for the rest of the battle.`},
 };
@@ -377,7 +377,7 @@ const EVENTS={
       if(x<.25)return'It\'s a completed item! '+gainBag({k:randCraft(),mut:rollMut(.3)});if(x<.45)return'It\'s an enhancer! '+gainBag({k:'enh:'+rollEnh(),mut:[]});
       if(x<.7)return'It\'s a component. '+gainBag(mkComp(randComp(),rollMut(.3)));if(x<.85)return'It\'s a consumable. '+gainBag({k:pick(Object.keys(USE)),mut:[]});run.gold+=8;return'It\'s full of coins: ₽8!';}})).concat([{t:'Leave them',d:'Someone may be coming back for these.',fn:()=>'You leave the grotto as you found it.'}])},
   cipher:{n:'A shadowy lab',img:()=>iconOf('dusk-ball'),txt:'A Cipher admin steps out of a dark tent. "I can unlock the hidden power in your Pokémon. There is a small... cost."',
-    opts:[{t:'Accept',d:'A random Pokémon on the field becomes Shadow: +15% damage, takes 6% more damage.',ok:()=>Object.values(run.board).some(u=>!u.mut),fn:()=>{const u=pick(Object.values(run.board).filter(x=>!x.mut));u.mut='shadow';return`${nameOf(u)} is wreathed in dark energy. It's now Shadow ${nameOf(u)}.`;}},
+    opts:[{t:'Accept',d:'A random Pokémon on the field becomes Shadow: +15% damage, takes 5% more damage.',ok:()=>Object.values(run.board).some(u=>!u.mut),fn:()=>{const u=pick(Object.values(run.board).filter(x=>!x.mut));u.mut='shadow';return`${nameOf(u)} is wreathed in dark energy. It's now Shadow ${nameOf(u)}.`;}},
       {t:'Take a sample instead',d:'Gain a Shadow component.',fn:()=>gainBag(mkComp(randComp(),['shadow']))},
       {t:'Refuse',d:'Leave.',fn:()=>'"You\'ll regret this." The tent is gone when you look back.'}]},
   stone:{n:'A glowing stone',img:()=>iconOf(run.gimmick?GIMMICKS[run.gimmick].key:'odd-keystone'),txt:'Something buried in the roots is glowing with the same light as your key item.',need:()=>!!run.gimmick,

@@ -23,6 +23,10 @@ function padShow(on){
   PAD.el.hidden=!on;document.body.classList.toggle('pad',on);
   if(on&&typeof toast==='function')toast('Controller connected. Stick or D-pad to move, A to select, hold A to drag.');
 }
+// the element under the controller cursor gets the same highlight as a mouse hover / keyboard focus
+let padHoverEl=null;
+function padHover(){const p=padClient();const el=document.elementFromPoint(p.x,p.y);const t=el&&el.closest?el.closest('button,.pick,.mode,.card,.srow,.slot:not(.empty),.trait,.mcard'):null;
+  if(t===padHoverEl)return;if(padHoverEl)padHoverEl.classList.remove('padhover');padHoverEl=t;if(t)t.classList.add('padhover');}
 function padDraw(){PAD.el.style.left=PAD.x+'px';PAD.el.style.top=PAD.y+'px';PAD.el.classList.toggle('grab',PAD.aDown);}
 
 /* targets for D-pad snapping, in stage coordinates */
@@ -96,7 +100,7 @@ function padPoll(dt){
   if(padEdge(gp,BTN.R3))camReset();
   if(padEdge(gp,BTN.RB)&&run&&(mode==='plan'||mode==='loot')){const r=padStageRect(),p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const o=ownedAt(q.x,q.y);if(o)sell(o.u);}
   PAD.prev=gp.buttons.map(b=>b.pressed);
-  padDraw();
+  padDraw();padHover();
 }
 function padInit(){
   PAD.el=document.createElement('div');PAD.el.id='padcursor';PAD.el.hidden=true;PAD.el.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2l15 9-6.5 1.5L15 20l-3 1.4-3.3-7.4L3 18z" fill="#fff" stroke="#24303d" stroke-width="2" stroke-linejoin="round"/></svg>';

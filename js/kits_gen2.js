@@ -9,7 +9,7 @@ function setWeather(c,k){if(battle.weather)return;battle.weather=k;battle.wPow=1
 kit({ids:[152,153,154],role:'Garden Healer',cls:'Medic',type:'heal',cat:'spec',range:2,mana:[70,75,80],pf:[.8,1,1.1],names:['Synthesis','Synthesis','Aromatherapy'],mvType:'Grass'},
   staged(B.heal(.9,{}),seq(B.heal(.85,{}),B.hit(.6,{fx:{slow:[.2,2]}})),seq(B.heal(.55,{who:'team',cleanse:1}),B.nova(.6,{say:'Then a Petal Blizzard swirls around her',r:1}))));
 kit({ids:[155,156,157],role:'Volcano',cls:'Mystic',cat:'spec',range:3,mana:[65,70,85],pf:[.8,1,1.3],names:['Ember','Flame Wheel','Eruption'],mvType:'Fire'},
-  staged(B.hit(1,{fx:{burn:.01}}),B.hit(1.1,{dash:1,fx:{burn:.015}}),{d:c=>`Erupts, lobbing magma onto the biggest group of enemies: ${DT(c,1.6)} to the center and 70% to adjacent enemies, scaled by its current HP (full damage at full HP, 40% when nearly fainted). Burns for 2% <span class="s-hp">max HP</span>/s.`,
+  staged(B.hit(1,{fx:{burn:.01}}),B.hit(1.1,{dash:1,fx:{burn:.015}}),{d:c=>`Erupts, lobbing magma onto the biggest group of enemies: ${DT(c,1.6)} to the center and 70% to adjacent enemies, scaled by its current HP (full damage at full HP, 40% when nearly fainted). Adds 4 Burn.`,
     cast(c,tg){const k=.4+.6*c.hp/c.maxHp;B.blast(1.6*k,{at:'cluster',r:1,arc:1,fx:{burn:.02},col:'#ff7a2c'}).cast(c,tg,2,{});}}));
 kit({ids:[158,159,160],role:'Big Jaw',cls:'Bruiser',cat:'phys',range:1,mana:[60,65,70],pf:[.8,1,1.2],names:['Bite','Ice Fang','Crunch'],mvType:'Water',tail:(c,i)=>i===2?'<b>Sheer Force:</b> its bites deal +25% damage.':''},
   staged(B.hit(1,{proj:false,fx:{flinch:.3}}),B.hit(.55,{n:2,proj:false,fx:{freeze:.6}}),B.hit(.55,{n:3,proj:false,fx:{shred:8}})));
@@ -48,7 +48,7 @@ kit({ids:[193,469],role:'Speed Glider',cls:'Striker',cat:'spec',range:2,mana:[55
 kit({ids:[194,195],role:'Mud Dweller',cls:'Vanguard',type:'guard',cat:'phys',range:[1,2],mana:[70,75],start:20,pf:[.8,1],names:['Mud Shot','Earthquake'],mvType:'Ground',tail:(c,i)=>i?'<b>Unaware:</b> ignores enemies\' Defense buffs on its moves.':''},
   staged(seq(B.shield(.15),B.hit(1,{fx:{slow:[.3,3]}})),seq(B.shield(.2),B.nova(.8,{say:'Then shakes the ground',r:2,fx:{slow:[.25,2]}}))));
 kit({ids:[980],role:'Toxic Fortress',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:80,start:20,pf:1.1,names:['Toxic Spikes'],mvType:'Poison'},
-  seq(B.shield(.22),B.zone(.12,{at:'self',r:2,dur:5,say:'Scatters Toxic Spikes',fx:{psn:.015},col:'#a35bd6'})));
+  seq(B.shield(.2),B.zone(.12,{at:'self',r:2,dur:5,say:'Scatters Toxic Spikes',fx:{psn:.015},col:'#a35bd6'})));
 kit({ids:[198,430],role:'Big Boss',cls:'Trickster',cat:'phys',range:1,mana:[60,70],pf:[.85,1.1],names:['Pursuit','Night Slash'],mvType:'Dark',
   tail:(c,i)=>i?'<b>Gang boss:</b> at the start of battle it calls a Murkrow lackey to fight beside it.':''},
   {d:(c,i)=>B.hit(1.1,{dash:1,to:'weak',cr:i?.4:0}).d(c,i),begin(c,i){if(i)schedule(.2,()=>{if(!c.dead)summonNear(c,198,.55);});},cast(c,tg,i){B.hit(1.1,{dash:1,to:'weak',cr:i?.4:0}).cast(c,tg,i,{});}});
@@ -64,7 +64,7 @@ kit({ids:[203,981],role:'Two Minds',cls:'Mystic',cat:'spec',range:2,mana:[70,75]
    hitBy(c,src,o){if(o.auto&&src.range===1&&Math.random()<.25&&!src.dead)damage(c,src,c.maxHp*.04,{ab:1,cat:'phys',noCrit:1,refl:1});},
    cast(c,tg,i){for(const q of[tg,...near(tg,1)]){hitAb(c,q,q===tg?1:.7);if(i)q.griev=combatT+5;}boom(tg,'#ff9be6',2);}});
 kit({ids:[204,205],role:'Spiked Fortress',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:[75,80],start:20,pf:[.8,1],names:['Protect','Spikes'],mvType:'Bug'},
-  staged(B.shield(.25,{def:15}),seq(B.shield(.22,{def:15}),B.zone(.1,{at:'self',r:2,dur:6,say:'Scatters Spikes',col:'#b8b8a8'}))));
+  staged(B.shield(.25,{def:15}),seq(B.shield(.2,{def:15}),B.zone(.1,{at:'self',r:2,dur:6,say:'Scatters Spikes',col:'#b8b8a8'}))));
 kit({ids:[206,982],role:'Drill Serpent',cls:'Bruiser',cat:'phys',range:1,mana:[60,70],pf:[.85,1.15],names:['Drill Run','Hyper Drill'],mvType:'Normal',tail:()=>'<b>Serene Grace:</b> 60% chance to paralyze the target for 0.6s.'},
   {d:(c,i)=>`Drills through the target's shield and protection, hitting for ${DT(c,1.3)}.`,cast(c,tg,i){tg.shield=0;tg.protT=0;hitAb(c,tg,1.3);if(Math.random()<.6)stun(tg,.6);boom(tg,'#e8dcc0');}});
 kit({ids:[207,472],role:'Night Glider',cls:'Trickster',cat:'phys',range:1,mana:[60,65],pf:[.9,1.1],names:['Wing Attack','Acrobatics'],mvType:'Flying',tail:(c,i)=>i?'<b>Poison Heal:</b> poison heals it instead of hurting it.':''},
@@ -89,10 +89,10 @@ kit({ids:[216,217,901],role:'Bloodmoon Bear',cls:'Juggernaut',type:'guard',cat:'
    cast(c,tg,i){const g=c.burn||c.poison?1.5:1;if(i<2)return[B.hit(.35*g,{n:3,proj:false}),B.hit(1.2*g,{proj:false,fx:{shred:8}})][i].cast(c,tg,i,{});
      const t=pickT(c,tg,'cluster');if(hdist(c,t)>1)dashTo(c,t,false,.2);schedule(.22,()=>{if(c.dead)return;for(const q of foesOf(c).filter(f=>hdist(f,c)<=1))hitAb(c,q,1.4*g);c.def=Math.max(0,c.def-10);boom(c,'#c9a46b',3);});}});
 kit({ids:[218,219],role:'Lava Shell',cls:'Vanguard',type:'guard',cat:'spec',range:1,mana:[75,80],start:20,pf:[.8,1],names:['Ember','Lava Plume'],mvType:'Fire'},
-  staged(seq(B.shield(.18),B.hit(1,{proj:false,fx:{burn:.015}})),seq(B.shield(.22),B.zone(.12,{at:'self',r:1,dur:5,say:'Oozes lava',fx:{burn:.01},col:'#ff7a2c'}))));
+  staged(seq(B.shield(.2),B.hit(1,{proj:false,fx:{burn:.015}})),seq(B.shield(.2),B.zone(.12,{at:'self',r:1,dur:5,say:'Oozes lava',fx:{burn:.01},col:'#ff7a2c'}))));
 kit({ids:[220,221,473],role:'Mammoth',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[65,75,85],start:20,pf:[.8,1,1.25],names:['Ice Shard','Ice Fang','Icicle Crash'],mvType:'Ice'},
-  staged(B.hit(1,{proj:false,fx:{slow:[.2,2]}}),seq(B.shield(.18),B.hit(1.1,{proj:false,fx:{freeze:.6}})),seq(B.shield(.2),B.blast(1.2,{what:'falling icicles',at:'cluster',r:1,arc:1,fx:{flinch:.3,slow:[.25,3]},col:'#dff6ff'}))));
-kit({ids:[222],role:'Reef',cls:'Vanguard',type:'guard',cat:'spec',range:1,mana:75,start:20,pf:1,names:['Life Dew'],mvType:'Water'},seq(B.shield(.18),B.heal(.5,{who:'adjacent'})));
+  staged(B.hit(1,{proj:false,fx:{slow:[.2,2]}}),seq(B.shield(.2),B.hit(1.1,{proj:false,fx:{freeze:.6}})),seq(B.shield(.2),B.blast(1.2,{what:'falling icicles',at:'cluster',r:1,arc:1,fx:{flinch:.3,slow:[.25,3]},col:'#dff6ff'}))));
+kit({ids:[222],role:'Reef',cls:'Vanguard',type:'guard',cat:'spec',range:1,mana:75,start:20,pf:1,names:['Life Dew'],mvType:'Water'},seq(B.shield(.2),B.heal(.5,{who:'adjacent'})));
 kit({ids:[864],role:'Perish Coral',cls:'Mystic',cat:'spec',range:3,mana:75,pf:1.15,names:['Strength Sap'],mvType:'Ghost',tail:()=>'<b>Perish Body:</b> melee attackers are marked; 4s later they take 15% of their max HP as true damage.'},
   {d:c=>`Saps the strongest enemy for ${DT(c,1.1)}, lowering its <span class="s-atk">Attack</span> by 20% for 4s and healing for the same amount.`,
    hitBy(c,src,o){if(o.auto&&src.range===1&&!src.perish&&!src.dead){src.perish=1;schedule(4,()=>{if(!src.dead){damage(c,src,src.maxHp*.15,{ab:1,tru:1,noCrit:1,refl:1});src.perish=0;}});}},
@@ -104,7 +104,7 @@ kit({ids:[225],role:'Gift Giver',cls:'Trickster',cat:'spec',range:3,mana:60,pf:1
   {d:c=>`Tosses a Present at the target: 70% it explodes for ${DT(c,1.5)} to it and adjacent enemies, 20% it heals your most injured ally for 20% of their max HP, 10% it's a coin purse worth ₽1.`,
    cast(c,tg){const x=Math.random();fire(c,tg,'#ff6b6b',()=>{if(x<.7){for(const q of[tg,...near(tg,1)])hitAb(c,q,q===tg?1.5:1);boom(tg,'#ff6b6b',2);}
      else if(x<.9){const a=alive(c.team).sort((p,q)=>p.hp/p.maxHp-q.hp/q.maxHp)[0];if(a)heal(a,a.maxHp*.2);}else if(c.team===0){run.gold++;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'+₽1',col:'#ffd34d',life:1});}},{arc:1,dur:.5,lift:60,size:4});}});
-kit({ids:[227],role:'Steel Talon',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:70,start:25,pf:1.05,names:['Steel Wing'],mvType:'Steel'},seq(B.shield(.18,{def:20}),B.hit(1.05,{dash:1,to:'far'})));
+kit({ids:[227],role:'Steel Talon',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:70,start:25,pf:1.05,names:['Steel Wing'],mvType:'Steel'},seq(B.shield(.2,{def:20}),B.hit(1.05,{dash:1,to:'far'})));
 kit({ids:[228,229],role:'Hellhound',cls:'Mystic',cat:'spec',range:2,mana:[65,70],pf:[.8,1.05],names:['Ember','Nasty Plot'],mvType:'Fire'},
   staged(B.hit(1,{fx:{burn:.015}}),seq(B.ramp({spa:.12}),B.cone(1,{say:'Then breathes a Flamethrower',fx:{burn:.015}}))));
 kit({ids:[231,232],role:'Rolling Tusk',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[70,80],start:20,pf:[.8,1.05],names:['Rollout','Rapid Spin'],mvType:'Ground'},
@@ -124,10 +124,10 @@ kit({ids:[241],role:'Milk Roller',cls:'Juggernaut',type:'heal',cat:'phys',range:
 
 // --- Gen I branches that arrived in Gen II ---
 kit({ids:[182],role:'Petal Dancer',cls:'Mystic',cat:'spec',range:2,mana:70,pf:1.1,names:['Petal Dance'],mvType:'Grass'},
-  {d:c=>`Dances, sending three bursts of petals at every enemy within 2 hexes (${DT(c,.35)} each burst), then Quiver Dances for +10% <span class="s-spa">Sp. Atk</span> and +8% <span class="s-as">Attack Speed</span> (stacks).`,
+  {d:c=>`Dances, sending three bursts of petals at every enemy within 2 hexes (${DT(c,.35)} each burst), then Quiver Dances for +10% <span class="s-spa">Sp. Atk</span> and +10% <span class="s-as">Attack Speed</span> (stacks).`,
    cast(c,tg){for(let k=0;k<3;k++)schedule(k*.25,()=>{if(c.dead)return;for(const q of foesOf(c).filter(f=>hdist(f,c)<=2))hitAb(c,q,.35);if(!SIM.on)ring(c.x,c.y-6,'#ff9be6');});c.spa*=1.1;c.as*=1.08;}});
 kit({ids:[186],role:'Rain Caller',cls:'Mystic',cat:'spec',range:3,mana:75,pf:1.1,names:['Hydro Pump'],mvType:'Water',tail:()=>'<b>Drizzle:</b> if nothing else set the weather, it starts the battle with rain.'},
-  {d:c=>`Fires a Hydro Pump through the target, hitting every enemy in a line for ${DT(c,1.1)}. In rain, it also heals allies within 1 hex for 8% of their max HP.`,
+  {d:c=>`Fires a Hydro Pump through the target, hitting every enemy in a line for ${DT(c,1.1)}. In rain, it also heals allies within 1 hex for 10% of their max HP.`,
    begin(c){setWeather(c,'rain');},cast(c,tg){B.beam(1.1,{what:'a Hydro Pump',col:'#7fc4ff'}).cast(c,tg,0);if(battle.weather==='rain')for(const a of alive(c.team).filter(a=>hdist(a,c)<=1))heal(a,a.maxHp*.08);}});
 kit({ids:[199],role:'Royal Strategist',cls:'Medic',type:'heal',cat:'spec',range:3,mana:75,pf:1.1,names:['Chilly Reception'],mvType:'Psychic'},
   {d:c=>`Heals your most injured ally for ${HT(c,1)} and gives it +20% damage for 4s. Then it lectures the strongest enemy with a Psychic blast for ${DT(c,.8)}.`,
@@ -153,11 +153,11 @@ kit({ids:[244],role:'Volcano Beast',cls:'Bruiser',cat:'phys',range:1,mana:75,pf:
 kit({ids:[245],role:'Aurora Beast',cls:'Mystic',cat:'spec',range:3,mana:80,pf:1.25,names:['Surf'],mvType:'Water'},
   seq(B.beam(1.15,{what:'a Surf wave',fx:{knock:1},col:'#7fc4ff'}),B.heal(.4,{who:'team',cleanse:1})));
 kit({ids:[246,247,248],role:'Sand Tyrant',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[65,75,85],start:20,pf:[.8,1,1.3],names:['Rock Throw','Rock Tomb','Stone Edge'],mvType:'Rock',tail:(c,i)=>i===2?'<b>Sand Stream:</b> starts the battle with a sandstorm if nothing else set the weather.':''},
-  {d:(c,i)=>[B.hit(1),seq(B.shield(.18),B.hit(1,{fx:{slow:[.3,3]}})),seq(B.shield(.2),B.blast(1.25,{what:'jagged Stone Edges',at:'cluster',r:1,fx:{shred:8}}))][i].d(c,i),
-   begin(c,i){if(i===2)setWeather(c,'sand');},cast(c,tg,i){[B.hit(1),seq(B.shield(.18),B.hit(1,{fx:{slow:[.3,3]}})),seq(B.shield(.2),B.blast(1.25,{what:'Stone Edges',at:'cluster',r:1,fx:{shred:8},col:'#c9a46b'}))][i].cast(c,tg,i,{});}});
-kit({ids:[249],role:'Sea Guardian',cls:'Mystic',cat:'spec',range:3,mana:85,pf:1.35,names:['Aeroblast'],mvType:'Flying'},seq(B.beam(1.4,{what:'an Aeroblast',col:'#dfe8ff'}),B.shield(.12,{who:'team'})));
+  {d:(c,i)=>[B.hit(1),seq(B.shield(.2),B.hit(1,{fx:{slow:[.3,3]}})),seq(B.shield(.2),B.blast(1.25,{what:'jagged Stone Edges',at:'cluster',r:1,fx:{shred:8}}))][i].d(c,i),
+   begin(c,i){if(i===2)setWeather(c,'sand');},cast(c,tg,i){[B.hit(1),seq(B.shield(.2),B.hit(1,{fx:{slow:[.3,3]}})),seq(B.shield(.2),B.blast(1.25,{what:'Stone Edges',at:'cluster',r:1,fx:{shred:8},col:'#c9a46b'}))][i].cast(c,tg,i,{});}});
+kit({ids:[249],role:'Sea Guardian',cls:'Mystic',cat:'spec',range:3,mana:85,pf:1.35,names:['Aeroblast'],mvType:'Flying'},seq(B.beam(1.4,{what:'an Aeroblast',col:'#dfe8ff'}),B.shield(.1,{who:'team'})));
 kit({ids:[250],role:'Rainbow Phoenix',cls:'Mystic',cat:'spec',range:3,mana:85,pf:1.3,names:['Sacred Fire'],mvType:'Fire'},
-  {d:c=>`If an ally has fainted, its first cast revives that ally with 30% HP (once per battle). Otherwise it calls down Sacred Fire on the biggest group of enemies for ${DT(c,1.3)} (70% to adjacent), burning them for 2% <span class="s-hp">max HP</span>/s.`,
+  {d:c=>`If an ally has fainted, its first cast revives that ally with 30% HP (once per battle). Otherwise it calls down Sacred Fire on the biggest group of enemies for ${DT(c,1.3)} (70% to adjacent), adding 4 Burn.`,
    cast(c,tg){const dead=!c.rez&&units.find(o=>o.team===c.team&&o.dead&&!o.summon&&!occupied(o.c,o.r,o));
      if(dead){c.rez=1;dead.dead=false;dead.deadT=0;dead.hp=dead.maxHp*.3;dead.burn=dead.poison=null;setAnim(dead,'Idle',true);if(!SIM.on){burst(dead.x,dead.y-10,'#ffd34d',24,1.2);texts.push({x:dead.x,y:dead.y-36,txt:'Revived!',col:'#ffd34d',life:1.2,label:1});}return;}
      B.blast(1.3,{at:'cluster',r:1,arc:1,fx:{burn:.02},col:'#ff9a3c'}).cast(c,tg,0,{});}});
@@ -177,7 +177,7 @@ kit({ids:[458,226],role:'Sky Ray',cls:'Mystic',cat:'spec',range:3,mana:[65,75],p
 
 // --- Branch evolutions get their own moves (and often a different role) ---
 kit({ids:[863],role:'Viking',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:70,start:20,pf:1.1,names:['Iron Head'],mvType:'Steel',tail:()=>'<b>Steely Spirit:</b> adjacent allies deal +10% damage.'},
-  {d:c=>seq(B.shield(.18,{def:15}),B.hit(1.2,{proj:false,fx:{flinch:.35}})).d(c,0),begin(c){for(const a of alive(c.team))if(a!==c&&hdist(a,c)<=1)a.dmg+=.1;},cast(c,tg){seq(B.shield(.18,{def:15}),B.hit(1.2,{proj:false,fx:{flinch:.35}})).cast(c,tg,0);}});
+  {d:c=>seq(B.shield(.2,{def:15}),B.hit(1.2,{proj:false,fx:{flinch:.35}})).d(c,0),begin(c){for(const a of alive(c.team))if(a!==c&&hdist(a,c)<=1)a.dmg+=.1;},cast(c,tg){seq(B.shield(.2,{def:15}),B.hit(1.2,{proj:false,fx:{flinch:.35}})).cast(c,tg,0);}});
 kit({ids:[900],role:'Lumberjack',cls:'Bruiser',cat:'phys',range:1,mana:70,pf:1.15,names:['Stone Axe'],mvType:'Rock'},
   {d:c=>`Brings its stone axes down on the target and every enemy next to it for ${DT(c,1.1)} (70% to the others), leaving sharp splinters there for 4s that deal ${DT(c,.1)} every half second.`,
    cast(c,tg){for(const q of[tg,...near(tg,1)])hitAb(c,q,q===tg?1.1:.77);boom(tg,'#c9a46b',2);zone(c,tg,1,4,'#b8a88a',z=>{for(const q of inZone(z,1-c.team))hitAb(c,q,.1,{noCrit:1,quiet:1});});}});

@@ -426,10 +426,10 @@ function buildEnemy(f){
   }else{
     let n=ECOUNT[f]+(hard?1:0);if(big)n=Math.max(2,n-3);if(nk==='endurance')n=Math.max(2,n-2);
     const p2=clamp((f-3)*.065+(kind==='elite'?.12:0)+(hard?.15:0),0,.8),p3=clamp((f-12)*.05,0,.2);
-    const mult=(1.14+(f-4)*.03+(kind==='elite'?.06:0)+(hard?.08:0))*(nk==='endurance'?.92:1)*(hasRelic('town-map')?.92:1);
+    const mult=(1.14+(f-4)*.03+(kind==='elite'?.06:0)+(hard?.08:0))*(nk==='endurance'?.92:1)*(hasRelic('town-map')?.9:1);
     if(big){let a;if(nd.force&&lineRootOf(nd.force)){a=mkUnit(lineRootOf(nd.force),2);a.dex=nd.force;}else a=bigEnemy(f);
       a[nk==='alpha'?'alpha':'tgt']=1;if(nk==='alpha')a.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:a,mult,big:1});}
-    if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:b,mult:hasRelic('town-map')?.92:1,boss:1});}
+    if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:b,mult:hasRelic('town-map')?.9:1,boss:1});}
     const o=LVODDS[ELEVEL(f)];
     for(let i=0;i<n;i++){const root=pick(MODE.byCost[rollCostFor(o)-1]);const x=Math.random();const u=mkEnemy(root,x<p3?3:x<p3+p2?2:1);
       const pi=clamp((f-4)*.06+(kind==='elite'?.12:0),0,.7);if(Math.random()<pi)u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((f-11)*.1,0,.4))u.items.push({k:randCraft(),mut:[]});
@@ -744,7 +744,7 @@ function damage(src,tg,amt,o={}){
     if(tg.wp){tg.atk*=1+tg.wp;tg.spa*=1+tg.wp;tg.wp=0;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Policy!',col:'#ffd34d',life:1});}
     if(tg.fx.enrage&&tg.enrN<5){tg.enrN++;tg.atk*=1+tg.fx.enrage;tg.spa*=1+tg.fx.enrage;}
     if(tg.fx.rattled&&tg.enrN<5){tg.enrN++;tg.as*=1+tg.fx.rattled;}
-    if(tg.fx.weakArmor&&o.cat==='phys'&&tg.enrN<3){tg.enrN++;tg.def=Math.max(0,tg.def-5);tg.as*=1.12;}
+    if(tg.fx.weakArmor&&o.cat==='phys'&&tg.enrN<3){tg.enrN++;tg.def=Math.max(0,tg.def-5);tg.as*=1.1;}
   }
   if(tg.fx.stamina&&tg.hits<=20)tg.def+=tg.fx.stamina/4;
   if(crit&&tg.fx.angerPoint&&!tg.angered){tg.angered=1;tg.atk*=1+tg.fx.angerPoint;}
@@ -763,10 +763,11 @@ function damage(src,tg,amt,o={}){
 }
 function heal(u,amt,quiet){if(u.dead)return;if(u.burn)amt*=.5;if(u.griev>combatT)amt*=.67;const h=Math.min(u.maxHp-u.hp,amt);u.hp+=h;if(u.fx.ohShield&&amt>h)u.shield=Math.min(u.maxHp*u.fx.ohShield,u.shield+amt-h);if(!quiet&&h>1&&!SIM.on){texts.push({x:u.x,y:u.y-24,txt:'+'+Math.round(h),col:'#7dff7a',life:.9});if((u.healFxT||0)<combatT){u.healFxT=combatT+.6;pfx('Heal_Block_Sparkle',0,0,{follow:u,oy:-14,sc:.9,force:1});}}}
 function moveValue(c){
-  if(c.kind==='heal'&&!c.strike)return{base:c.base,ratio:KIT.healRatio,stat:c.spa,statN:'Sp. Atk',total:(c.base+KIT.healRatio*c.spa)*(1+c.healAmp)};
-  if(c.kind==='guard'&&!c.strike)return{base:c.base*1.3,ratio:.12,stat:c.maxHp,statN:'max HP',total:c.base*1.3+.12*c.maxHp};
-  const ratio=KIT.castRatio*c.pf,stat=c.cat==='spec'?c.spa:c.atk;
-  return{base:c.base,ratio,stat,statN:c.cat==='spec'?'Sp. Atk':'Attack',total:c.base+ratio*stat};
+  const R5=v=>Math.round(v/5)*5,RR=v=>Math.round(v*20)/20;
+  if(c.kind==='heal'&&!c.strike){const b=R5(c.base),r=RR(KIT.healRatio);return{base:b,ratio:r,stat:c.spa,statN:'Sp. Atk',total:(b+r*c.spa)*(1+c.healAmp)};}
+  if(c.kind==='guard'&&!c.strike){const b=R5(c.base*1.3);return{base:b,ratio:.1,stat:c.maxHp,statN:'max HP',total:b+.1*c.maxHp};}
+  const ratio=RR(KIT.castRatio*c.pf),stat=c.cat==='spec'?c.spa:c.atk,b=R5(c.base);
+  return{base:b,ratio,stat,statN:c.cat==='spec'?'Sp. Atk':'Attack',total:b+ratio*stat};
 }
 function applyStat(t,stat,ch){const k=STATKEY[stat];if(!k)return;
   if(k==='def'||k==='res')t[k]=Math.max(0,t[k]+8*ch);else if(k==='as')t.as*=Math.max(.5,1+.08*ch);else t[k]*=Math.max(.5,1+.08*ch);}

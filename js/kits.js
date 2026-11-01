@@ -16,11 +16,13 @@ function applySig(K,dex){
 }
 
 /* ---------- shared helpers ---------- */
-const V=(c,m=1,cat=c.cat)=>(c.base+KIT.castRatio*c.pf*(cat==='spec'?c.spa:c.atk))*m;
+// every number a player sees is a multiple of 5: base damage to the nearest 5, stat ratios to the nearest 5%
+const r5=v=>Math.round(v/5)*5,rr=v=>Math.round(v*20)/20;
+const V=(c,m=1,cat=c.cat)=>r5(c.base*m)+rr(KIT.castRatio*c.pf*m)*(cat==='spec'?c.spa:c.atk);
 // colored damage text for tooltips: "123 (40 + 150% Sp. Atk) special damage"
 function DT(c,m=1,cat=c.cat,kind){
   const k=cat==='spec'?'spa':'atk',sn=cat==='spec'?'Sp. Atk':'Attack',w=kind||(cat==='spec'?'special':'physical'),kc=kind==='true'?'true':k;
-  return`<b class="s-${kc}">${Math.round(V(c,m,cat))}</b> <span class="sc">(${Math.round(c.base*m)} + <span class="s-${k}">${pct(KIT.castRatio*c.pf*m)} ${sn}</span>)</span> <span class="s-${kc}">${w}</span> damage`;
+  return`<b class="s-${kc}">${Math.round(V(c,m,cat))}</b> <span class="sc">(${r5(c.base*m)} + <span class="s-${k}">${pct(rr(KIT.castRatio*c.pf*m))} ${sn}</span>)</span> <span class="s-${kc}">${w}</span> damage`;
 }
 const tierLine=(on,t)=>`<span class="${on?'tier-on':'tier-off'}">${t}</span>`;
 const foesOf=c=>alive(1-c.team);
@@ -70,7 +72,7 @@ defSig({ids:[816,817,818],role:'Sniper',cls:'Mystic',cat:'spec',range:[3,4,4],ma
 const chesM=[.6,.8,1];
 defSig({ids:[650,651,652],role:'Knight',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:80,start:25,pf:1,names:['Vine Whip','Needle Arm','Spiky Shield'],mvType:'Grass',
   begin(c,i){c.thorns=()=>(10+.35*c.def)*(c.spikyT>combatT?3:1)*chesM[i];},
-  d:(c,i)=>`<b>Passive:</b> enemies that hit it with basic attacks take <b class="s-atk">${Math.round((10+.35*c.def)*chesM[i])}</b> <span class="sc">(10 + <span class="s-def">35% Defense</span>)</span> <span class="s-atk">physical</span> damage.<br><b>${sv(['Vine Whip','Needle Arm','Spiky Shield'],i)}:</b> gains a <b class="s-hp">${Math.round((c.maxHp*.18+c.base*.5)*chesM[i])}</b> <span class="sc">(18% <span class="s-hp">max HP</span>)</span> shield and triples its spikes for 4s, then Body Presses the target and adjacent enemies (70%) for <b class="s-def">${Math.round((c.base*.6+2*c.def)*chesM[i])}</b> <span class="sc">(${Math.round(c.base*.6*chesM[i])} + <span class="s-def">${Math.round(200*chesM[i])}% Defense</span>)</span> <span class="s-atk">physical</span> damage.`,
+  d:(c,i)=>`<b>Passive:</b> enemies that hit it with basic attacks take <b class="s-atk">${Math.round((10+.35*c.def)*chesM[i])}</b> <span class="sc">(10 + <span class="s-def">35% Defense</span>)</span> <span class="s-atk">physical</span> damage.<br><b>${sv(['Vine Whip','Needle Arm','Spiky Shield'],i)}:</b> gains a <b class="s-hp">${Math.round((c.maxHp*.2+c.base*.5)*chesM[i])}</b> <span class="sc">(20% <span class="s-hp">max HP</span>)</span> shield and triples its spikes for 4s, then Body Presses the target and adjacent enemies (70%) for <b class="s-def">${Math.round((c.base*.6+2*c.def)*chesM[i])}</b> <span class="sc">(${Math.round(c.base*.6*chesM[i])} + <span class="s-def">${Math.round(200*chesM[i])}% Defense</span>)</span> <span class="s-atk">physical</span> damage.`,
   cast(c,tg,i){const m=chesM[i];c.shield+=(c.maxHp*.18+c.base*.5)*m;c.spikyT=combatT+4;if(!SIM.on){ring(c.x,c.y-8,'#8fd16a');burst(c.x,c.y-12,'#d9c48a',16,1);}
     schedule(.35,()=>{if(c.dead||tg.dead)return;for(const t of[tg,...near(tg,1)])damage(c,t,(c.base*.6+2*c.def)*m*(t===tg?1:.7),{ab:1,cat:'phys',type:'Fighting'});boom(tg,'#c9a46b',2);});}});
 
@@ -109,7 +111,7 @@ defSig({ids:[885,886,887],role:'Marksman',cls:'Combo',cat:'phys',range:3,mana:60
 // Swalot: Cho'Gath. Swallows weak enemies whole and keeps the HP forever.
 defSig({ids:[316,317],role:'Devourer',cls:'Juggernaut',cat:'spec',range:1,mana:80,start:20,pf:[.85,1.1],names:['Stockpile','Swallow'],mvType:'Poison',
   begin(c){c.scaleMul=1+Math.min(.35,((c.u&&c.u.ss)||0)*.012);},
-  d:c=>{const s=(c.u&&c.u.ss)||0;return`Swallows the weakest enemy within 2 hexes for ${DT(c,1,'spec','true')} plus <b class="s-hp">${Math.round(c.maxHp*.06)}</b> <span class="sc">(6% <span class="s-hp">max HP</span>)</span>. <b>Grows:</b> a knockout permanently adds +20 <span class="s-hp">max HP</span>, heals 15% and makes it a little bigger. Feasts so far: <b>${s}</b> (+${s*20} HP).`;},
+  d:c=>{const s=(c.u&&c.u.ss)||0;return`Swallows the weakest enemy within 2 hexes for ${DT(c,1,'spec','true')} plus <b class="s-hp">${Math.round(c.maxHp*.05)}</b> <span class="sc">(5% <span class="s-hp">max HP</span>)</span>. <b>Grows:</b> a knockout permanently adds +20 <span class="s-hp">max HP</span>, heals 15% and makes it a little bigger. Feasts so far: <b>${s}</b> (+${s*20} HP).`;},
   cast(c,tg){const t=foesOf(c).filter(o=>hdist(c,o)<=2).sort((a,b)=>a.hp-b.hp)[0]||tg;if(hdist(c,t)>1)dashTo(c,t);
     schedule(.18,()=>{if(c.dead||t.dead)return;damage(c,t,V(c,1)+c.maxHp*.06,{ab:1,cat:'spec',tru:1,type:'Poison'});boom(t,'#a35bd6',2);
       if(t.dead&&c.u){c.u.ss=(c.u.ss||0)+1;c.u.g.hp=(c.u.g.hp||0)+20;c.maxHp+=20;heal(c,c.maxHp*.15);c.scaleMul=1+Math.min(.35,c.u.ss*.012);if(!SIM.on)texts.push({x:c.x,y:c.y-42,txt:'Feast! +20 HP',col:'#7dff7a',life:1.3,label:1});}});}});
@@ -123,11 +125,11 @@ defSig({ids:[104,105],role:'Bone Collector',cls:'Bruiser',cat:'phys',range:1,man
 // Bagon line: a Pokémon that dreams of flying. Bagon headbutts, Shelgon hardens its shell, Salamence finally takes to the sky.
 defSig({ids:[371,372,373],role:'Sky Dreamer',cls:'Bruiser',cat:'phys',range:1,mana:[60,70,80],start:[10,20,30],pf:[1,1,1.05],names:['Headbutt','Iron Defense','Fly'],mvType:'Dragon',
   d:(c,i)=>[`Rams the target for ${DT(c,1.2)} and flinches it for 0.5s. It always aims a little higher.`,
-    `Hardens its shell: gains a <b class="s-hp">${Math.round(c.maxHp*.22)}</b> <span class="sc">(22% <span class="s-hp">max HP</span>)</span> shield and +30 <span class="s-def">Defense</span> for 4s, then headbutts the target for ${DT(c,.9)}.`,
+    `Hardens its shell: gains a <b class="s-hp">${Math.round(c.maxHp*.2)}</b> <span class="sc">(20% <span class="s-hp">max HP</span>)</span> shield and +30 <span class="s-def">Defense</span> for 4s, then headbutts the target for ${DT(c,.9)}.`,
     `Soars out of reach for 1s (can't be targeted or hit), then dives onto the biggest group of enemies for ${DT(c,1.4)} to everything within 1 hex, knocking them back. Then it goes into an <b>Outrage</b> for 4s: +30% <span class="s-as">Attack Speed</span>, and its attacks splash 50% damage to enemies next to the target.`][i],
   cast(c,tg,i){
     if(i===0){if(hdist(c,tg)>1)dashTo(c,tg);schedule(.12,()=>{if(c.dead||tg.dead)return;hitAb(c,tg,1.2);stun(tg,.5);boom(tg,'#7fb0ff');});return;}
-    if(i===1){c.shield+=c.maxHp*.22;c.def+=30;schedule(4,()=>{c.def-=30;});if(!SIM.on)ring(c.x,c.y-8,'#c8d0d8');schedule(.3,()=>{if(!c.dead&&!tg.dead)hitAb(c,tg,.9);});return;}
+    if(i===1){c.shield+=c.maxHp*.2;c.def+=30;schedule(4,()=>{c.def-=30;});if(!SIM.on)ring(c.x,c.y-8,'#c8d0d8');schedule(.3,()=>{if(!c.dead&&!tg.dead)hitAb(c,tg,.9);});return;}
     c.airT=combatT+1;c.busy=Math.max(c.busy,1.1);c.target=null;if(!SIM.on){burst(c.x,c.y-10,'#9fd0ff',18,1.2);texts.push({x:c.x,y:c.y-40,txt:'Fly!',col:'#bfe4ff',life:1,label:1});}
     schedule(1,()=>{if(c.dead)return;const t=cluster(c);if(!t)return;dashTo(c,t,false,.15);
       schedule(.16,()=>{if(c.dead)return;for(const o of[t,...near(t,1)]){hitAb(c,o,1.4);knock(c,o);}boom(t,'#7a9cff',3);
@@ -155,7 +157,7 @@ defSig({ids:[92,93,94],role:'Hexer',cls:'Trickster',cat:'spec',range:3,mana:70,p
 
 // Lucario: hits harder the more hurt it is.
 defSig({ids:[447,448],role:'Aura Fighter',cls:'Bruiser',cat:'spec',range:2,mana:65,pf:[1,1.35],names:['Force Palm','Aura Sphere'],mvType:'Fighting',
-  d:c=>`Fires an Aura Sphere for ${DT(c,1.15)}, increased by up to 100% based on its own missing HP. <b>Justified:</b> each cast adds +6% damage for the rest of the battle.`,
+  d:c=>`Fires an Aura Sphere for ${DT(c,1.15)}, increased by up to 100% based on its own missing HP. <b>Justified:</b> each cast adds +5% damage for the rest of the battle.`,
   cast(c,tg){const miss=1-c.hp/c.maxHp;fire(c,tg,'#5fb0ff',()=>{hitAb(c,tg,1.15*(1+miss));boom(tg,'#5fb0ff',1+Math.round(miss*2));},{sp:320,size:4+Math.round(miss*3)});c.dmg+=.06;}});
 
 // Garchomp: dives onto the back line.
@@ -167,13 +169,13 @@ defSig({ids:[443,444,445],role:'Land Shark',cls:'Bruiser',cat:'phys',range:1,man
 
 // Toxapex: the fortress. Untouchable for a moment, and it poisons whoever tries.
 defSig({ids:[747,748],role:'Fortress',cls:'Vanguard',type:'guard',cat:'spec',range:1,mana:70,start:20,pf:1,names:['Poison Sting','Baneful Bunker'],mvType:'Poison',
-  d:(c,i)=>`Hides in a bunker for ${[1.2,2][i]}s: immune to all damage, and any enemy that attacks it is badly poisoned (2% <span class="s-hp">max HP</span> per second for 4s). <b>Regenerator:</b> afterwards it heals <b class="s-hp">${Math.round(c.maxHp*.1)}</b> <span class="sc">(10% <span class="s-hp">max HP</span>)</span>.`,
+  d:(c,i)=>`Hides in a bunker for ${[1.2,2][i]}s: immune to all damage, and any enemy that attacks it is badly poisoned (4 Poison). <b>Regenerator:</b> afterwards it heals <b class="s-hp">${Math.round(c.maxHp*.1)}</b> <span class="sc">(10% <span class="s-hp">max HP</span>)</span>.`,
   cast(c,tg,i){const d=[1.2,2][i];c.protT=combatT+d;c.protPoison=.02;if(!SIM.on)ring(c.x,c.y-8,'#c86bd6');schedule(d,()=>{if(!c.dead)heal(c,c.maxHp*.1);});}});
 
 // Blissey: the nurse. Big heal, then a Wish for the whole team.
-const bliss=c=>(c.base+KIT.healRatio*c.spa)*(1+c.healAmp);
+const bliss=c=>(r5(c.base)+rr(KIT.healRatio)*c.spa)*(1+c.healAmp);
 defSig({ids:[440,113,242],role:'Nurse',cls:'Medic',type:'heal',cat:'spec',range:2,mana:75,pf:1,names:['Pound','Soft-Boiled','Soft-Boiled'],mvType:'Normal',
-  d:(c,i)=>`Heals the most injured ally for <b class="s-hp">${Math.round(bliss(c))}</b> <span class="sc">(${Math.round(c.base)} + <span class="s-spa">${pct(KIT.healRatio)} Sp. Atk</span>)</span> and cures burn and poison.${i?` <b>Wish:</b> 1.5s later, every ally heals ${i===2?30:20}% of that.`:''}`,
+  d:(c,i)=>`Heals the most injured ally for <b class="s-hp">${Math.round(bliss(c))}</b> <span class="sc">(${r5(c.base)} + <span class="s-spa">${pct(rr(KIT.healRatio))} Sp. Atk</span>)</span> and cures burn and poison.${i?` <b>Wish:</b> 1.5s later, every ally heals ${i===2?30:20}% of that.`:''}`,
   cast(c,tg,i){const h=bliss(c),al=alive(c.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
     if(al){heal(al,h);cureStatus(al);if(!SIM.on){ring(al.x,al.y-8,'#ffc6e0');burst(al.x,al.y-12,'#fff0f6',14,.7);}}
     if(i)schedule(1.5,()=>{if(c.dead)return;for(const o of alive(c.team)){heal(o,h*(i===2?.3:.2));if(!SIM.on)burst(o.x,o.y-14,'#ffe27a',6,.5);}});}});
@@ -187,14 +189,14 @@ defSig({ids:[810,811,812],role:'Drummer',cls:'Artillery',cat:'phys',range:1,mana
 
 // Cinderace: the striker. Pyro Ball bounces between enemies, and every kick speeds it up.
 defSig({ids:[813,814,815],role:'Striker',cls:'Striker',cat:'phys',range:[1,1,2],mana:60,pf:[.4,.5,.58],names:['Ember','Flame Charge','Pyro Ball'],mvType:'Fire',
-  d:(c,i)=>`Kicks a flaming ball at the target for ${DT(c,.75)}${[0,1,3][i]?` that bounces to ${[0,1,3][i]} more enem${[0,1,3][i]>1?'ies':'y'}`:''}. Each hit has a 30% chance to burn (1.5% <span class="s-hp">max HP</span> per second for 3s). <b>Libero:</b> each kick adds +6% <span class="s-as">Attack Speed</span> for the battle.`,
+  d:(c,i)=>`Kicks a flaming ball at the target for ${DT(c,.75)}${[0,1,3][i]?` that bounces to ${[0,1,3][i]} more enem${[0,1,3][i]>1?'ies':'y'}`:''}. Each hit has a 30% chance to burn (3 Burn). <b>Libero:</b> each kick adds +5% <span class="s-as">Attack Speed</span> for the battle.`,
   cast(c,tg,i){const hit=[];const kick=(from,t,left)=>fire(from,t,'#ff6a2c',()=>{hitAb(c,t,.75);if(Math.random()<.3)setDot(t,'burn',.015,3,c);hit.push(t);if(!SIM.on)burst(t.x,t.y-10,'#ffb35c',8,.8);
       const nx=foesOf(c).filter(o=>!hit.includes(o)&&hdist(o,t)<=3).sort((a,b)=>hdist(a,t)-hdist(b,t))[0];if(left>0&&nx&&!c.dead)kick(t,nx,left-1);},{arc:1,dur:.32,lift:30,size:4});
     kick(c,tg,[0,1,3][i]);c.as*=1.06;}});
 
 // Charizard: a cone of fire through the target.
 defSig({ids:[4,5,6],role:'Fire Breather',cls:'Artillery',cat:'spec',range:2,mana:75,pf:[.55,.7,.85],names:['Ember','Flame Burst','Flamethrower'],mvType:'Fire',
-  d:(c,i)=>`Breathes a cone of fire: the target and enemies ${i===2?'up to 2 hexes':'right'} behind it take ${DT(c,1)} (70% to the others) and burn for 1% <span class="s-hp">max HP</span> per second for 4s.`,
+  d:(c,i)=>`Breathes a cone of fire: the target and enemies ${i===2?'up to 2 hexes':'right'} behind it take ${DT(c,1)} (70% to the others) and gain 2 Burn.`,
   cast(c,tg,i){const ts=[tg,...alive(tg.team).filter(o=>o!==tg&&hdist(o,tg)<=(i===2?2:1)&&hdist(o,c)>=hdist(tg,c))];
     if(!SIM.on){for(let k=1;k<=5;k++){const f=k/5;schedule(k*.04,()=>pfx('Fire_Blast',c.x+(tg.x-c.x)*f,c.y-12+(tg.y-c.y)*f,{sc:.55+f*.35,force:1}));}}
     for(const t of ts){hitAb(c,t,t===tg?1:.7);setDot(t,'burn',.01,4,c);}}});
@@ -246,14 +248,14 @@ const SPECIAL={};const isSpc=it=>false;const spcKey=it=>'';function spcDef(){ret
 
 // Pawniard line: the leader. Kowtow Cleave never misses and grows as allies fall.
 defSig({ids:[624,625,983],role:'Leader',cls:'Bruiser',cat:'phys',range:1,mana:[70,70,75],pf:[1.1,1.4,1.75],names:['Metal Claw','Night Slash','Kowtow Cleave'],mvType:'Dark',
-  d:(c,i)=>`${i===2?'Bows, then cleaves':'Slashes'} the weakest enemy within 2 hexes for ${DT(c,1.25)}${i===1?' with +30% crit chance':''}${i===2?'. It can\'t miss, and deals +12% for every ally that has fainted this battle':''}`,
+  d:(c,i)=>`${i===2?'Bows, then cleaves':'Slashes'} the weakest enemy within 2 hexes for ${DT(c,1.25)}${i===1?' with +30% crit chance':''}${i===2?'. It can\'t miss, and deals +10% for every ally that has fainted this battle':''}`,
   cast(c,tg,i){const t=foesOf(c).filter(o=>hdist(c,o)<=2).sort((a,b)=>a.hp-b.hp)[0]||tg;if(hdist(c,t)>1)dashTo(c,t);
     const fallen=units.filter(o=>o.team===c.team&&o.dead).length;
     schedule(.15,()=>{if(c.dead||t.dead)return;hitAb(c,t,1.25*(i===2?1+.12*fallen:1),{cr:i===1?.3:0});boom(t,'#c9c9d6',2);});}});
 
 // Munchlax/Snorlax: the glutton. Naps to heal, then flattens everything nearby with its weight.
 defSig({ids:[446,143],role:'Glutton',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[80,90],start:20,pf:[.8,1],names:['Lick','Body Slam'],mvType:'Normal',
-  d:(c,i)=>`${i?`If it's below 60% HP, it first takes a quick <b>Rest</b>: asleep for 1.5s while healing <b class="s-hp">${Math.round(c.maxHp*.4)}</b> <span class="sc">(40% <span class="s-hp">max HP</span>)</span>. Then it`:'It'} Body Slams the target and adjacent enemies for <b class="s-hp">${Math.round(c.base*.6+c.maxHp*.08)}</b> <span class="sc">(${Math.round(c.base*.6)} + 8% <span class="s-hp">max HP</span>)</span> <span class="s-atk">physical</span> damage, stunning them for 0.6s.`,
+  d:(c,i)=>`${i?`If it's below 60% HP, it first takes a quick <b>Rest</b>: asleep for 1.5s while healing <b class="s-hp">${Math.round(c.maxHp*.4)}</b> <span class="sc">(40% <span class="s-hp">max HP</span>)</span>. Then it`:'It'} Body Slams the target and adjacent enemies for <b class="s-hp">${Math.round(c.base*.6+c.maxHp*.1)}</b> <span class="sc">(${Math.round(c.base*.6)} + 10% <span class="s-hp">max HP</span>)</span> <span class="s-atk">physical</span> damage, stunning them for 0.6s.`,
   cast(c,tg,i){const slam=()=>{if(c.dead||tg.dead)return;for(const o of[tg,...near(tg,1)]){damage(c,o,(c.base*.6+c.maxHp*.08)*(o===tg?1:.7),{ab:1,cat:'phys',type:'Normal'});stun(o,.6);}boom(tg,'#d8c8a8',3);};
     if(i&&c.hp<c.maxHp*.6){stun(c,1.5);heal(c,c.maxHp*.4);if(!SIM.on)texts.push({x:c.x,y:c.y-38,txt:'Zzz...',col:'#c6b3ff',life:1.4,label:1});schedule(1.55,slam);}else slam();}});
 
@@ -270,8 +272,8 @@ defSig({ids:[999,1000],role:'Treasure Keeper',cls:'Mystic',cat:'spec',range:3,ma
 const P=(v,i)=>Array.isArray(v)?v[Math.min(i,v.length-1)]:v;
 const pcnt=v=>Math.round(v*100)+'%';
 const HPT=(c,p)=>c?`<b class="s-hp">${Math.round(c.maxHp*p)}</b> <span class="sc">(${pcnt(p)} <span class="s-hp">max HP</span>)</span>`:`${pcnt(p)} <span class="s-hp">max HP</span>`;
-const HEALV=(c,m)=>(c.base+KIT.healRatio*c.spa)*(1+c.healAmp)*m;
-const HT=(c,m)=>`<b class="s-hp">${Math.round(HEALV(c,m))}</b> <span class="sc">(${Math.round(c.base*m)} + <span class="s-spa">${pcnt(KIT.healRatio*m)} Sp. Atk</span>)</span>`;
+const HEALV=(c,m)=>(r5(c.base*m)+rr(KIT.healRatio*m)*c.spa)*(1+c.healAmp);
+const HT=(c,m)=>`<b class="s-hp">${Math.round(HEALV(c,m))}</b> <span class="sc">(${r5(c.base*m)} + <span class="s-spa">${pcnt(rr(KIT.healRatio*m))} Sp. Atk</span>)</span>`;
 // target pickers
 function pickT(c,tg,to,r=9){const f=foesOf(c).filter(o=>hdist(c,o)<=r&&!(o.airT>combatT));if(!f.length)return tg;
   if(to==='weak')return f.sort((a,b)=>a.hp-b.hp)[0];if(to==='far')return f.sort((a,b)=>hdist(c,b)-hdist(c,a)||a.hp-b.hp)[0];
@@ -293,7 +295,7 @@ function applyFx(c,t,fx,i){if(!fx||t.dead)return;
 function fxText(fx,i){if(!fx)return'';const o=[];
   if(fx.stun)o.push(`stuns for ${P(fx.stun,i)}s`);if(fx.sleep)o.push(`puts it to sleep for ${P(fx.sleep,i)}s`);if(fx.freeze)o.push(`freezes it for ${P(fx.freeze,i)}s`);
   if(fx.slow)o.push(`slows its <span class="s-as">Attack Speed</span> by ${pcnt(P(fx.slow[0],i))} for ${fx.slow[1]}s`);
-  if(fx.burn)o.push(`burns for ${(P(fx.burn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);if(fx.psn)o.push(`poisons for ${(P(fx.psn,i)*100).toFixed(1).replace('.0','')}% <span class="s-hp">max HP</span>/s (4s)`);
+  if(fx.burn)o.push(`adds ${Math.max(1,Math.round(P(fx.burn,i)/.005))} Burn`);if(fx.psn)o.push(`adds ${Math.max(1,Math.round(P(fx.psn,i)/.005))} Poison`);
   if(fx.shred)o.push(`lowers <span class="s-def">Defense</span> by ${P(fx.shred,i)}`);if(fx.sdef)o.push(`lowers <span class="s-def">Sp. Def</span> by ${P(fx.sdef,i)}`);
   if(fx.knock)o.push('knocks back a hex');if(fx.pull)o.push('drags it next to this Pokémon');if(fx.flinch)o.push(`${pcnt(P(fx.flinch,i))} chance to flinch`);
   if(fx.tri)o.push('burns, chills or paralyzes at random');if(fx.para)o.push(`adds ${P(fx.para,i)} Paralysis`);if(fx.conf)o.push(`adds ${P(fx.conf,i)} Confusion`);if(fx.chill)o.push(`adds ${P(fx.chill,i)} Chill`);if(fx.seed)o.push(`plants ${P(fx.seed,i)} Leech Seed`);if(fx.weaken)o.push(`lowers <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> by ${pcnt(P(fx.weaken,i))} for 4s`);
@@ -334,9 +336,9 @@ const B={
   heal:(m,o={})=>({d:(c,i)=>`Heals ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':o.who==='self'?'itself':'the most injured ally'} for ${HT(c,P(m,i))}${o.cleanse?' and cures burn and poison':''}.`,
     cast(c,tg,i){const ws=o.who==='team'?alive(c.team):o.who==='adjacent'?alive(c.team).filter(a=>hdist(a,c)<=1):o.who==='self'?[c]:[alive(c.team).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0]];
       for(const a of ws){if(!a)continue;heal(a,HEALV(c,P(m,i)));if(o.cleanse)cureStatus(a);if(!SIM.on)burst(a.x,a.y-12,'#c6ff8a',8,.6);}}}),
-  buff:(st,o={})=>({d:(c,i)=>`Gives ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':'itself'} ${Object.entries(st).map(([k,v])=>`+${k==='def'||k==='res'?P(v,i):pcnt(P(v,i))} ${{as:'<span class="s-as">Attack Speed</span>',dmg:'damage',atk:'<span class="s-atk">Attack</span>',spa:'<span class="s-spa">Sp. Atk</span>',def:'<span class="s-def">Defense</span>',res:'<span class="s-def">Sp. Def</span>',dr:'damage reduction'}[k]}`).join(', ')} ${o.dur?`for ${o.dur}s`:'for the rest of the battle (stacks)'}.`,
+  buff:(st,o={})=>({d:(c,i)=>`Gives ${o.who==='team'?'every ally':o.who==='adjacent'?'itself and adjacent allies':'itself'} ${Object.entries(st).map(([k,v])=>`+${k==='def'||k==='res'?P(v,i):pcnt(rr(P(v,i)))} ${{as:'<span class="s-as">Attack Speed</span>',dmg:'damage',atk:'<span class="s-atk">Attack</span>',spa:'<span class="s-spa">Sp. Atk</span>',def:'<span class="s-def">Defense</span>',res:'<span class="s-def">Sp. Def</span>',dr:'damage reduction'}[k]}`).join(', ')} ${o.dur?`for ${o.dur}s`:'for the rest of the battle (stacks)'}.`,
     cast(c,tg,i){const ws=o.who==='team'?alive(c.team):o.who==='adjacent'?alive(c.team).filter(a=>hdist(a,c)<=1):[c];
-      for(const a of ws){for(const[k,v0]of Object.entries(st)){const v=P(v0,i);const ap=s=>{if(k==='as'||k==='atk'||k==='spa')a[k]*=s>0?1+v:1/(1+v);else if(k==='dmg')a.dmg+=s*v;else if(k==='dr')a.taken*=s>0?1-v:1/(1-v);else a[k]+=s*v;};ap(1);if(o.dur)schedule(o.dur,()=>ap(-1));}
+      for(const a of ws){for(const[k,v0]of Object.entries(st)){const v=k==='def'||k==='res'?P(v0,i):rr(P(v0,i));const ap=s=>{if(k==='as'||k==='atk'||k==='spa')a[k]*=s>0?1+v:1/(1+v);else if(k==='dmg')a.dmg+=s*v;else if(k==='dr')a.taken*=s>0?1-v:1/(1-v);else a[k]+=s*v;};ap(1);if(o.dur)schedule(o.dur,()=>ap(-1));}
         if(!SIM.on)spark(a.x,a.y-16,'#ffe27a',6);}}}),
   // status without damage on chosen targets
   control:(fx,o={})=>({d:(c,i)=>`${o.say||'Targets'} ${o.n?`the ${P(o.n,i)} nearest enemies`:o.r?`every enemy within ${o.r} hex${o.r>1?'es':''} of ${TO[o.at||'target']}`:TO[o.to||'target']}.${fxText(fx,i)}`,
@@ -345,8 +347,8 @@ const B={
   zone:(m,o={})=>({d:(c,i)=>`${o.say||'Covers the ground'} around ${o.at==='self'?'itself':TO[o.at||'target']} (${o.r||1} hex${(o.r||1)>1?'es':''}) for ${P(o.dur||4,i)}s. ${o.heal?`Allies inside heal ${pcnt(P(o.heal,i))} <span class="s-hp">max HP</span> per second`:`Enemies inside take ${DT(c,P(m,i))} every half second`}.${fxText(o.fx,i)?' Each tick'+fxText(o.fx,i).slice(3):''}`,
     cast(c,tg,i){const at=o.at==='self'?c:pickT(c,tg,o.at);if(!at)return;
       zone(c,at,o.r||1,P(o.dur||4,i),o.col||tcol(c),z=>{if(o.heal){for(const a of inZone(z,c.team))heal(a,a.maxHp*P(o.heal,i)/2,true);return;}for(const q of inZone(z,1-c.team)){hitAb(c,q,P(m,i),{noCrit:1,quiet:1});applyFx(c,q,o.fx,i);}},!!o.heal);}}),
-  ramp:(st)=>({d:(c,i)=>`Powers up: ${Object.entries(st).map(([k,v])=>`+${pcnt(P(v,i))} ${{as:'<span class="s-as">Attack Speed</span>',atk:'<span class="s-atk">Attack</span>',spa:'<span class="s-spa">Sp. Atk</span>',dmg:'damage'}[k]}`).join(', ')} for the rest of the battle (stacks).`,
-    cast(c,tg,i){for(const[k,v]of Object.entries(st)){if(k==='dmg')c.dmg+=P(v,i);else c[k]*=1+P(v,i);}if(!SIM.on)burst(c.x,c.y-12,'#ffe27a',10,.7);}}),
+  ramp:(st)=>({d:(c,i)=>`Powers up: ${Object.entries(st).map(([k,v])=>`+${pcnt(rr(P(v,i)))} ${{as:'<span class="s-as">Attack Speed</span>',atk:'<span class="s-atk">Attack</span>',spa:'<span class="s-spa">Sp. Atk</span>',dmg:'damage'}[k]}`).join(', ')} for the rest of the battle (stacks).`,
+    cast(c,tg,i){for(const[k,v]of Object.entries(st)){const x=rr(P(v,i));if(k==='dmg')c.dmg+=x;else c[k]*=1+x;}if(!SIM.on)burst(c.x,c.y-12,'#ffe27a',10,.7);}}),
   airborne:(dur)=>({d:()=>`Rises out of reach for ${dur}s (can't be targeted or hit).`,cast(c){c.airT=combatT+dur;c.busy=Math.max(c.busy,dur);c.target=null;if(!SIM.on)burst(c.x,c.y-10,'#cfe8ff',14,1);}}),
 };
 // run blocks in order, half a beat apart

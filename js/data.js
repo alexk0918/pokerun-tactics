@@ -22,16 +22,16 @@ const STRATS=[
 
 /* ---------- Augments (floor 2) ---------- */
 const AUGS={
-  silver:[{id:'static',name:'Static',d:'Your team\'s basic attacks have a 30% chance to add 1 Paralysis.'},{id:'ppoint',name:'Poison Point',d:'Your team\'s basic attacks have a 30% chance to add 1 Poison.'},{id:'fbody',name:'Flame Body',d:'Your team\'s basic attacks have a 30% chance to add 1 Burn.'},{id:'berry',name:'Berry Basket',d:'Gain ₽8 right now.'},{id:'tailwind',name:'Tailwind',d:'Your team gains +12% Attack Speed.'},{id:'oran',name:'Oran Rations',d:'Your team gains +150 max HP.'}],
-  gold:[{id:'hexer',name:'Hex Maniac',d:'Your team deals +6% damage for each different status condition on the target (up to +30%).'},{id:'outbreak',name:'Outbreak',d:'When an enemy with status conditions faints, half of each of its stacks spread to enemies within 2 hexes.'},{id:'egg',name:'Daycare Egg',d:'Gain a random 2★ Pokémon on your bench.'},{id:'endure',name:'Endure',d:'Once per battle, each of your Pokémon survives a fainting blow with 1 HP.'},{id:'swords',name:'Swords Dance',d:'Your team deals +18% damage.'}],
+  silver:[{id:'static',name:'Static',d:'Your team\'s basic attacks have a 30% chance to add 1 Paralysis.'},{id:'ppoint',name:'Poison Point',d:'Your team\'s basic attacks have a 30% chance to add 1 Poison.'},{id:'fbody',name:'Flame Body',d:'Your team\'s basic attacks have a 30% chance to add 1 Burn.'},{id:'berry',name:'Berry Basket',d:'Gain ₽8 right now.'},{id:'tailwind',name:'Tailwind',d:'Your team gains +10% Attack Speed.'},{id:'oran',name:'Oran Rations',d:'Your team gains +150 max HP.'}],
+  gold:[{id:'hexer',name:'Hex Maniac',d:'Your team deals +5% damage for each different status condition on the target (up to +30%).'},{id:'outbreak',name:'Outbreak',d:'When an enemy with status conditions faints, half of each of its stacks spread to enemies within 2 hexes.'},{id:'egg',name:'Daycare Egg',d:'Gain a random 2★ Pokémon on your bench.'},{id:'endure',name:'Endure',d:'Once per battle, each of your Pokémon survives a fainting blow with 1 HP.'},{id:'swords',name:'Swords Dance',d:'Your team deals +20% damage.'}],
   prismatic:[{id:'plague2',name:'Plague Doctor',d:'Status conditions your team applies add double the stacks, and your Burn, Poison and Leech Seed deal +25% damage.'},{id:'resolve',name:"Trainer's Resolve",d:'+1 team size for the rest of the run.'},{id:'payday',name:'Pay Day',d:'Gain an extra ₽3 at the start of every floor.'},{id:'champion',name:"Champion's Belt",d:'Your team deals +30% damage and gains +15% Attack Speed.'}],
 };
 
 /* ---------- Items: TFT-style components and recipes ---------- */
 const CORDER='PCSIZHUD';
 const COMP={
-  P:{id:'protein',n:'Protein',d:'+12% Attack',e:{atkP:.12}},
-  C:{id:'calcium',n:'Calcium',d:'+12% Sp. Atk',e:{spaP:.12}},
+  P:{id:'protein',n:'Protein',d:'+10% Attack',e:{atkP:.1}},
+  C:{id:'calcium',n:'Calcium',d:'+10% Sp. Atk',e:{spaP:.1}},
   S:{id:'carbos',n:'Carbos',d:'+10% Attack Speed',e:{as:.1}},
   I:{id:'iron',n:'Iron',d:'+15 Defense',e:{def:15}},
   Z:{id:'zinc',n:'Zinc',d:'+15 Sp. Def',e:{res:15}},
@@ -57,14 +57,14 @@ const CRAFT={
   CD:{id:'spell-tag',n:'Spell Tag',d:'Special damage ignores 40% of the target\'s Sp. Def.',e:{specPen:.4}},
   SS:{id:'choice-scarf',n:'Choice Scarf',d:'+25% more Attack Speed.',e:{as:.25}},
   SI:{id:'weakness-policy',n:'Weakness Policy',d:'The first time it takes move damage, gains +40% Attack and Sp. Atk.',e:{wp:.4}},
-  SZ:{id:'bright-powder',n:'Bright Powder',d:'18% chance to dodge attacks.',e:{dodge:.18}},
+  SZ:{id:'bright-powder',n:'Bright Powder',d:'20% chance to dodge attacks.',e:{dodge:.2}},
   SH:{id:'wide-lens',n:'Wide Lens',d:'+1 attack range.',e:{range:1}},
   SU:{id:'magnet',n:'Magnet',d:'Every 3rd attack zaps up to 3 enemies for 60 (+30% Sp. Atk) special damage.',e:{magnet:1}},
   SD:{id:'quick-claw',n:'Quick Claw',d:'Attacks have a 25% chance to strike twice.',e:{double:.25}},
-  II:{id:'rocky-helmet',n:'Rocky Helmet',d:'Melee attackers take 6% of the holder\'s max HP as damage.',e:{helmet:.06}},
+  II:{id:'rocky-helmet',n:'Rocky Helmet',d:'Melee attackers take 5% of the holder\'s max HP as damage.',e:{helmet:.05}},
   IZ:{id:'eviolite',n:'Eviolite',d:'If the holder can still evolve: +50% Defense and Sp. Def and +20% max HP.',e:{eviolite:1}},
   IH:{id:'sitrus-berry',n:'Sitrus Berry',d:'Once per battle, heals 35% max HP when dropping below half.',e:{sitrus:.35}},
-  IU:{id:'light-clay',n:'Light Clay',d:'At battle start, the holder and adjacent allies gain a shield of 18% max HP.',e:{clay:.18}},
+  IU:{id:'light-clay',n:'Light Clay',d:'At battle start, the holder and adjacent allies gain a shield of 20% max HP.',e:{clay:.2}},
   ID:{id:'focus-sash',n:'Focus Sash',d:'Once per battle, survives a fainting blow with 1 HP.',e:{focus:1}},
   ZZ:{id:'assault-vest',n:'Assault Vest',d:'Takes 25% less special damage.',e:{assault:.25}},
   ZH:{id:'berry-pots',n:'Soothing Berries',d:'Adjacent allies restore 2% max HP per second.',e:{soothe:.02}},
@@ -81,18 +81,18 @@ const recipeKey=(a,b)=>CORDER.indexOf(a)<=CORDER.indexOf(b)?a+b:b+a;
 
 /* Mutators (The Last Flame–style modifiers rolled onto items) */
 const MUTS={
-  shiny:{n:'Shiny',d:'+8% max HP and damage',e:{hpP:.08,dmg:.08}},
+  shiny:{n:'Shiny',d:'+10% max HP and damage',e:{hpP:.1,dmg:.1}},
   blazing:{n:'Blazing',d:'Attacks add 2 Burn',e:{burn:.01}},
-  vampiric:{n:'Vampiric',d:'+8% lifesteal',e:{ls:.08}},
+  vampiric:{n:'Vampiric',d:'+10% lifesteal',e:{ls:.1}},
   swift:{n:'Swift',d:'+10% Attack Speed',e:{as:.1}},
   sturdy:{n:'Sturdy',d:'+12 Defense and Sp. Def',e:{def:12,res:12}},
   charged:{n:'Charged',d:'+12 starting PP',e:{mana:12}},
-  lucky:{n:'Lucky',d:'+8% crit and dodge chance',e:{crit:.08,dodge:.08}},
+  lucky:{n:'Lucky',d:'+10% crit and dodge chance',e:{crit:.1,dodge:.1}},
   golden:{n:'Golden',d:'Earn ₽1 after each win while equipped',e:{gold:1}},
   growing:{n:'Growing',d:'Gains +2% damage permanently after every battle',e:{}},
   thorny:{n:'Thorny',d:'Melee attackers take 3% of the holder\'s max HP',e:{helmet:.03}},
   blessed:{n:'Blessed',d:'Start battle with a shield of 10% max HP',e:{shieldP:.1}},
-  shadow:{n:'Shadow',d:'+15% damage, but takes 6% more damage',e:{dmg:.15,dr:-.06}},
+  shadow:{n:'Shadow',d:'+15% damage, but takes 5% more damage',e:{dmg:.15,dr:-.05}},
 };
 
 /* Consumables */
@@ -112,15 +112,15 @@ const RELICS={
   'soothe-bell':{n:'Soothe Bell',d:'Your Pokémon restore 1.5% max HP per second.'},
   bicycle:{n:'Bicycle',d:'Your Pokémon gain +30% Attack Speed for the first 6 seconds of battle.'},
   'dowsing-machine':{n:'Dowsing Machine',d:'Chests offer 4 choices instead of 3.'},
-  'rainbow-wing':{n:'Rainbow Wing',d:'Your Pokémon gain +12% max HP and damage.'},
+  'rainbow-wing':{n:'Rainbow Wing',d:'Your Pokémon gain +10% max HP and damage.'},
   'silver-wing':{n:'Silver Wing',d:'Your Pokémon start battle with a shield of 15% max HP.'},
-  'town-map':{n:'Town Map',d:'Enemy Pokémon have 8% less HP.'},
+  'town-map':{n:'Town Map',d:'Enemy Pokémon have 10% less HP.'},
   'super-rod':{n:'Super Rod',d:'Chests always offer at least one completed item.'},
   'poke-flute':{n:'Poké Flute',d:'The first of your Pokémon to faint each battle wakes up with 35% HP.'},
   magmarizer:{n:'Magmarizer',d:'When a burned enemy faints, its Burn stacks leap to the nearest enemy.'},
   'poison-barb':{n:'Poison Barb',d:'Poison your team applies never wears off.'},
-  electirizer:{n:'Electirizer',d:'Paralysis your team applies slows by 7% per stack instead of 5%.'},
-  snowball:{n:'Snowball',d:'Chill your team applies lowers Defense and Sp. Def by 6% per stack instead of 4%.'},
+  electirizer:{n:'Electirizer',d:'Paralysis your team applies slows by 5% per stack instead of 5%.'},
+  snowball:{n:'Snowball',d:'Chill your team applies lowers Defense and Sp. Def by 5% per stack instead of 4%.'},
   'sticky-barb':{n:'Sticky Barb',d:'Every status your team applies adds 1 extra stack.'},
   'full-heal':{n:'Full Heal',d:'Status conditions deal half damage to your Pokémon and wear off twice as fast.'},
 };

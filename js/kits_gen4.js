@@ -2,25 +2,25 @@
 
 // --- Sinnoh starters ---
 kit({ids:[387,388,389],role:'Island Turtle',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:[70,75,85],start:20,pf:[.8,1,1.15],names:['Withdraw','Razor Leaf','Earthquake'],mvType:'Grass'},
-  staged(seq(B.shield(.16),B.hit(.9,{proj:false})),seq(B.shield(.2),B.cone(.8,{say:'Fires Razor Leaves',fx:{seed:1}})),
-    seq(B.shield(.22),B.nova(.95,{say:'Then shakes the ground',r:2,fx:{slow:[.2,2]}}),B.control({seed:3},{n:2,say:'Seeds sprout from its back toward'}))));
+  staged(seq(B.shield(.15),B.hit(.9,{proj:false})),seq(B.shield(.2),B.cone(.8,{say:'Fires Razor Leaves',fx:{seed:1}})),
+    seq(B.shield(.2),B.nova(.95,{say:'Then shakes the ground',r:2,fx:{slow:[.2,2]}}),B.control({seed:3},{n:2,say:'Seeds sprout from its back toward'}))));
 kit({ids:[390,391,392],role:'Flame Monkey',cls:'Striker',cat:'phys',range:1,mana:[55,60,65],pf:[.8,1,1.15],names:['Ember','Mach Punch','Close Combat'],mvType:'Fire'},
   {d:(c,i)=>i===0?B.hit(1,{fx:{burn:.01}}).d(c,i):i===1?B.hit(1,{dash:1,to:'weak',fx:{burn:.01}}).d(c,i):`Unleashes a flurry on the target: 4 blows for ${DT(c,.42)} each, every blow adding 1 Burn. Then it vaults to the weakest enemy and strikes it for ${DT(c,.8)}.`,
    cast(c,tg,i){if(i<2)return(i?B.hit(1,{dash:1,to:'weak',fx:{burn:.01}}):B.hit(1,{fx:{burn:.01}})).cast(c,tg,i,{});
      for(let k=0;k<4;k++)schedule(k*.1,()=>{if(c.dead||tg.dead)return;hitAb(c,tg,.42);addStatus(tg,'burn',1,c);});
      schedule(.5,()=>{if(c.dead)return;const t=pickT(c,tg,'weak');if(!t)return;dashTo(c,t,true,.15);schedule(.17,()=>{if(!c.dead&&!t.dead)hitAb(c,t,.8);});});}});
-kit({ids:[393,394,395],role:'Emperor',cls:'Mystic',cat:'spec',range:3,mana:[60,65,75],pf:[.8,1,1.15],names:['Bubble Beam','Brine','Hydro Pump'],mvType:'Water',tail:(c,i)=>i===2?'Its Steel armor gives it a shield of 12% <span class="s-hp">max HP</span> each cast.':''},
-  {d:(c,i)=>i===0?B.hit(1,{fx:{slow:[.2,2]}}).d(c,i):i===1?`Hits the weakest enemy with Brine for ${DT(c,1.1)}, +50% if it's below half HP.`:`Gains a shield of ${HPT(c,.12)}, then fires a Hydro Pump through the target that hits every enemy in a line for ${DT(c,1.25)}.`,
+kit({ids:[393,394,395],role:'Emperor',cls:'Mystic',cat:'spec',range:3,mana:[60,65,75],pf:[.8,1,1.15],names:['Bubble Beam','Brine','Hydro Pump'],mvType:'Water',tail:(c,i)=>i===2?'Its Steel armor gives it a shield of 10% <span class="s-hp">max HP</span> each cast.':''},
+  {d:(c,i)=>i===0?B.hit(1,{fx:{slow:[.2,2]}}).d(c,i):i===1?`Hits the weakest enemy with Brine for ${DT(c,1.1)}, +50% if it's below half HP.`:`Gains a shield of ${HPT(c,.1)}, then fires a Hydro Pump through the target that hits every enemy in a line for ${DT(c,1.25)}.`,
    cast(c,tg,i){if(i===0)return B.hit(1,{fx:{slow:[.2,2]}}).cast(c,tg,i,{});if(i===1){const t=pickT(c,tg,'weak');fire(c,t,'#5aa8ff',()=>hitAb(c,t,1.1*(t.hp<t.maxHp/2?1.5:1)),{});return;}
-     c.shield+=c.maxHp*.12;B.beam(1.25,{col:'#5aa8ff'}).cast(c,tg,2);}});
+     c.shield+=c.maxHp*.1;B.beam(1.25,{col:'#5aa8ff'}).cast(c,tg,2);}});
 
 // --- Common Sinnoh Pokémon ---
 kit({ids:[396,397,398],role:'Brave Raptor',cls:'Striker',cat:'phys',range:1,mana:[55,60,65],pf:[.8,1,1.15],names:['Quick Attack','Dual Wingbeat','Brave Bird'],mvType:'Flying'},
-  {d:(c,i)=>i===0?B.hit(1,{dash:1}).d(c,i):i===1?B.hit(.55,{n:2,dash:1,to:'weak'}).d(c,i):`Dives onto the farthest enemy for ${DT(c,1.7)}, taking 8% of its own <span class="s-hp">max HP</span> in recoil.`,
+  {d:(c,i)=>i===0?B.hit(1,{dash:1}).d(c,i):i===1?B.hit(.55,{n:2,dash:1,to:'weak'}).d(c,i):`Dives onto the farthest enemy for ${DT(c,1.7)}, taking 10% of its own <span class="s-hp">max HP</span> in recoil.`,
    cast(c,tg,i){if(i<2)return(i?B.hit(.55,{n:2,dash:1,to:'weak'}):B.hit(1,{dash:1})).cast(c,tg,i,{});const t=pickT(c,tg,'far');dashTo(c,t,true,.2);schedule(.22,()=>{if(c.dead||t.dead)return;hitAb(c,t,1.7);hurt(c,c.maxHp*.08,null);boom(t,'#cfe8ff');});}});
 kit({ids:[399,400],role:'Dam Builder',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:[60,70],start:20,pf:[.85,1.05],names:['Super Fang','Aqua Jet'],mvType:'Normal'},
-  {d:(c,i)=>`${i?`Builds a dam: itself and adjacent allies gain a shield of ${HPT(c,.12)}. Then it`:'It'} bites the target with Super Fang, taking 12% of its current HP (at least ${DT(c,.8)}).`,
-   cast(c,tg,i){if(i)B.shield(.12,{who:'adjacent'}).cast(c,tg,1);schedule(.25,()=>{if(c.dead||tg.dead)return;const v=Math.max(V(c,.8),tg.hp*.12);damage(c,tg,v,{ab:1,cat:'phys',tru:1,noCrit:1});});}});
+  {d:(c,i)=>`${i?`Builds a dam: itself and adjacent allies gain a shield of ${HPT(c,.1)}. Then it`:'It'} bites the target with Super Fang, taking 10% of its current HP (at least ${DT(c,.8)}).`,
+   cast(c,tg,i){if(i)B.shield(.1,{who:'adjacent'}).cast(c,tg,1);schedule(.25,()=>{if(c.dead||tg.dead)return;const v=Math.max(V(c,.8),tg.hp*.12);damage(c,tg,v,{ab:1,cat:'phys',tru:1,noCrit:1});});}});
 kit({ids:[401,402],role:'Cricket Bard',cls:'Artillery',cat:'spec',range:2,mana:[60,65],pf:[.8,1.05],names:['Bug Bite','Bug Buzz'],mvType:'Bug'},
   staged(B.hit(1),{d:c=>`Plays a song through the target and enemies up to 2 hexes behind it for ${DT(c,.9)} (70% to the others), adding 2 Confusion to each.`,
     cast(c,tg){B.cone(.9,{depth:2,fx:{conf:2},col:'#e07a3a'}).cast(c,tg,1);if(!SIM.on)pfx('Music_Notes_Uproar',c.x,c.y-24,{sc:1.4,force:1});}}));
@@ -29,17 +29,17 @@ kit({ids:[403,404,405],role:'Gleam Lion',cls:'Striker',cat:'phys',range:1,mana:[
    cast(c,tg,i){if(i===0){hitAb(c,tg,1);addStatus(tg,'para',2,c);return;}
      const t=i===2?(foesOf(c).sort((a,b)=>b.mana-a.mana)[0]||tg):tg;dashTo(c,t,true,.18);schedule(.2,()=>{if(c.dead||t.dead)return;hitAb(c,t,i===2?1.5:1.2);addStatus(t,'para',i===2?4:3,c);if(i===2)t.mana=Math.max(0,t.mana-15);else hurt(c,c.maxHp*.05,null);if(!SIM.on)pfx('Spark',t.x,t.y-12,{sc:.5,force:1});});}});
 kit({ids:[408,409],role:'Skull Bash',cls:'Bruiser',cat:'phys',range:1,mana:[60,70],pf:[.8,1.15],names:['Headbutt','Head Smash'],mvType:'Rock'},
-  staged(B.hit(1.1,{proj:false,fx:{flinch:.3}}),{d:c=>`Head Smashes the target for ${DT(c,2.2)}, stunning it for 0.6s and taking 12% of its own <span class="s-hp">max HP</span> in recoil.`,
+  staged(B.hit(1.1,{proj:false,fx:{flinch:.3}}),{d:c=>`Head Smashes the target for ${DT(c,2.2)}, stunning it for 0.6s and taking 10% of its own <span class="s-hp">max HP</span> in recoil.`,
     cast(c,tg){hitAb(c,tg,2.2);stun(tg,.6);hurt(c,c.maxHp*.12,null);boom(tg,'#c8a070',2);}}));
 kit({ids:[410,411],role:'Bulwark',cls:'Vanguard',type:'guard',cat:'phys',range:1,mana:[70,75],start:20,pf:[.8,1.05],names:['Iron Defense','Wide Guard'],mvType:'Steel'},
-  staged(B.shield(.2,{def:12}),seq(B.shield(.16,{who:'adjacent',def:15}),B.hit(.8,{proj:false,fx:{shred:6}}))));
+  staged(B.shield(.2,{def:12}),seq(B.shield(.15,{who:'adjacent',def:15}),B.hit(.8,{proj:false,fx:{shred:6}}))));
 kit({ids:[412,413],role:'Cloak Shell',cls:'Vanguard',type:'guard',cat:'spec',range:2,mana:[65,75],start:20,pf:[.8,1.05],names:['Protect','Leaf Storm'],mvType:'Bug'},
-  staged(B.shield(.18),seq(B.shield(.2),B.blast(1,{what:'a Leaf Storm',r:1,fx:{seed:1}}))));
+  staged(B.shield(.2),seq(B.shield(.2),B.blast(1,{what:'a Leaf Storm',r:1,fx:{seed:1}}))));
 kit({ids:[414],role:'Night Moth',cls:'Mystic',cat:'spec',range:3,mana:65,pf:1.1,names:['Quiver Dance'],mvType:'Bug'},
   seq(B.ramp({spa:.08,as:.08}),B.hit(1.1,{what:'a Bug Buzz',fx:{sdef:6}})));
-kit({ids:[415,416],role:'Hive Queen',cls:'Mystic',cat:'spec',range:[2,3],mana:[60,75],pf:[.8,1.1],names:['Bug Bite','Attack Order'],mvType:'Bug',tail:(c,i)=>i?'<b>Defend Order:</b> each cast also shields adjacent allies for 8% of their max HP.':''},
-  staged(B.hit(1),{d:c=>`Orders her hive to attack: 6 Combee dive at enemies within 4 hexes for ${DT(c,.35)} each, and adjacent allies are shielded for 8% of their <span class="s-hp">max HP</span>.`,
-    cast(c,tg){B.barrage(6,.35,{what:'Combee',col:'#ffd34d'}).cast(c,tg,1);B.shield(.08,{who:'adjacent'}).cast(c,tg,1);}}));
+kit({ids:[415,416],role:'Hive Queen',cls:'Mystic',cat:'spec',range:[2,3],mana:[60,75],pf:[.8,1.1],names:['Bug Bite','Attack Order'],mvType:'Bug',tail:(c,i)=>i?'<b>Defend Order:</b> each cast also shields adjacent allies for 10% of their max HP.':''},
+  staged(B.hit(1),{d:c=>`Orders her hive to attack: 6 Combee dive at enemies within 4 hexes for ${DT(c,.35)} each, and adjacent allies are shielded for 10% of their <span class="s-hp">max HP</span>.`,
+    cast(c,tg){B.barrage(6,.35,{what:'Combee',col:'#ffd34d'}).cast(c,tg,1);B.shield(.1,{who:'adjacent'}).cast(c,tg,1);}}));
 kit({ids:[417],role:'Spark Squirrel',cls:'Trickster',cat:'spec',range:2,mana:60,pf:1,names:['Nuzzle'],mvType:'Electric'},
   {d:c=>`Nuzzles the 3 nearest enemies for ${DT(c,.6)} each, adding 4 Paralysis, then calls Follow Me: a shield of ${HPT(c,.15)}.`,
    cast(c,tg){for(const q of foesOf(c).sort((a,b)=>hdist(a,c)-hdist(b,c)).slice(0,3)){hitAb(c,q,.6);addStatus(q,'para',4,c);}c.shield+=c.maxHp*.15;}});
@@ -48,7 +48,7 @@ kit({ids:[418,419],role:'Sea Weasel',cls:'Striker',cat:'phys',range:1,mana:[55,6
    begin(c,i){if(i&&battle.weather==='rain')c.as*=1.2;},
    cast(c,tg,i){const ts=foesOf(c).sort((a,b)=>a.hp-b.hp).slice(0,i?2:1);ts.forEach((t,k)=>schedule(k*.25,()=>{if(c.dead||t.dead)return;dashTo(c,t,false,.14);schedule(.16,()=>{if(!c.dead&&!t.dead)hitAb(c,t,k?.8:1);});}));}});
 kit({ids:[420,421],role:'Sunflower Gift',cls:'Medic',type:'heal',cat:'spec',range:3,mana:[65,75],pf:[.8,1.05],names:['Synthesis','Flower Gift'],mvType:'Grass'},
-  staged(B.heal(.85,{}),{d:c=>`Calls the sun (if no weather is active) and blooms: every ally heals ${HT(c,.3)} and gains +12% <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> for 4s.`,
+  staged(B.heal(.85,{}),{d:c=>`Calls the sun (if no weather is active) and blooms: every ally heals ${HT(c,.3)} and gains +10% <span class="s-atk">Attack</span> and <span class="s-spa">Sp. Atk</span> for 4s.`,
     cast(c,tg){setWeather(c,'sun');B.heal(.3,{who:'team'}).cast(c,tg,1);B.buff({atk:.12,spa:.12},{who:'team',dur:4}).cast(c,tg,1);}}));
 kit({ids:[422,423],role:'Sea Slug',cls:'Juggernaut',type:'guard',cat:'spec',range:2,mana:[65,75],start:20,pf:[.8,1.05],names:['Mud Bomb','Earth Power'],mvType:'Ground'},
   staged(seq(B.shield(.15),B.hit(.9,{fx:{slow:[.2,2]}})),{d:c=>`Recovers ${HT(c,.6)} of its own HP, then lets loose an Earth Power burst at the target that hits it and enemies within 1 hex for ${DT(c,1)} (70% to the others).`,
@@ -62,16 +62,16 @@ kit({ids:[427,428],role:'Bunny Boxer',cls:'Combo',cat:'phys',range:1,mana:[55,60
     cast(c,tg){if(!c.fakeOut){c.fakeOut=1;stun(tg,1);hitAb(c,tg,.6);return;}const t=pickT(c,tg,'far');dashTo(c,t,true,.22);schedule(.24,()=>{if(!c.dead&&!t.dead)hitAb(c,t,1.6,{type:'Fighting'});});}}));
 kit({ids:[431,432],role:'Alley Boss',cls:'Bruiser',cat:'phys',range:1,mana:[55,65],pf:[.8,1.1],names:['Fake Out','Body Slam'],mvType:'Normal'},
   staged({d:c=>`Its first cast each battle is a Fake Out that flinches the target for 1s. After that it scratches for ${DT(c,1.1)}.`,cast(c,tg){if(!c.fakeOut){c.fakeOut=1;stun(tg,1);}hitAb(c,tg,1.1);}},
-    seq(B.hit(1.3,{proj:false,fx:{para:3}}),B.shield(.12))));
+    seq(B.hit(1.3,{proj:false,fx:{para:3}}),B.shield(.1))));
 kit({ids:[434,435],role:'Stink Bomb',cls:'Trickster',cat:'phys',range:[1,2],mana:[60,70],pf:[.8,1.05],names:['Poison Jab','Toxic Gas'],mvType:'Poison'},
   staged(B.hit(1,{proj:false,fx:{psn:.015}}),seq(B.zone(.06,{at:'cluster',r:1,dur:5,say:'Sprays a cloud of toxic gas',fx:{psn:.01},col:'#a35bd6'}),B.hit(1.1,{to:'strong',dash:1}))));
 kit({ids:[436,437],role:'Bell Ward',cls:'Vanguard',type:'guard',cat:'spec',range:2,mana:[70,80],start:20,pf:[.8,1.05],names:['Confuse Ray','Reflect'],mvType:'Steel'},
-  staged(seq(B.shield(.18),B.control({conf:2},{to:'strong',say:'Fires a Confuse Ray at'})),seq(B.shield(.1,{who:'team'}),B.control({conf:2},{n:2,say:'Rings out at'}),B.hit(.9,{what:'a Gyro Ball'}))));
+  staged(seq(B.shield(.2),B.control({conf:2},{to:'strong',say:'Fires a Confuse Ray at'})),seq(B.shield(.1,{who:'team'}),B.control({conf:2},{n:2,say:'Rings out at'}),B.hit(.9,{what:'a Gyro Ball'}))));
 kit({ids:[441],role:'Mimic Bird',cls:'Trickster',cat:'spec',range:2,mana:55,pf:1.05,names:['Chatter'],mvType:'Flying'},
   B.cone(.9,{say:'Chatters noisily',depth:2,fx:{conf:2}}));
 kit({ids:[442],role:'Keystone Spirits',cls:'Juggernaut',type:'guard',cat:'spec',range:3,mana:75,start:20,pf:1.1,names:['Shadow Ball'],mvType:'Ghost'},
-  {d:c=>`Gains a shield of ${HPT(c,.18)} and releases 6 of its 108 spirits, which haunt random enemies within 4 hexes for ${DT(c,.32)} each and add 1 Confusion.`,
-   cast(c,tg){c.shield+=c.maxHp*.18;B.barrage(6,.32,{what:'spirits',fx:{conf:1},col:'#7a5ad0'}).cast(c,tg,0);}});
+  {d:c=>`Gains a shield of ${HPT(c,.2)} and releases 6 of its 108 spirits, which haunt random enemies within 4 hexes for ${DT(c,.32)} each and add 1 Confusion.`,
+   cast(c,tg){c.shield+=c.maxHp*.2;B.barrage(6,.32,{what:'spirits',fx:{conf:1},col:'#7a5ad0'}).cast(c,tg,0);}});
 kit({ids:[449,450],role:'Sand Hippo',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[70,80],start:20,pf:[.85,1.1],names:['Sand Tomb','Earthquake'],mvType:'Ground',tail:()=>'<b>Sand Stream:</b> starts the battle with a sandstorm if no weather is active.'},
   {d:(c,i)=>i?`Slacks off to heal ${HT(c,.5)} of its own HP, then sets off an Earthquake that hits every enemy within 2 hexes for ${DT(c,1)}.`:B.zone(.08,{r:1,dur:4,say:'Traps the target in a Sand Tomb',fx:{slow:[.3,1]},col:'#d8b070'}).d(c,i),
    begin(c){schedule(.1,()=>setWeather(c,'sand'));},
@@ -156,7 +156,7 @@ kit({ids:[488],role:'Lunar Dancer',cls:'Medic',type:'heal',cat:'spec',range:3,ma
 kit({ids:[489],role:'Sea Drifter',cls:'Medic',type:'heal',cat:'spec',range:3,mana:65,pf:1,names:['Aqua Ring'],mvType:'Water'},
   seq(B.heal(.8,{cleanse:1}),B.zone(0,{at:'self',r:1,dur:5,heal:.02,say:'Surrounds itself with an Aqua Ring'})));
 kit({ids:[490],role:'Sea Prince',cls:'Mystic',cat:'spec',range:3,mana:70,pf:1.15,names:['Tail Glow'],mvType:'Water'},
-  {d:c=>`Its tail glows: it shakes off its own status conditions and gains +12% <span class="s-spa">Sp. Atk</span> for the battle (stacks). Then it fires a Hydro Pump at the target for ${DT(c,1.3)}.`,
+  {d:c=>`Its tail glows: it shakes off its own status conditions and gains +10% <span class="s-spa">Sp. Atk</span> for the battle (stacks). Then it fires a Hydro Pump at the target for ${DT(c,1.3)}.`,
    cast(c,tg){cureStatus(c);c.spa*=1.12;schedule(.25,()=>{if(!c.dead&&!tg.dead)fire(c,tg,'#5aa8ff',()=>hitAb(c,tg,1.3),{size:4});});}});
 kit({ids:[491],role:'Nightmare',cls:'Trickster',cat:'spec',range:3,mana:80,pf:1.2,names:['Dark Void'],mvType:'Dark',tail:()=>'<b>Bad Dreams:</b> sleeping or stunned enemies take 3% of their max HP per second.'},
   {d:c=>`Engulfs the 3 nearest enemies in a Dark Void, putting them to sleep for 1.5s, then hits the target with a Dark Pulse for ${DT(c,1.1)}.`,
