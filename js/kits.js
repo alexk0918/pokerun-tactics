@@ -234,9 +234,18 @@ const GEAR={
     lines:['Earned by collecting all 8 Kanto Badges. +25% damage and max HP and +15% Attack Speed.']},
 };
 const isGear=it=>typeof it.k==='string'&&it.k.startsWith('gear:');
+/* Type plates work like TFT emblems: the holder also counts as that type for sets. They make the top tiers reachable. */
+const PLATES={Normal:'blank-plate',Fire:'flame-plate',Water:'splash-plate',Electric:'zap-plate',Grass:'meadow-plate',Ice:'icicle-plate',Fighting:'fist-plate',Poison:'toxic-plate',Ground:'earth-plate',Flying:'sky-plate',Psychic:'mind-plate',Bug:'insect-plate',Rock:'stone-plate',Ghost:'spooky-plate',Dragon:'draco-plate',Dark:'dread-plate',Steel:'iron-plate',Fairy:'pixie-plate'};
+const PLATENAME={Normal:'Blank',Fire:'Flame',Water:'Splash',Electric:'Zap',Grass:'Meadow',Ice:'Icicle',Fighting:'Fist',Poison:'Toxic',Ground:'Earth',Flying:'Sky',Psychic:'Mind',Bug:'Insect',Rock:'Stone',Ghost:'Spooky',Dragon:'Draco',Dark:'Dread',Steel:'Iron',Fairy:'Pixie'};
+const isPlate=it=>typeof it.k==='string'&&it.k.startsWith('plate:');
+const plateType=it=>it.k.slice(6);
+function plateDef(it){const ty=plateType(it);return{id:PLATES[ty],n:PLATENAME[ty]+' Plate',d:`<b>Emblem.</b> The holder also counts as a <b>${ty}</b> type for sets. Can't go on a Pokémon that's already ${ty}. Takes an item slot.`};}
+const canHoldPlate=(it,u)=>!unitSets(u).includes(plateType(it))&&u.items.length<3;
+// pick a plate, usually for a type you're already running
+function rollPlate(){const ct=run?countTraits(Object.values(run.board)):{};const mine=Object.keys(ct).filter(k=>PLATES[k]);return{k:'plate:'+(mine.length&&Math.random()<.7?pick(mine):pick(Object.keys(PLATES))),mut:[]};}
 const gearKey=it=>it.k.slice(5);
 function gearDef(it){const G=GEAR[gearKey(it)];return{id:G.id,n:G.n,d:`<b>Exclusive to ${G.set} Pokémon.</b> ${G.lines.map((l,i)=>G.lines.length>1?`<br>(${SETS[G.set].bp[i]}) ${l}`:l).join('')}`};}
-function gearEffects(it,u,tr){const G=GEAR[gearKey(it)];if(!unitSets(u).includes(G.set))return{};const ti=tierOf(G.set,tr[G.set]||0);return ti?G.tiers[ti-1]:{};}
+function gearEffects(it,u,tr){const G=GEAR[gearKey(it)];if(!unitSets(u).includes(G.set))return{};const ti=tierOf(G.set,tr[G.set]||0);return ti?G.tiers[Math.min(ti,G.tiers.length)-1]:{};}
 function canWearGear(it,u){const G=GEAR[gearKey(it)];return unitSets(u).includes(G.set)&&!u.items.some(isGear)&&u.items.length<3;}
 // hand out gear the first time its set is active on the field
 function grantGear(){if(!run||!MODE)return;run.gearGot=run.gearGot||[];const ct=countTraits(Object.values(run.board));

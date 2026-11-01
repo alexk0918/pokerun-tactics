@@ -177,6 +177,9 @@ While you drag a Pokémon, or hover one on the field, the hexes it can reach fro
 
 ### Items
 
+- The **Eject Pack** takes every item off a Pokémon and puts them back in your bag. It turns up in rival, alpha and challenge chests (and sometimes at Kecleon's).
+- Drag a component over another component (in the bag, or onto a Pokémon holding one) to see what they'd make. In chest choices, hover any recipe to see the finished item.
+
 - A chest appears after every battle. Open it and pick one of three items, or skip for ₽2.
 - Items work like TFT: 8 components (Protein, Calcium, Carbos, Iron, Zinc, HP Up, PP Up, Dire Hit) combine into 36 completed items. Put two components on the same Pokémon, or drop one on another in your bag. Each Pokémon holds up to 3 items, and selling it returns them to the bag.
 - Items can roll mutators (Shiny, Blazing, Vampiric, Swift, Sturdy, Charged, Lucky, Golden, Growing, Thorny, Blessed, Shadow) that carry over when components combine.
@@ -216,7 +219,11 @@ Weather now does what it does in the games, with PMD weather art on screen (rain
 
 Every Pokémon belongs to several sets, and each set activates at its breakpoints (counting different Pokémon on the field). Hover a set to see its bonuses the TFT way. Breakpoints you've reached are green, and the value for your current tier is highlighted. Other tiers' values, and bonuses that unlock at higher counts, are greyed out.
 
-**Type sets (2 / 4 / 6)** each change how the fight plays:
+Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type sets and most classes go 2 / 4 / 6 / 8; the bigger styles and the regions (National Dex) go 2 / 4 / 6. The top tier is built to be hard to reach with a 10-Pokémon team and does something big: Fire's Wildfire makes Burn permanent, Ice's Absolute Zero freezes enemies at 10 Chill, Ghost's Undying brings each Ghost back once, Poison's Venom Tide doubles Poison damage, Juggernauts become immune to status, Tricksters' statuses add 50% more stacks, Water's Tsunami hits every enemy for 10% max HP every 5 seconds, and so on (hover a set in game for the full text).
+
+**Type Plates** are this game's emblems: a Plate held by a Pokémon makes it count as that type for sets, so the prismatic tiers become reachable. Rival chests often hold one (usually for a type you're already running), and Kecleon sometimes sells one for ₽10.
+
+**Type sets (2 / 4 / 6 / 8)** each change how the fight plays:
 
 | Set | Mechanic |
 |---|---|
@@ -311,7 +318,7 @@ Built to stay readable on small handheld screens such as the AYN Thor:
 - A slim top bar holds trainer HP, the route tracker, level, Pokédollars, battle speed and the Menu button.
 - The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (strategy, augment, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
 - The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
-- The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan with a right- or middle-button drag or the right stick. 0 or R3 resets.
+- The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan by dragging empty ground (any mouse button) or with the right stick. 0 or R3 resets.
 
 ### Visual effects
 

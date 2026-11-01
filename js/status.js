@@ -34,6 +34,9 @@ function addStatus(t,k,n,src,o={}){
   const cur=t[k];
   t[k]={n:Math.min(S.max,(cur?cur.n:0)+n),t:4,src:src||(cur&&cur.src)||null,age:cur?cur.age||0:0};
   if(k==='chill')syncChill(t);
+  // Ice set at 8 (Absolute Zero): 10 Chill freezes the target solid
+  if(k==='chill'&&src&&src.fx&&src.fx.freezeCap&&t.chill.n>=10&&(t.frzCd||0)<combatT&&!t.stunImm){t.chill=null;syncChill(t);t.frzCd=combatT+6;stun(t,2);t.frozenT=combatT+2;
+    if(!SIM.on){texts.push({x:t.x,y:t.y-30,txt:'Frozen solid!',col:'#bff0ff',life:1.2,label:1});pfx('Ice_Shard_Hit',t.x,t.y-12,{sc:.6,force:1});}}
   if(k==='poison')t.griev=Math.max(t.griev||0,combatT+4);
 }
 // the old single-value DoT API, now adding stacks (p = % max HP/s it used to deal)
@@ -51,6 +54,7 @@ function statusTick(u,dt){
   if(u.dead)return;
   for(const k of STK){const s=u[k];if(!s)continue;
     if(k==='poison'&&isMine(s.src)&&hasRelic('poison-barb'))continue;
+    if(k==='burn'&&s.src&&battle.burnPerm&&battle.burnPerm[s.src.team])continue;
     const fast=((k==='burn'&&battle.weather==='rain')?2:1)*(u.team===0&&run&&hasRelic('full-heal')?2:1);
     s.t-=dt*fast;if(s.t<=0){s.n=Math.floor(s.n/2);s.t=2;if(s.n<=0)u[k]=null;if(k==='chill')syncChill(u);}}
 }

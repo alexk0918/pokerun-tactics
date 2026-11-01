@@ -229,17 +229,17 @@ function renderForest(){
 /* ================= Items ================= */
 const ITEMIMG={};
 const iconOf=id=>`assets/items/${id}.png`;
-function loadItemImages(){const ids=new Set([...Object.values(COMP).map(c=>c.id),...Object.values(CRAFT).map(c=>c.id),...Object.keys(USE),...Object.keys(RELICS),...Object.keys(ENH),...Object.values(GEAR).map(g=>g.id),...Object.values(NODES).map(n=>n.icon).filter(Boolean)]);
+function loadItemImages(){const ids=new Set([...Object.values(COMP).map(c=>c.id),...Object.values(CRAFT).map(c=>c.id),...Object.keys(USE),...Object.keys(RELICS),...Object.keys(ENH),...Object.values(GEAR).map(g=>g.id),...Object.values(PLATES),...Object.values(NODES).map(n=>n.icon).filter(Boolean)]);
   for(const id of ids){const i=new Image();i.src=iconOf(id);ITEMIMG[id]=i;}}
 const isComp=it=>it.k.length===1&&!!COMP[it.k];
 const isCraft=it=>!!CRAFT[it.k];
 const isUse=it=>!!USE[it.k];
-function itemDef(it){if(isGear(it))return gearDef(it);if(isEnh(it))return enhDef(it);if(isSpc(it))return spcDef(it);if(isGim(it))return gimDef(it);if(isFormItem(it))return formItemDef(it);if(isComp(it))return COMP[it.k];if(isCraft(it))return CRAFT[it.k];return USE[it.k];}
+function itemDef(it){if(isPlate(it))return plateDef(it);if(isGear(it))return gearDef(it);if(isEnh(it))return enhDef(it);if(isSpc(it))return spcDef(it);if(isGim(it))return gimDef(it);if(isFormItem(it))return formItemDef(it);if(isComp(it))return COMP[it.k];if(isCraft(it))return CRAFT[it.k];return USE[it.k];}
 function itemName(it){const d=itemDef(it);return(it.mut&&it.mut.length?it.mut.map(m=>MUTS[m].n).join(' ')+' ':'')+d.n+(it.enh?'+':'');}
-function itemTier(it){return isGear(it)?'gear':isEnh(it)?'enh':isSpc(it)?'spc':isGim(it)?'gim':isFormItem(it)?'formi':isComp(it)?'common':isCraft(it)?'epic':'use';}
+function itemTier(it){return isGear(it)||isPlate(it)?'gear':isEnh(it)?'enh':isSpc(it)?'spc':isGim(it)?'gim':isFormItem(it)?'formi':isComp(it)?'common':isCraft(it)?'epic':'use';}
 function addE(t,e){for(const k in e){const v=e[k];if(typeof v==='number')t[k]=(t[k]||0)+v;else if(Array.isArray(v))t[k]=[...(t[k]||[]),...v];else if(v&&typeof v==='object')t[k]=Object.assign({},t[k]||{},v);else t[k]=v;}return t;}
 function itemEffects(it){
-  const t={};if(isGim(it)||isFormItem(it)||isEnh(it)||isGear(it))return t;
+  const t={};if(isGim(it)||isFormItem(it)||isEnh(it)||isGear(it)||isPlate(it))return t;
   if(isComp(it))addE(t,COMP[it.k].e);
   if(isCraft(it)){addE(t,COMP[it.k[0]].e);addE(t,COMP[it.k[1]].e);addE(t,CRAFT[it.k].e);}
   for(const m of it.mut||[])addE(t,MUTS[m].e);
@@ -295,7 +295,7 @@ const growthOf=u=>{const L=MODE.lines[u.root];if(!L)return null;return GROWTH.fi
 /* ---------- sets ---------- */
 function setsOf(dex,root){const K=kitOf(dex),out=[...D[dex].t,K.cls,...K.styles];if(!MODE.gen&&MODE.lines[root])out.push(REGIONS[MODE.lines[root].region]);return out;}
 function lineSets(root){MODE.lsCache=MODE.lsCache||{};if(!MODE.lsCache[root]){const s=new Set();for(const d of MODE.lines[root].mem)for(const k of setsOf(d,root))s.add(k);MODE.lsCache[root]=[...s];}return MODE.lsCache[root];}
-function unitSets(u){const s=setsOf(shownDex(u),u.root);if(u.shard&&!s.includes(u.shard))s.push(u.shard);return s;}
+function unitSets(u){const s=setsOf(shownDex(u),u.root);for(const it of u.items||[])if(isPlate(it)&&!s.includes(plateType(it)))s.push(plateType(it));if(u.shard&&!s.includes(u.shard))s.push(u.shard);return s;}
 function countTraits(list){const seen=new Set(),ct={};
   for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of unitSets(u))ct[k]=(ct[k]||0)+1;
     if(run&&run.gimmick==='tera'&&u.shard&&u.uid===run.gimTarget)ct[u.shard]=(ct[u.shard]||0)+1;}
@@ -307,6 +307,8 @@ function setDescHtml(k,n){const S=SETS[k],ti=tierOf(k,n);
     return p.map((x,i)=>`<span class="${i===ti-1?'tv-on':'tv-off'}">${x}</span>`).join('<span class="tv-off"> / </span>');});
   t=t.split(/(?<=\.)\s+/).map(sn=>{const m=sn.replace(/<[^>]+>/g,'').match(/^At (\d+)/);return m&&n<+m[1]?`<span class="tv-lock">${sn}</span>`:sn;}).join(' ');
   return{t,bps:S.bp.map((b,i)=>`<span class="${i<ti?'bp-on':'bp-off'}">${b}</span>`).join('<span class="bp-off"> › </span>')};}
+// TFT-style medal for an active tier: bronze → silver → gold → prismatic (the top of a 4-tier set)
+const medalOf=(k,ti)=>{const n=SETS[k].bp.length;return(n>=4?['bronze','silver','gold','prism']:n===3?['bronze','silver','gold']:['bronze','gold'])[ti-1]||'gold';};
 const tierOf=(k,n)=>SETS[k]?SETS[k].bp.filter(b=>n>=b).length:0;
 function setColor(k){const S=SETS[k];if(!S)return'#55606a';if(S.cat==='type')return TYPES[k];if(S.cat==='class')return CLASSCOL[k];if(S.cat==='region')return REGCOL[REGIONS.indexOf(k)];return STYLECOL;}
 
@@ -394,13 +396,17 @@ function equipRaw(it,u){
   if(isComp(it)){const j=u.items.findIndex(isComp);if(j>=0){u.items[j]=combineItems(u.items[j],it);return{crafted:u.items[j]};}}
   if(u.items.length>=3)return false;u.items.push(it);return'equipped';
 }
-function canEquip(it,u){if(isGear(it))return canWearGear(it,u);if(isEnh(it))return u.items.some(canEnhance);if(isGim(it))return true;if(isFormItem(it))return u.items.length<3;if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
+function canEquip(it,u){if(isPlate(it))return canHoldPlate(it,u);if(isGear(it))return canWearGear(it,u);if(isEnh(it))return u.items.some(canEnhance);if(isGim(it))return true;if(isFormItem(it))return u.items.length<3;if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
 function useItem(bi,u){
   const it=run.bag[bi];if(!it)return false;
+  if(isPlate(it)){if(!u)return false;if(!canHoldPlate(it,u)){toast(u.items.length>=3?`${nameOf(u)} can't hold more than 3 items.`:`${nameOf(u)} is already ${plateType(it)} type.`);return false;}}
   if(isGear(it)){if(!u)return false;if(!canWearGear(it,u)){toast(`Only ${GEAR[gearKey(it)].set} Pokémon can wear the ${GEAR[gearKey(it)].n} (one set gear each).`);return false;}}
   if(isEnh(it)){if(!u)return false;return enhOnUnit(bi,u);}
   if(isGim(it)){if(!u)return false;return equipGim(bi,u);}
   if(isUse(it)){
+    if(it.k==='eject-pack'){if(!u)return false;if(!u.items.length){toast(`${nameOf(u)} isn't holding anything.`);return false;}
+      if(run.bag.length-1+u.items.length>BAGMAX){toast('Not enough room in your bag.');return false;}
+      run.bag.splice(bi,1);const n=u.items.length;for(const x of u.items.splice(0))run.bag.push(x);if(!SIM.on)toast(`${nameOf(u)} dropped ${n} item${n>1?'s':''} into your bag.`);renderUI();return true;}
     if(USE[it.k].target){if(!u)return false;if(!addCopy(u.root)){toast('Your bench is full.');return false;}}
     else if(it.k==='potion')run.hp=Math.min(run.maxHp,run.hp+12);
     else if(it.k==='nugget')run.gold+=6;
@@ -500,7 +506,7 @@ function startOfBattle(trs){
     for(const u of units){if(w.k==='snow'&&u.team===w.side&&D[u.dex].t.includes('Ice')){u.def+=20*w.pow;u.res+=20*w.pow;}
       if(w.k==='snow'&&u.team!==w.side)u.as*=1-.1*w.pow;}}
   for(const side of[0,1]){const x=tx[side],foes=units.filter(o=>o.team!==side),mine=units.filter(o=>o.team===side);
-    if(x.rocks)battle.rocks[1-side]=x.rocks;if(side===0)battle.treasure=!!x.treasure;
+    if(x.rocks)battle.rocks[1-side]=x.rocks;battle.burnPerm=battle.burnPerm||[0,0];battle.burnPerm[side]=x.burnPerm?1:0;if(side===0)battle.treasure=!!x.treasure;
     if(x.timeStop){for(const o of foes)o.as*=1-x.timeStop;schedule(4,()=>{for(const o of foes)o.as/=1-x.timeStop;});if(!SIM.on)texts.push({x:320,y:120,txt:'Time stops!',col:'#9fd4ff',life:1.4,label:1});}
     if(x.totem){const t=mine.filter(o=>unitSets(o.u).includes('Alola')).sort((a,b)=>b.maxHp-a.maxHp)[0];if(t){t.maxHp*=1.4;t.hp*=1.4;t.scaleMul=(t.scaleMul||1)*1.15;for(const a of mine)if(a!==t&&hdist(a,t)<=1)a.as*=1.15;if(!SIM.on)texts.push({x:t.x,y:t.y-36,txt:'Totem!',col:'#ffd34d',life:1.3,label:1});}}
     if(x.powerSpot){const g=mine.filter(o=>unitSets(o.u).includes('Galar')).sort((a,b)=>b.maxHp-a.maxHp)[0];if(g){g.maxHp*=1.5;g.hp*=1.5;g.dmg+=.2;g.scaleMul=(g.scaleMul||1)*1.35;schedule(8,()=>{if(g.dead)return;g.maxHp/=1.5;g.hp=Math.min(g.hp,g.maxHp);g.dmg-=.2;g.scaleMul/=1.35;});if(!SIM.on)texts.push({x:g.x,y:g.y-40,txt:'Power Spot!',col:'#ff6b8a',life:1.3,label:1});}}if(x.plague)battle.plague[side]=1;
@@ -552,7 +558,7 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
     if(hasRelic('soothe-bell'))addE(E,{regen:.015});if(hasRelic('rainbow-wing'))addE(E,{hpP:.12,dmg:.12});if(hasRelic('silver-wing'))addE(E,{shieldP:.15});
   }
   for(const it of u.items)if(isGear(it))addE(E,gearEffects(it,u,tr));
-  if(E.kanto&&team===0)E.dmg=(E.dmg||0)+Math.min(8,run.badges||0)*.025;
+  if(E.kanto&&team===0)E.dmg=(E.dmg||0)+Math.min(8,run.badges||0)*.025*E.kanto;
   if(E.johto){const v=E.johto;if(!run||run.floor%2===1)E.as=(E.as||0)+v;else{E.crit=(E.crit||0)+v;E.dmg=(E.dmg||0)+v*.66;}}
   if(E.adapt){const nt=Object.keys(tr).filter(k=>SETS[k]&&SETS[k].cat==='type').length;addE(E,{hpP:E.adapt*nt,dmg:E.adapt*nt});}
   if(E.hoard&&team===0)E.dmg=(E.dmg||0)+Math.min(.4,(run.hoard||0)*.01);
@@ -692,7 +698,7 @@ function checkHp(tg,src){
   for(const o of units)if(!o.dead&&o.team!==tg.team&&o.fx.momentum)o.momN++;
   if(tg.fx.aftermath&&src&&!src.dead&&!src.fx.mGuard)hurt(src,src.maxHp*tg.fx.aftermath,null);
   if(src&&!src.dead&&src.team!==tg.team){src.kills++;
-    if(src.fx.killPP)gainMana(src,src.fx.killPP);
+    if(src.fx.killPP)gainMana(src,src.fx.killPP);if(src.fx.killHeal&&!src.dead)heal(src,src.maxHp*src.fx.killHeal);
     if(src.boneIt){if(src.team===0)src.boneIt.st=(src.boneIt.st||0)+1;src.atk+=2;src.spa+=2;heal(src,src.maxHp*.1);}
     if(src.kit.sig&&src.kit.sig.kill)src.kit.sig.kill(src,tg,src.kit.si);
     if(src.fx.moxie){src.atk*=1+src.fx.moxie;src.spa*=1+src.fx.moxie;}
@@ -873,9 +879,13 @@ function rollLoot(lost){
   const pCraft=elite?1:q===1?.6:clamp(.08+f*.025,0,.45)*(lost?.5:1),pUse=.15;
   for(let i=0;i<n;i++){const x=Math.random();
     if(x<pCraft)out.push({k:randCraft(),mut:rollMut(.3+f*.015+q*.1)});
-    else if(x<pCraft+pUse&&!elite)out.push({k:pick(Object.keys(USE)),mut:[]});
+    else if(x<pCraft+pUse&&!elite)out.push({k:pick(USE_COMMON),mut:[]});
     else out.push(mkComp(randComp(),rollMut(.12+f*.01)));}
   if(hasRelic('super-rod')&&!out.some(isCraft))out[0]={k:randCraft(),mut:rollMut(.3)};
+  // better chests (rival, alpha, challenge) can hold an Eject Pack
+  if(!lost&&(elite||q>=1)&&Math.random()<.45)out[out.length-1]={k:'eject-pack',mut:[]};
+  // rival chests often hold a type Plate (an emblem)
+  if(!lost&&elite&&Math.random()<.5)out[0]=rollPlate();
   if(run.gimmick&&Math.random()<({dmax:.4,mega:.5,zmove:.35,tera:.35}[run.gimmick])*(lost?.6:1)){const g=gimLootItem();if(g)out[out.length-1]=g;}
   if(run.megaPity&&run.gimmick==='mega'){const g=gimLootItem();if(g){out[0]=g;run.megaPity=0;}}
   {const fi=ownedFormItems().filter(x=>!run.bag.some(b=>b.k==='form:'+x)&&!allOwned().some(u=>u.items.some(i=>i.k==='form:'+x)));if(fi.length&&Math.random()<.15)out[1]={k:'form:'+pick(fi),mut:[]};}
@@ -932,7 +942,7 @@ function camZoom(f,sx,sy){if(!camOn())return;const before=s2w(sx??W/2,sy??CAM.ay
   if(sx!=null){CAM.px=before.x-(sx-CAM.ax)/z-(C.x0+C.x1)/2;CAM.py=before.y-(sy-CAM.ay)/z-(C.y0+C.y1)/2;}
   camClampPan();}
 function camPan(dx,dy){CAM.px+=dx/CAM.z;CAM.py+=dy/CAM.z;camClampPan();}
-function camClampPan(){const C=camContent();CAM.px=clamp(CAM.px,-(C.x1-C.x0)/2,(C.x1-C.x0)/2);CAM.py=clamp(CAM.py,-(C.y1-C.y0)/2,(C.y1-C.y0)/2);if(CAM.uz<=1.001){CAM.px*=.5;CAM.py*=.5;}}
+function camClampPan(){const C=camContent();CAM.px=clamp(CAM.px,-(C.x1-C.x0)/2,(C.x1-C.x0)/2);CAM.py=clamp(CAM.py,-(C.y1-C.y0)/2,(C.y1-C.y0)/2);}
 function camReset(){CAM.uz=1;CAM.px=CAM.py=0;}
 
 /* ================= Loop ================= */
@@ -1084,7 +1094,9 @@ cv.addEventListener('pointerdown',e=>{const p=toInternal(e);
   if(mode==='loot'&&chest&&!chest.open&&Math.abs(p.x-chest.x)<22&&Math.abs(p.y-chest.y)<20){openChest();return;}
   {const rc=!drag&&rotomChipAt(p.x,p.y);if(rc){showRotomCatalog(rc.u);return;}}
   if(drag&&drag.sticky){drag.x=p.x;drag.y=p.y;drag.over=dropTarget(p.x,p.y);finishDrag();swallowClick();return;}
-  if((mode!=='plan'&&mode!=='loot')||evoOpen)return;const hit=ownedAt(p.x,p.y);if(!hit)return;
+  const hit=(mode==='plan'||mode==='loot')&&!evoOpen?ownedAt(p.x,p.y):null;
+  // holding left click on empty ground drags the camera around
+  if(!hit){if(camOn()&&!evoOpen){camDrag={x:e.clientX,y:e.clientY};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(_){}}return;}
   drag={u:hit.u,from:hit.from,x:p.x,y:p.y,sx:p.x,sy:p.y,moved:false,over:dropTarget(p.x,p.y)};hideTip();try{cv.setPointerCapture(e.pointerId);}catch(_){} });
 cv.addEventListener('pointermove',e=>{const p=toInternal(e);
   if(camDrag){camPan(-(e.clientX-camDrag.x)/cv.getBoundingClientRect().width*W,-(e.clientY-camDrag.y)/cv.getBoundingClientRect().height*H);camDrag.x=e.clientX;camDrag.y=e.clientY;return;}
@@ -1094,7 +1106,7 @@ cv.addEventListener('pointermove',e=>{const p=toInternal(e);
   if(mode==='loot'&&chest&&!chest.open&&Math.abs(p.x-chest.x)<22&&Math.abs(p.y-chest.y)<20){cv.style.cursor='pointer';hideTip();return;}
   const hit=unitAt(p.x,p.y);hoverRange=hit&&hit.from&&hit.from.kind==='board'?{u:hit.u,c:hit.from.c,r:hit.from.r}:null;if(hit){showTip(hit.u,e,hit);cv.style.cursor=hit.enemy||hit.cu?'help':'grab';}else{hideTip();cv.style.cursor='default';}});
 cv.addEventListener('pointerleave',()=>{hoverRange=null;if(!drag)hideTip();});
-cv.addEventListener('pointerup',()=>{camDrag=null;
+cv.addEventListener('pointerup',()=>{if(camDrag)cv.style.cursor='default';camDrag=null;
   if(!drag)return;
   // a tap (no movement) picks the Pokémon up; the next tap or A press places it
   if(!drag.moved&&!drag.sticky){drag.sticky=true;hintOnce('tapPlace',`Placing ${nameOf(drag.u)}: tap a hex or bench slot, or the shop to release. B or Esc cancels.`);return;}
@@ -1128,7 +1140,13 @@ addEventListener('pointermove',e=>{
   if(!itemDrag){const s=e.target.closest&&e.target.closest('.slot');if(s&&s.dataset.i!=null&&run&&run.bag[+s.dataset.i])showItemTip(run.bag[+s.dataset.i],e);else if(e.target.closest&&e.target.closest('#bag'))hideTip();return;}
   if(!itemDrag.moved&&Math.hypot(e.clientX-itemDrag.sx,e.clientY-itemDrag.sy)>5){itemDrag.moved=true;const g=$('ghost');g.src=iconOf(itemDef(run.bag[itemDrag.i]).id);g.hidden=false;}
   if(itemDrag.moved){const p=stagePt(e),g=$('ghost');g.style.left=p.x+'px';g.style.top=p.y+'px';
-    const el=document.elementFromPoint(e.clientX,e.clientY);if(el===cv){const q=toInternal(e);const o=ownedAt(q.x,q.y);if(o)showTip(o.u,e,{});else hideTip();}}
+    const el=document.elementFromPoint(e.clientX,e.clientY);const dragged=run.bag[itemDrag.i];
+    // dragging a component over another component (in the bag or held alone by a Pokémon) previews what they'd make
+    const sl=el&&el.closest&&el.closest('.slot');const other=sl&&sl.dataset.i!=null&&+sl.dataset.i!==itemDrag.i?run.bag[+sl.dataset.i]:null;
+    if(other&&dragged&&isComp(dragged)&&isComp(other)){showItemTip({k:recipeKey(dragged.k,other.k),mut:[]},e,'Combines into');return;}
+    if(el===cv){const q=toInternal(e);const o=ownedAt(q.x,q.y);const lone=o&&dragged&&isComp(dragged)?o.u.items.find(isComp):null;
+      if(lone){showItemTip({k:recipeKey(dragged.k,lone.k),mut:[]},e,`On ${nameOf(o.u)}, combines into`);return;}
+      if(o)showTip(o.u,e,{});else hideTip();}else if(!sl)hideTip();}
 });
 addEventListener('pointerup',e=>{
   if(!itemDrag||itemDrag.sticky)return;
@@ -1178,7 +1196,7 @@ function showTip(u,e,hit={}){
   const c=hit.cu||makeCombatant(u,enemy?1:0,0,0,{},hit.mult||1,hit.boss||(hit.cu&&hit.cu.boss));
   const K=c.kit,G=growthOf(u),evo=MODE.kids(u.dex).map(k=>D[k].n);
   const hp=hit.cu?`${Math.round(c.hp)}/${Math.round(c.maxHp)}`:Math.round(c.maxHp);
-  const sets=setsOf(u.dex,u.root);
+  const sets=unitSets(u);
   tip.innerHTML=`<div class="top"><img src="${por(u.dex)}" alt=""><div><div class="lbl">${u.alpha?'Alpha Pokémon':u.tgt?'Time Attack target':enemy?'Opponent':`Cost ₽${L.cost}`} · ${K.role?`<span class="sigrole">${K.role}</span> · `:''}${K.cls}</div><h3>${u.mut?`<span style="color:${MUTCOL[u.mut]==='#fff6d0'?'#b59a3a':MUTCOL[u.mut]}">${unitMutName(u)}</span> `:''}${esc(D[u.dex].n)}</h3>
     <div class="stars">${'★'.repeat(u.star)}</div><div class="chips">${sets.map(k=>SETS[k]&&SETS[k].cat==='type'?chip(k,TYPES[k]):setChip(k)).join('')}</div></div></div>
     <div class="stats"><div><span class="lbl">HP</span><b>${hp}</b></div><div><span class="lbl">Atk</span><b>${Math.round(c.atk)}</b></div><div><span class="lbl">Sp.Atk</span><b>${Math.round(c.spa)}</b></div><div><span class="lbl">Speed</span><b>${c.as.toFixed(2)}</b></div>
@@ -1206,7 +1224,7 @@ function gimLines(u,enemy){
 function itemBody(it,compact){
   const lines=[];
   if(isComp(it)){lines.push(`<p>${COMP[it.k].d}.</p>`);
-    lines.push(`<div class="lbl" style="margin:8px 0 4px">Combines into</div><div class="recipes${compact?' compact':''}">${CORDER.split('').map(o=>{const c=CRAFT[recipeKey(it.k,o)];return compact?`<div title="+ ${COMP[o].n} → ${c.n}"><img src="${iconOf(COMP[o].id)}" alt=""><img src="${iconOf(c.id)}" alt="${c.n}"></div>`:`<div><img src="${iconOf(COMP[o].id)}" alt=""><span>→</span><img src="${iconOf(c.id)}" alt=""><span>${c.n}</span></div>`;}).join('')}</div>`);}
+    lines.push(`<div class="lbl" style="margin:8px 0 4px">Combines into</div><div class="recipes${compact?' compact':''}">${CORDER.split('').map(o=>{const c=CRAFT[recipeKey(it.k,o)];return compact?`<div data-craft="${recipeKey(it.k,o)}"><img src="${iconOf(COMP[o].id)}" alt=""><img src="${iconOf(c.id)}" alt="${c.n}"></div>`:`<div data-craft="${recipeKey(it.k,o)}"><img src="${iconOf(COMP[o].id)}" alt=""><span>→</span><img src="${iconOf(c.id)}" alt=""><span>${c.n}</span></div>`;}).join('')}</div>`);}
   else if(isCraft(it)){lines.push(`<p>${CRAFT[it.k].d}</p><p class="sc">Also: ${COMP[it.k[0]].d}, ${COMP[it.k[1]].d}.</p>`);}
   else if(isEnh(it))lines.push(`<p>${itemDef(it).d}</p><p class="sc">Enhancer: drop it on a completed item in your bag or on a Pokémon. One per item.</p>`);
   else lines.push(`<p>${itemDef(it).d}</p>`);
@@ -1214,8 +1232,10 @@ function itemBody(it,compact){
   for(const m of it.mut||[])lines.push(`<p class="mut"><b>${MUTS[m].n}:</b> ${MUTS[m].d}${m==='growing'&&it.gs?` (now +${pct(it.gs)})`:''}.</p>`);
   return lines.join('');
 }
-function showItemTip(it,e){const tip=$('tip');const t=itemTier(it);
-  tip.innerHTML=`<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?(it.enh?'Enhanced item':'Completed item'):t==='gim'?(run&&run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick item'):t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
+// hovering a recipe in any item card shows the completed item
+addEventListener('pointermove',e=>{const r=e.target.closest&&e.target.closest('#overlay [data-craft]');if(r){showItemTip({k:r.dataset.craft,mut:[]},e);r.dataset.tipOn=1;}else if(e.target.closest&&e.target.closest('#overlay')&&document.querySelector('#overlay [data-tip-on]')){document.querySelectorAll('#overlay [data-tip-on]').forEach(x=>delete x.dataset.tipOn);hideTip();}});
+function showItemTip(it,e,head){const tip=$('tip');const t=itemTier(it);
+  tip.innerHTML=`${head?`<div class="lbl" style="color:#2f8f3a;margin-bottom:6px">${head}</div>`:''}<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?(it.enh?'Enhanced item':'Completed item'):t==='gim'?(run&&run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick item'):t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
   <div class="lbl" style="margin-top:8px">${isEnh(it)?'Drag onto a completed item or a Pokémon holding one':isUse(it)?(USE[it.k].target?'Drag onto a Pokémon':'Click to use'):isComp(it)?'Drag onto a Pokémon or another component':isGim(it)?'Drag onto a Pokémon (own slot)':'Drag onto a Pokémon'}</div>`;placeTip(e);}
 function showInfoTip(html,e){$('tip').innerHTML=html;placeTip(e);}
 function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.width/1280;let x=(e.clientX-sr.left)/sc+18,y=(e.clientY-sr.top)/sc-40;
@@ -1244,7 +1264,7 @@ function renderUI(){
   const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||(ct[b]/SETS[b].bp[0])-(ct[a]/SETS[a].bp[0])||a.localeCompare(b));
   const MAXT=5,shown=keys.slice(0,MAXT);
   const tr1=k=>{const n=ct[k],ti=tierOf(k,n),S=SETS[k];
-    return`<div class="trait ${ti?'t'+ti:'off'}" data-trait="${k}"><div class="hex"><span class="in" style="background:${setColor(k)}">${k.replace(/ /g,'').slice(0,3).toUpperCase()}</span></div><div><div class="nm">${k}</div><div class="bp">${S.bp.map(b=>n>=b?`<b>${b}</b>`:b).join(' › ')}</div></div><div class="ct">${n}</div></div>`;};
+    return`<div class="trait ${ti?'t'+ti+' m-'+medalOf(k,ti):'off'}" data-trait="${k}"><div class="hex"><span class="in" style="background:${setColor(k)}">${k.replace(/ /g,'').slice(0,3).toUpperCase()}</span></div><div><div class="nm">${k}</div><div class="bp">${S.bp.map(b=>n>=b?`<b>${b}</b>`:b).join(' › ')}</div></div><div class="ct">${n}</div></div>`;};
   $('traits').innerHTML=keys.length?shown.map(tr1).join('')+(keys.length>MAXT?`<div class="more" data-more="1">+${keys.length-MAXT} more sets</div>`:'')
     :`<div class="hint">Place Pokémon on the field to activate sets: types, classes, styles${MODE.gen?'':' and regions'}.</div>`;
   const s=run.strat,inc=incomePreview();

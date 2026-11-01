@@ -25,7 +25,7 @@ function padShow(on){
 }
 // the element under the controller cursor gets the same highlight as a mouse hover / keyboard focus
 let padHoverEl=null;
-function padHover(){const p=padClient();const el=document.elementFromPoint(p.x,p.y);const t=el&&el.closest?el.closest('button,.pick,.mode,.card,.srow,.slot:not(.empty),.trait,.mcard'):null;
+function padHover(){const p=padClient();const el=document.elementFromPoint(p.x,p.y);const t=el&&el.closest?el.closest('[data-craft],button,.pick,.mode,.card,.srow,.slot:not(.empty),.trait,.mcard'):null;
   if(t===padHoverEl)return;if(padHoverEl)padHoverEl.classList.remove('padhover');padHoverEl=t;if(t)t.classList.add('padhover');}
 function padDraw(){PAD.el.style.left=PAD.x+'px';PAD.el.style.top=PAD.y+'px';PAD.el.classList.toggle('grab',PAD.aDown);}
 

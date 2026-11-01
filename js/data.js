@@ -101,7 +101,10 @@ const USE={
   potion:{id:'potion',n:'Potion',d:'Click to restore 12 Trainer HP.'},
   nugget:{id:'nugget',n:'Nugget',d:'Click to gain ₽6.'},
   honey:{id:'honey',n:'Honey',d:'Click to make your next 4 rerolls free.'},
+  'eject-pack':{id:'eject-pack',n:'Eject Pack',d:'Drag onto a Pokémon to take off all of its items and put them back in your bag. Found in rival, alpha and challenge chests.',target:1,rare:1},
 };
+// consumables that turn up anywhere (the Eject Pack only comes from better chests)
+const USE_COMMON=Object.keys(USE).filter(k=>!USE[k].rare);
 
 /* Relics (after defeating a rival) */
 const RELICS={

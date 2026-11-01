@@ -284,7 +284,8 @@ function genKShop(){
   {const it={k:randCraft(),mut:rm(.3)};stock.push({t:'item',it,price:KPRICE.craft+(it.mut.length?KPRICE.mut:0)});}
   for(const k of [rollEnh(),rollEnh()])stock.push({t:'item',it:{k:'enh:'+k,mut:[]},price:KPRICE.enh});
   {const r=shuffle(Object.keys(RELICS).filter(x=>!run.relics.includes(x)))[0];if(r)stock.push({t:'relic',id:r,price:KPRICE.relic});}
-  stock.push({t:'item',it:{k:pick(Object.keys(USE)),mut:[]},price:KPRICE.use});
+  stock.push({t:'item',it:{k:pick(Math.random()<.3?['eject-pack']:USE_COMMON),mut:[]},price:KPRICE.use});
+  if(Math.random()<.5)stock.push({t:'item',it:rollPlate(),price:10});
   return{mut,stock};
 }
 function kBuy(i){
@@ -375,7 +376,7 @@ const EVENTS={
   grotto:{n:'A hidden grotto',img:()=>iconOf('poke-ball'),txt:'Three Poké Balls lie in a quiet grotto behind the trees. You only have room for one.',
     opts:['Left','Middle','Right'].map(s=>({t:`Take the ${s.toLowerCase()} one`,d:'Could be anything.',fn:()=>{const x=Math.random();
       if(x<.25)return'It\'s a completed item! '+gainBag({k:randCraft(),mut:rollMut(.3)});if(x<.45)return'It\'s an enhancer! '+gainBag({k:'enh:'+rollEnh(),mut:[]});
-      if(x<.7)return'It\'s a component. '+gainBag(mkComp(randComp(),rollMut(.3)));if(x<.85)return'It\'s a consumable. '+gainBag({k:pick(Object.keys(USE)),mut:[]});run.gold+=8;return'It\'s full of coins: ₽8!';}})).concat([{t:'Leave them',d:'Someone may be coming back for these.',fn:()=>'You leave the grotto as you found it.'}])},
+      if(x<.7)return'It\'s a component. '+gainBag(mkComp(randComp(),rollMut(.3)));if(x<.85)return'It\'s a consumable. '+gainBag({k:pick(USE_COMMON),mut:[]});run.gold+=8;return'It\'s full of coins: ₽8!';}})).concat([{t:'Leave them',d:'Someone may be coming back for these.',fn:()=>'You leave the grotto as you found it.'}])},
   cipher:{n:'A shadowy lab',img:()=>iconOf('dusk-ball'),txt:'A Cipher admin steps out of a dark tent. "I can unlock the hidden power in your Pokémon. There is a small... cost."',
     opts:[{t:'Accept',d:'A random Pokémon on the field becomes Shadow: +15% damage, takes 5% more damage.',ok:()=>Object.values(run.board).some(u=>!u.mut),fn:()=>{const u=pick(Object.values(run.board).filter(x=>!x.mut));u.mut='shadow';return`${nameOf(u)} is wreathed in dark energy. It's now Shadow ${nameOf(u)}.`;}},
       {t:'Take a sample instead',d:'Gain a Shadow component.',fn:()=>gainBag(mkComp(randComp(),['shadow']))},
@@ -386,7 +387,7 @@ const EVENTS={
   center:{n:'Pokémon Center',img:()=>iconOf('max-potion'),txt:'"Welcome to the Pokémon Center! We restore your tired Pokémon to full health." Choose one service.',
     opts:[{t:'Rest',d:'Restore 25% of your Trainer HP.',fn:()=>'Nurse Joy patches up your team. '+healHp(Math.round(run.maxHp*.25))},
       {t:'Train',d:'+6 XP.',ok:()=>run.level<MAXLV,fn:()=>{gainXP(6);return`You trained hard. You're now trainer level ${run.level}.`;}},
-      {t:'Pick up supplies',d:'Gain two random consumables.',fn:()=>'The Poké Mart counter has a few spare things. '+gainBag({k:pick(Object.keys(USE)),mut:[]})+' '+gainBag({k:pick(Object.keys(USE)),mut:[]})},
+      {t:'Pick up supplies',d:'Gain two random consumables.',fn:()=>'The Poké Mart counter has a few spare things. '+gainBag({k:pick(USE_COMMON),mut:[]})+' '+gainBag({k:pick(USE_COMMON),mut:[]})},
       {t:'Just pass through',d:'Nothing happens.',fn:()=>'You wave to Nurse Joy and head back out.'}]},
 };
 function pickEvent(){const ids=Object.keys(EVENTS).filter(k=>k!=='center'&&!run.seenEv.includes(k)&&(!EVENTS[k].need||EVENTS[k].need()));const id=ids.length?pick(ids):'grotto';run.seenEv.push(id);return id;}

@@ -125,7 +125,7 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
 #shop.sell .sellzone{display:grid;}
 
 /* Tooltip */
-#tip{position:absolute;width:290px;padding:12px 14px;pointer-events:none;z-index:20;display:none;font-size:16px;}
+#tip{position:absolute;width:290px;padding:12px 14px;pointer-events:none;z-index:50;display:none;font-size:16px;}
 #tip .top{display:flex;gap:10px;align-items:center;}
 #tip img{width:80px;height:80px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#e8efe2;}
 #tip h3{margin:0;font-size:24px;line-height:1;}
@@ -517,6 +517,15 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .srow.padhover,.stab.padhover:not([aria-selected="true"]){background:#e9eef7;}
 .slot.padhover,.sarr.padhover,.mcard.padhover,.btn-speed.padhover,.shoptog.padhover,.baghead.padhover,.trait.padhover,.cap.padhover{outline:3px solid var(--gold);outline-offset:1px;}
 .btn:hover:not(:disabled),.btn.padhover:not(:disabled),.btn:focus-visible{box-shadow:0 3px 0 var(--ink),0 0 0 3px var(--gold);}
+#overlay [data-craft]{cursor:help;border-radius:4px;}
+#overlay [data-craft]:hover,#overlay [data-craft].padhover{background:#e9eef7;outline:2px solid var(--gold);}
+/* set medals */
+.trait.m-bronze .hex{background:linear-gradient(#e3a06a,#9a5a2c);}
+.trait.m-silver .hex{background:linear-gradient(#f2f6fa,#9aa7b4);}
+.trait.m-gold .hex{background:linear-gradient(#fff0a8,#d9a521);}
+.trait.m-prism .hex{background:linear-gradient(135deg,#ff8de1,#8ad8ff 35%,#ffe27a 65%,#9dff9a);animation:prism 3s linear infinite;background-size:200% 200%;}
+.trait.m-prism{border-color:#ffd0f4;box-shadow:0 0 10px #ff8de188;}
+@keyframes prism{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 </style>
 
 </head>
@@ -562,25 +571,25 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
   <div id="overlay"><div class="screen"><div class="loading" id="loadmsg">Loading Pokédex…</div></div></div>
 </div></div>
 
-<script src="js/data.js?v=15"></script>
-<script src="js/sets.js?v=17"></script>
-<script src="js/game.js?v=28"></script>
-<script src="js/fx_manifest.js?v=2"></script>
-<script src="js/fx.js?v=5"></script>
-<script src="js/status.js?v=5"></script>
-<script src="js/cine.js?v=5"></script>
-<script src="js/forms.js?v=13"></script>
-<script src="js/route.js?v=19"></script>
-<script src="js/carousel.js?v=2"></script>
-<script src="js/kits.js?v=21"></script>
-<script src="js/kits_gen1.js?v=4"></script>
-<script src="js/kits_gen2.js?v=3"></script>
-<script src="js/kits_gen3.js?v=3"></script>
-<script src="js/kits_gen4.js?v=7"></script>
-<script src="js/kits_gen5.js?v=4"></script>
-<script src="js/kits_gen6.js?v=3"></script>
-<script src="js/kitdex.js?v=3"></script>
-<script src="js/ui.js?v=7"></script>
-<script src="js/gamepad.js?v=15"></script>
+<script src="js/data.js?v=16"></script>
+<script src="js/sets.js?v=18"></script>
+<script src="js/game.js?v=29"></script>
+<script src="js/fx_manifest.js?v=3"></script>
+<script src="js/fx.js?v=6"></script>
+<script src="js/status.js?v=6"></script>
+<script src="js/cine.js?v=6"></script>
+<script src="js/forms.js?v=14"></script>
+<script src="js/route.js?v=20"></script>
+<script src="js/carousel.js?v=3"></script>
+<script src="js/kits.js?v=22"></script>
+<script src="js/kits_gen1.js?v=5"></script>
+<script src="js/kits_gen2.js?v=4"></script>
+<script src="js/kits_gen3.js?v=4"></script>
+<script src="js/kits_gen4.js?v=8"></script>
+<script src="js/kits_gen5.js?v=5"></script>
+<script src="js/kits_gen6.js?v=4"></script>
+<script src="js/kitdex.js?v=4"></script>
+<script src="js/ui.js?v=8"></script>
+<script src="js/gamepad.js?v=16"></script>
 </body>
 </html>
