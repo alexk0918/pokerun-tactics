@@ -349,6 +349,11 @@ const growthOf=u=>{const L=MODE.lines[u.root];if(!L)return null;return GROWTH.fi
 function setsOf(dex,root){const K=kitOf(dex),out=[...D[dex].t,K.cls,...K.styles];if(!MODE.gen&&MODE.lines[root])out.push(REGIONS[MODE.lines[root].region]);return out;}
 function lineSets(root){MODE.lsCache=MODE.lsCache||{};if(!MODE.lsCache[root]){const s=new Set();for(const d of MODE.lines[root].mem)for(const k of setsOf(d,root))s.add(k);MODE.lsCache[root]=[...s];}return MODE.lsCache[root];}
 function unitSets(u){const s=setsOf(shownDex(u),u.root);for(const it of u.items||[])if(isPlate(it)&&!s.includes(plateType(it)))s.push(plateType(it));if(u.shard&&!s.includes(u.shard))s.push(u.shard);return s;}
+// enemies keep their types, classes, styles and regions, but not the Pokédex trait sets (Titans, Fox Spirits…)
+function enemyTraits(list){const ct=countTraits(list);for(const k in ct)if(SETS[k]&&SETS[k].trait)delete ct[k];return ct;}
+// instead their HP climbs a little over the run: +0.4% per floor (about +6% by the end of Act I, +18% by the end of Act III)
+const ENEMY_HP={base:0,per:.004};
+const enemyHpMul=()=>run?1+ENEMY_HP.base+ENEMY_HP.per*Math.max(0,effFloor(run.floor)-1):1;
 function countTraits(list){const seen=new Set(),ct={};
   for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of unitSets(u))ct[k]=(ct[k]||0)+1;
     if(run&&run.gimmick==='tera'&&u.shard&&u.uid===run.gimTarget)ct[u.shard]=(ct[u.shard]||0)+1;}
@@ -548,7 +553,7 @@ function startCombat(){
   if(n>cap){toast(`Too many Pokémon on the field (${n}/${cap}). Move some to the bench.`);return false;}
   hideTip();mode='combat';units=[];events=[];combatT=0;proj=[];texts=[];
   battle={coin:0,flute:hasRelic('poke-flute'),weather:null,wPow:1,wSide:-1,kills:[0,0],rocks:[0,0],plague:[0,0],swarm:[0,0]};
-  const mine=boardUnits(),ptr=countTraits(mine.map(x=>x.u)),etr=countTraits(enemyPreview.map(e=>e.u));battle.trs=[ptr,etr];
+  const mine=boardUnits(),ptr=countTraits(mine.map(x=>x.u)),etr=enemyTraits(enemyPreview.map(e=>e.u));battle.trs=[ptr,etr];
   for(const b of mine)units.push(makeCombatant(b.u,0,b.c,b.r,ptr,1));
   for(const e of enemyPreview)units.push(makeCombatant(e.u,1,e.c,e.r,etr,e.mult,e.boss));
   for(const c of units)formsOnStart(c);
@@ -633,7 +638,7 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
   if(E.friend&&team===0&&u.fr){const f=Math.min(20,u.fr);addE(E,{hpP:f*.015,dmg:f*.015});if(f>=10)E.focus=(E.focus||0)+1;}
   {const BD=bondOf(u);if(BD&&team===0&&u.fr){const f=Math.min(20,u.fr);addE(E,BD.e(f));if(f>=20)addE(E,BD.full);}}
   if(E.dr)taken*=1-Math.min(.6,E.dr);
-  const bm=boss?{hp:5.5,atk:1.55,def:15}:{hp:1,atk:1,def:0};
+  const bm=boss?{hp:5.5,atk:1.55,def:15}:{hp:1,atk:1,def:0};if(team===1&&!(u.decoy))bm.hp*=enemyHpMul();
   let hp=(st.hp*mult+(g.hp||0))*bm.hp+(E.hpF||0);hp*=1+(E.hpP||0);
   let def=st.def+(E.def||0)+(g.def||0)+bm.def,res=st.res+(E.res||0)+(g.res||0)+bm.def;
   if(E.eviolite&&MODE.kids(u.dex).length){def*=1.5;res*=1.5;hp*=1.2;}
@@ -1281,7 +1286,7 @@ function showTip(u,e,hit={}){
   const c=hit.cu||makeCombatant(u,enemy?1:0,0,0,{},hit.mult||1,hit.boss||(hit.cu&&hit.cu.boss));
   const K=c.kit,G=growthOf(u),evo=MODE.kids(u.dex).map(k=>D[k].n);
   const hp=hit.cu?`${Math.round(c.hp)}/${Math.round(c.maxHp)}`:Math.round(c.maxHp);
-  const sets=unitSets(u),sd=hit.cu?(hit.cu.dex||u.dex):(typeof shownDex==='function'?shownDex(u):u.dex);
+  const sets=unitSets(u).filter(k=>!(enemy&&SETS[k]&&SETS[k].trait)),sd=hit.cu?(hit.cu.dex||u.dex):(typeof shownDex==='function'?shownDex(u):u.dex);
   tip.innerHTML=`<div class="top"><img src="${por(sd)}" alt=""><div><div class="lbl">${u.alpha?'Alpha Pokémon':u.tgt?'Time Attack target':enemy?'Opponent':`Cost ₽${L.cost}`} · ${K.role?`<span class="sigrole">${K.role}</span> · `:''}${K.cls}</div><h3>${u.mut?`<span style="color:${MUTCOL[u.mut]==='#fff6d0'?'#b59a3a':MUTCOL[u.mut]}">${unitMutName(u)}</span> `:''}${esc(D[sd].n)}</h3>
     <div class="stars">${'★'.repeat(u.star)}</div><div class="chips">${sets.map(k=>SETS[k]&&SETS[k].cat==='type'?chip(k,TYPES[k]):setChip(k)).join('')}</div></div></div>
     <div class="stats"><div><span class="lbl">HP</span><b>${hp}</b></div><div><span class="lbl">Atk</span><b>${Math.round(c.atk)}</b></div><div><span class="lbl">Sp.Atk</span><b>${Math.round(c.spa)}</b></div><div><span class="lbl">Speed</span><b>${c.as.toFixed(2)}</b></div>

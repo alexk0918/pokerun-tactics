@@ -366,6 +366,8 @@ Fourteen sets come from the Pokédex itself (body, weight, egg group and categor
 
 In a single-generation run, every enemy (trainers, wild packs, alphas, guardians) is a Pokémon from that generation: guest lines never appear as enemies, and a line that includes older Pokémon (Pichu → Pikachu in Gen II) always fields its member from that generation.
 
+Enemies don't use trait sets (they keep their types, classes, styles and regions). Instead their HP climbs slightly over the run: +0.4% per floor, about +6% by the end of Act I and +18% by the end of Act III.
+
 Every pool can complete every trait set: if a generation has too few lines for a set's top breakpoint (plus one), guest lines from the nearest generations join its pool, and National Dex pools are topped up the same way. Heart, Crest and Crown augments exist for trait sets too.
 
 ### Non-sprited Pokémon
