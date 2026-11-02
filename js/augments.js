@@ -80,7 +80,7 @@ const AUGDEF=[
   {id:'packleader',t:'gold',tag:'set',icon:'razor-claw',name:'Pack Leader',d:'Kinship sets need one fewer member: each counts one extra as long as you have at least one member.',kinAll:1},
 ];
 // set augments for every type and class: Heart (+1), Crest (+1 and a Pokémon), Crown (+2 and a 2★ Pokémon)
-for(const k of Object.keys(SETS).filter(k=>SETS[k].cat==='type'||SETS[k].cat==='class')){
+for(const k of Object.keys(SETS).filter(k=>SETS[k].cat==='type'||SETS[k].cat==='class'||SETS[k].trait)){
   const icon=SETS[k].cat==='type'&&typeof PLATES!=='undefined'&&PLATES[k]?PLATES[k]:'leaders-crest';
   AUGDEF.push({id:'heart:'+k,t:'silver',tag:'set',set:k,icon,name:`${k} Heart`,d:`Counts as one extra ${k} for your sets (needs at least one ${k} on the field).`,sets:{[k]:1}});
   AUGDEF.push({id:'crest:'+k,t:'gold',tag:'set',set:k,icon,name:`${k} Crest`,d:`Counts as one extra ${k} for your sets, and a random ₽2 or ₽3 ${k} Pokémon joins your bench.`,sets:{[k]:1},gain(){const p=bySet(k,2,3);if(p.length)gainUnit(pick(p),1);}});
@@ -117,7 +117,7 @@ function rollAugTier(){const n=(run.augs||[]).length,x=Math.random();
 function augPool(tier,exclude){const own=new Set((run.augs||[]).map(x=>x.id));return AUGDEF.filter(a=>a.t===tier&&!a.set&&!own.has(a.id)&&!exclude.has(a.id));}
 function setAugFor(tier,exclude){
   // a set augment for one of the sets you already play (weighted toward your biggest)
-  const ct=countTraits(allOwned());const ks=Object.keys(ct).filter(k=>SETS[k]&&(SETS[k].cat==='type'||SETS[k].cat==='class'));if(!ks.length)return null;
+  const ct=countTraits(allOwned());const ks=Object.keys(ct).filter(k=>SETS[k]&&(SETS[k].cat==='type'||SETS[k].cat==='class'||SETS[k].trait));if(!ks.length)return null;
   ks.sort((a,b)=>ct[b]-ct[a]);const k=Math.random()<.6?ks[0]:pick(ks.slice(0,4));
   const id=({silver:'heart:',gold:'crest:',prismatic:'crown:'}[tier])+k;
   if(exclude.has(id)||(run.augs||[]).some(x=>x.id===id))return null;return AUGMAP[id];}

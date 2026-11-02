@@ -343,6 +343,29 @@ Alolan, Galarian, Hisuian and Paldean forms are lines of their own, with their o
 - **Kinship sets** count different members rather than lines, so two Lycanroc forms from the same Rockruff line both count: Wolf Pack (Lycanroc forms), Dance Troupe (Oricorio styles), Cloak Society (Wormadam cloaks), Two Styles (Urshifu), Duet (Toxtricity), Eeveelutions, Tao Trio (a fused Kyurem counts as its partner too), Weather Trio, Island Guardians, Ruinous Treasures, Swords of Justice, Lake Guardians, Legendary Beasts, Ancient and Future Paradox Pokémon, and Ultra Beasts.
 - **Augments:** Regional Tour, Form Change, Fusion Reactor, Legendary Gathering and Pack Leader play into forms and kinship sets.
 
+### Trait sets
+
+Fourteen sets come from the Pokédex itself (body, weight, egg group and category), so they mix every type and generation. A line keeps its traits as it evolves (they come from the form it grows into), and each Pokémon has at most two.
+
+| Set | Who | Breakpoints | Effect |
+|---|---|---|---|
+| Titans | lines that grow to 150 kg+ | 2 / 4 / 6 | +20/40/70% max HP; each stomps at the start, stunning adjacent enemies |
+| Pocket-Sized | lines that stay under 15 kg | 2 / 4 / 6 | Dodge; at 6, ducks out of the fight for 3s instead of fainting, back with 30% HP |
+| Sky Squadron | winged lines | 2 / 4 / 6 | Take off, then dive on the farthest enemy (damage at 4, stun at 6) |
+| Serpents | snake-bodied lines | 2 / 4 | Basic attacks build Coil; every 5th (3rd) constricts: held 1s and a burst of damage |
+| Kaiju | Monster egg group | 2 / 4 / 6 | Grow with every cast; at 6 the third cast makes them giant |
+| Phantasms | Amorphous egg group | 2 / 4 | Melt into a puddle instead of fainting, reform with 30/50% HP |
+| Living Stone | Mineral egg group | 2 / 4 / 6 | A stone shield (10/20/35% max HP) that rebuilds every 4s |
+| Showstoppers | Human-Like egg group | 2 / 4 / 6 | The top member takes the Spotlight (bonus damage and speed; its casts give the team PP); two at 6 |
+| Deep Sea | Water 2 / Water 3 egg groups | 2 / 4 / 6 | Bonus damage to enemies below half HP; at 6, finish off anything below 15% |
+| Fae Folk | Fairy egg group | 2 / 4 / 6 | Every 4s a random ally makes a Wish and heals 8/15/25% |
+| Mouse Brigade | mice and other rodents | 2 / 3 / 4 | Faster for every other rodent; at 4, knockouts find cheese (₽1) |
+| Fox Spirits | the Fox Pokémon | 2 / 3 | Each conjures a decoy illusion that draws attacks |
+| Nursery | lines that hatch from a baby | 1 / 2 / 3 | Half damage next to an ally; survivors grow stronger over the run; cheer adjacent allies at 3 |
+| Team Rocket | Team Rocket's Pokémon | 2 / 4 / 6 | Knockouts can steal ₽1; at 6, fainting Rocket Pokémon blast off in an explosion |
+
+Every pool can complete every trait set: if a generation has too few lines for a set's top breakpoint (plus one), guest lines from the nearest generations join its pool, and National Dex pools are topped up the same way. Heart, Crest and Crown augments exist for trait sets too.
+
 ### Non-sprited Pokémon
 
 A few lines don't have PMD sprites yet. By default they're left out (a branch without sprites is dropped, and a line that couldn't evolve without one is skipped). Turn on **Settings › General › Enable non-sprited Pokémon** to add them as round portrait tokens; it applies to new runs.
