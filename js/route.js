@@ -60,7 +60,7 @@ function nodeModHtml(){
 }
 
 /* ---------- big enemies (Alpha / Time Attack target) ---------- */
-function bigEnemy(f){const pool=[...MODE.byCost[2],...MODE.byCost[3]],tp=[...MODE.byCostAll[2],...MODE.byCostAll[3]].filter(r=>SM[finalOf(r)]&&inTheme(r));const root=pick(tp.length&&Math.random()<.7?tp:pool);const u=mkUnit(root,actOf()>=2?3:2);u.dex=finalOf(root);return u;}
+function bigEnemy(f){const pool=foePool([...MODE.byCost[2],...MODE.byCost[3]]),tp=foePool([...MODE.byCostAll[2],...MODE.byCostAll[3]]).filter(r=>SM[finalOf(r)]&&inTheme(r));const root=pick(tp.length&&Math.random()<.7?tp:pool);const u=mkUnit(root,actOf()>=2?3:2);u.dex=finalOf(root);return genFoe(u);}
 function bigify(c){
   if(c.u.alpha){c.hp*=2.8;c.maxHp=c.hp;c.atk*=1.3;c.spa*=1.3;c.def+=10;c.res+=10;c.shield=c.maxHp*(c.fx.shieldP||0);c.scaleMul=1.4;c.alpha=1;}
   if(c.u.tgt){c.hp*=2.4+effFloor(run.floor)*.05;c.maxHp=c.hp;c.atk*=.55;c.spa*=.55;c.shield=0;c.scaleMul=1.4;c.isTgt=1;}
@@ -79,7 +79,7 @@ function spawnWave(){
   const n=Math.min(2+Math.ceil(w/2),5),room=Math.max(0,9-alive(1).length);
   const F=effFloor(f),o=LVODDS[enemyLv(F)],mult=(1.02+(Math.min(F,60)-4)*.03)*(1+w*.1)*endlessMul()*(hasRelic('town-map')?.9:1);
   for(let i=0;i<Math.min(n,room);i++){
-    const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkEnemy(root,x<clamp((F-15)*.04,0,.5)?3:x<clamp((F-4)*.05+w*.05,0,.85)?2:1);
+    const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkFoe(root,x<clamp((F-15)*.04,0,.5)?3:x<clamp((F-4)*.05+w*.05,0,.85)?2:1);
     const pos=freeHex([0,1,2]);if(!pos)break;
     const c=makeCombatant(u,1,pos.c,pos.r,battle.etr||{},mult);c.cd=.6;units.push(c);
     if(!SIM.on){ensure(u.dex);burst(c.x,c.y-10,'#ffb35c',14,1);}
@@ -330,7 +330,7 @@ const EVENTS={
   snorlax:{n:'A Snorlax blocks the path',img:()=>por(143),txt:'A huge Snorlax is fast asleep across the trail. It doesn\'t look like it will move any time soon.',
     opts:[{t:'Sneak around it',d:'50%: find an item. 50%: it rolls onto you (−8 HP).',fn:()=>Math.random()<.5?'You slip past and find something it was sleeping on. '+gainBag(mkComp(randComp(),rollMut(.25))):'It rolls over in its sleep, right onto you! '+loseHp(8)},
       {t:'Leave it a berry',d:'Pay ₽4. It might leave something behind.',cost:4,fn:()=>{run.gold-=4;return'It munches the berry and rolls away, revealing a completed item. '+gainBag({k:randCraft(),mut:rollMut(.3)});}},
-      {t:'Wake it up!',d:'Fight it as an Alpha. Enhancer if you win.',ok:()=>!!lineRootOf(143),fn:()=>{nodeToBattle({k:'alpha',force:143});return null;}},
+      {t:'Wake it up!',d:'Fight it as an Alpha. Enhancer if you win.',ok:()=>!!lineRootOf(143)&&(!MODE.gen||MODE.gen===1),fn:()=>{nodeToBattle({k:'alpha',force:143});return null;}},
       {t:'Leave it be',d:'Turn back and take the long way around.',fn:()=>'You tiptoe back the way you came. The snoring fades behind you.'}]},
   egg:{n:'A Mysterious Egg',img:()=>iconOf('mystery-egg'),txt:'An Egg is resting alone in the tall grass. It\'s warm, and something inside is moving.',
     opts:[{t:'Take the Egg',d:'It hatches into one of the priciest Pokémon your level can find (needs bench space).',ok:benchRoom,fn:()=>{const top=maxCostAt(run.level);const root=pick([...MODE.byCost[top-1],...(top>1?MODE.byCost[top-2]:[])]);giveUnit(root);return`It hatched into ${D[root].n}! It joined your bench.`;}},

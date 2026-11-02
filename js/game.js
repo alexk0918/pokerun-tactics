@@ -20,7 +20,7 @@ function buildMode(id,unspr=OPTS.unsprited){
   // without "Enable non-sprited Pokémon", species lacking a PMD sprite are pruned: a branch without sprites is dropped,
   // and a line that would be left unable to evolve (or whose root has no sprite) is left out
   const fam=r=>{if(unspr)return family(r);const rec=i=>{if(!SM[i])return null;const k=KIDS[i]||[];if(!k.length)return[i];const ok=k.map(rec).filter(Boolean);return ok.length?[i,...ok.flat()]:null;};return rec(r)||[];};
-  let S;
+  let S;const guestDex=new Set();
   if(!gen)S=new Set(ROOTS.flatMap(fam)); // battle/mega forms are never shop lines; regional forms are species of their own
   // a generation pool takes lines with a member from that generation; a regional form only pulls in its line when it's the line's root
   else{S=new Set();for(const r of ROOTS){const f=fam(r);if(f.some(i=>D[i].g===gen&&(!(D[i].rf||D[i].af)||i===r)))f.filter(i=>D[i].g<=gen).forEach(i=>S.add(i));}
@@ -28,7 +28,7 @@ function buildMode(id,unspr=OPTS.unsprited){
     const need=traitNeed(),inS=r=>fam(r).some(i=>S.has(i));
     for(const t in need){const rootIn=i=>S.has(i)&&!(D[i].f&&S.has(D[i].f)),have=[...S].filter(i=>rootIn(i)&&(TRAITS[i]||[]).includes(t)).length;if(have>=need[t])continue;
       const cand=shuffle(ROOTS.filter(r=>!inS(r)&&fam(r).length&&(TRAITS[r]||[]).includes(t)&&!fam(r).some(i=>D[i].L||D[i].M))).sort((a,b)=>Math.abs(D[a].g-gen)-Math.abs(D[b].g-gen));
-      for(const r of cand.slice(0,need[t]-have))fam(r).forEach(i=>S.add(i));}}
+      for(const r of cand.slice(0,need[t]-have))fam(r).forEach(i=>{if(!S.has(i))guestDex.add(i);S.add(i);});}}
   const kids=i=>(KIDS[i]||[]).filter(k=>S.has(k));
   const sub=i=>{const o=[i];for(const k of kids(i))o.push(...sub(k));return o;};
   const roots=[...S].filter(i=>!D[i].f||!S.has(D[i].f)).sort((a,b)=>a-b);
@@ -44,7 +44,7 @@ function buildMode(id,unspr=OPTS.unsprited){
   for(const r of roots)if(lines[r].leg)lines[r].cost=5;
   const byCost=[1,2,3,4,5].map(c=>roots.filter(r=>lines[r].cost===c));const byCostAll=byCost.map(l=>[...l]);
   const starGen=gen||1+Math.floor(Math.random()*9);
-  return{id,gen,unspr:!!unspr,S,kids,roots,lines,byCost,byCostAll,starGen,label:gen?`Gen ${ROMAN[gen-1]}`:'National',region:gen?REGIONS[gen-1]:'National Dex'};
+  return{id,gen,unspr:!!unspr,guestDex,S,kids,roots,lines,byCost,byCostAll,starGen,label:gen?`Gen ${ROMAN[gen-1]}`:'National',region:gen?REGIONS[gen-1]:'National Dex'};
 }
 function depth(i,kids){return 1+Math.max(0,...kids(i).map(k=>depth(k,kids)));}
 const lineOf=u=>MODE.lines[u.root];
@@ -304,15 +304,17 @@ const endlessMul=()=>Math.pow(1.12,Math.max(0,actOf()-(ACTS.length-1)));
 const enemyLv=F=>F<=FLOORS?ELEVEL(F):clamp(Math.round(8+(F-FLOORS)/7),8,10);
 const inTheme=r=>{const T=actDef().types;return lineSets(r).some(k=>T.includes(k));};
 // 70% of enemy picks come from the act's theme types (from every line in the mode, not just your shop pool)
-function themedRoot(cost){const all=MODE.byCostAll[cost-1].filter(r=>SM[r]&&inTheme(r));if(all.length&&Math.random()<.7)return pick(all);return pick(MODE.byCost[cost-1].length?MODE.byCost[cost-1]:MODE.byCostAll[cost-1]);}
+function themedRoot(cost){const all=foePool(MODE.byCostAll[cost-1]).filter(r=>SM[r]&&inTheme(r));if(all.length&&Math.random()<.7)return pick(all);
+  let p=foePool(MODE.byCost[cost-1]);if(!p.length)p=foePool(MODE.byCostAll[cost-1]);if(!p.length)for(let d=1;d<5&&!p.length;d++)for(const c of[cost-d,cost+d])if(c>=1&&c<=5&&!p.length)p=foePool(MODE.byCostAll[c-1]);return pick(p.length?p:MODE.byCostAll[cost-1]);}
 function trainerTitle(f){const T=actDef().tr,a=actOf();return`${T[(f*7+run.strat.id.length+a*3)%T.length]} ${TRNAMES[(f*11+a*5)%TRNAMES.length]}`;}
 const hasRelic=id=>run&&run.relics.includes(id);
 function pickBoss(){
   // the guardian is a legendary of the act's theme when the mode has one, never one you've already faced
-  const seen=new Set((run&&run.bossHist)||[]),all=MODE.byCostAll[4].filter(r=>SM[finalOf(r)]),fresh=all.filter(r=>!seen.has(r));
+  const seen=new Set((run&&run.bossHist)||[]),all=foePool(MODE.byCostAll[4]).filter(r=>SM[finalOf(r)]),fresh=all.filter(r=>!seen.has(r));
   const themed=fresh.filter(inTheme),legs=themed.length?themed:fresh.length?fresh:all;
   const r=legs.length?pick(legs):MODE.byCostAll.slice().reverse().find(l=>l.length)[0];if(run)(run.bossHist=run.bossHist||[]).push(r);
   let d=finalOf(r);for(let i=0;i<5&&!SM[d];i++)d=finalOf(r);
+  if(MODE.gen)d=genFoe({root:r,dex:d}).dex;
   return{root:r,dex:d};
 }
 function featured(strat){
@@ -322,6 +324,14 @@ function featured(strat){
 }
 const mkUnit=(root,star=1)=>({uid:uidc++,root,dex:root,star,items:[],g:{},gs:0});
 function mkEnemy(root,star){const u=mkUnit(root,star);for(let s=2;s<=star;s++){const k=MODE.kids(u.dex);if(k.length)u.dex=pick(k);}return u;}
+/* In a generation run, enemies are only Pokémon from that generation: no guest lines, and a line with members
+   from older generations (Pichu → Pikachu) always fields its member from this generation. */
+function foeOK(root){if(!MODE.gen)return true;const L=MODE.lines[root];return!!L&&L.mem.some(i=>D[i].g===MODE.gen&&!MODE.guestDex.has(i));}
+const foePool=list=>MODE.gen?list.filter(foeOK):list;
+function genFoe(u){if(!MODE.gen||D[u.dex].g===MODE.gen)return u;const L=MODE.lines[u.root];if(!L)return u;
+  const mem=L.mem,at=mem.indexOf(u.dex),ok=mem.filter(i=>D[i].g===MODE.gen&&!MODE.guestDex.has(i));if(!ok.length)return u;
+  u.dex=ok.sort((a,b)=>Math.abs(mem.indexOf(a)-at)-Math.abs(mem.indexOf(b)-at)||mem.indexOf(b)-mem.indexOf(a))[0];return u;}
+const mkFoe=(root,star)=>genFoe(mkEnemy(root,star));
 const boardUnits=()=>Object.entries(run.board).map(([k,u])=>{const[c,r]=k.split(',').map(Number);return{u,c,r};});
 const allOwned=()=>[...run.bench.filter(Boolean),...Object.values(run.board)];
 const teamCap=()=>run.level+(augIs('resolve')?1:0);
@@ -480,18 +490,18 @@ function buildEnemy(f){
   const kind=floorKind(f),nk=nodeK(f),hard=nk==='challenge',big=nk==='alpha'||nk==='timeattack',nd=(run.nodes&&run.nodes[f])||{},list=[];
   const A=actOf(),F=effFloor(f),em=endlessMul();
   if(kind==='wild'&&!A){
-    const n=[2,2,3][f-1]+(hard?1:0);const pool=[...MODE.byCost[0],...MODE.byCost[1]].filter(r=>SM[r]),tp=[...MODE.byCostAll[0],...MODE.byCostAll[1]].filter(r=>SM[r]&&inTheme(r));
-    for(let i=0;i<n;i++)list.push({u:mkEnemy(pick(tp.length&&Math.random()<.7?tp:pool),1),mult:(.5+f*.07)*(hard?1.15:1)});
+    const n=[2,2,3][f-1]+(hard?1:0);const pool=foePool([...MODE.byCost[0],...MODE.byCost[1]]).filter(r=>SM[r]),tp=foePool([...MODE.byCostAll[0],...MODE.byCostAll[1]]).filter(r=>SM[r]&&inTheme(r));
+    for(let i=0;i<n;i++)list.push({u:mkFoe(pick(tp.length&&Math.random()<.7?tp:pool),1),mult:(.5+f*.07)*(hard?1.15:1)});
   }else{
     // later acts: wild floors are packs of themed wild Pokémon; trainers field more Pokémon, more stars and more items
     let n=(kind==='wild'?2+f+A:ECOUNT[f]+Math.min(3,A))+(hard?1:0);if(big)n=Math.max(2,n-3);if(nk==='endurance')n=Math.max(2,n-2);n=Math.min(10,n);
     const p2=clamp((F-3)*.065+(kind==='elite'?.12:0)+(hard?.15:0),0,.85),p3=clamp((F-12)*.022,0,.55);
     const mult=(1.14+(Math.min(F,60)-4)*.03+(kind==='elite'?.06:0)+(hard?.08:0))*em*(ACTSCALE[Math.min(A,ACTSCALE.length-1)])*(nk==='endurance'?.92:1)*(hasRelic('town-map')?.9:1);
-    if(big){let a;if(nd.force&&lineRootOf(nd.force)){a=mkUnit(lineRootOf(nd.force),2);a.dex=nd.force;}else a=bigEnemy(f);
+    if(big){let a;if(nd.force&&lineRootOf(nd.force)&&(!MODE.gen||D[nd.force].g===MODE.gen)){a=mkUnit(lineRootOf(nd.force),2);a.dex=nd.force;}else a=bigEnemy(f);
       a[nk==='alpha'?'alpha':'tgt']=1;if(nk==='alpha')a.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:a,mult,big:1});}
     if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=Array.from({length:Math.min(3,2+A)},()=>({k:randCraft(),mut:[]}));list.push({u:b,mult:(hasRelic('town-map')?.9:1)*BOSSCALE[Math.min(A,BOSSCALE.length-1)]*em,boss:1});}
     const o=LVODDS[enemyLv(F)];
-    for(let i=0;i<n;i++){const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkEnemy(root,x<p3?3:x<p3+p2?2:1);
+    for(let i=0;i<n;i++){const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkFoe(root,x<p3?3:x<p3+p2?2:1);
       const pi=clamp((F-4)*.06+(kind==='elite'?.12:0),0,.85);if(Math.random()<pi)u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((F-11)*.1,0,.6))u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((F-28)*.06,0,.5))u.items.push({k:randCraft(),mut:[]});
       if(F>=6&&Math.random()<(hard?.3:.07)+(F>=10?.05:0)+A*.05)u.mut=Math.random()<.5?'shadow':pick(Object.keys(MUTS));
       list.push({u,mult:nk==='timeattack'?mult*.75:mult});}

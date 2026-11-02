@@ -364,6 +364,8 @@ Fourteen sets come from the Pokédex itself (body, weight, egg group and categor
 | Nursery | lines that hatch from a baby | 1 / 2 / 3 | Half damage next to an ally; survivors grow stronger over the run; cheer adjacent allies at 3 |
 | Team Rocket | Team Rocket's Pokémon | 2 / 4 / 6 | Knockouts can steal ₽1; at 6, fainting Rocket Pokémon blast off in an explosion |
 
+In a single-generation run, every enemy (trainers, wild packs, alphas, guardians) is a Pokémon from that generation: guest lines never appear as enemies, and a line that includes older Pokémon (Pichu → Pikachu in Gen II) always fields its member from that generation.
+
 Every pool can complete every trait set: if a generation has too few lines for a set's top breakpoint (plus one), guest lines from the nearest generations join its pool, and National Dex pools are topped up the same way. Heart, Crest and Crown augments exist for trait sets too.
 
 ### Non-sprited Pokémon
