@@ -11,7 +11,24 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 ## How a run works
 
-- Pick a region, then a team strategy (Ember Gambit, Tidal Fortress or Verdant Investment).
+- Pick a region, then a strategy. Each strategy is a way of making or spending money, paired with a type, and it shapes your first shop. A strategy only appears in a mode with at least 3 lines of its type.
+
+| Strategy | Type | Style | Effect |
+|---|---|---|---|
+| Ember Gambit | Fire | Aggressive | Fire +15% damage; win streaks pay double; losses cost 2 more Trainer HP |
+| Tidal Fortress | Water | Steady | 125 Trainer HP; your Pokémon take 10% less damage; Water starts with +10 PP |
+| Verdant Investment | Grass | Scaling | Interest is ₽1 per ₽8 (cap ₽7); Grass regenerates 1% max HP per second |
+| Overcharge | Electric | Tempo | Level up costs ₽3; Electric +15% Attack Speed |
+| Foresight | Psychic | Rolling | First reroll every floor is free; Psychic starts with +15 PP |
+| Underdog | Fighting | Comeback | Loss streaks pay double; Fighting +25% damage at half Trainer HP or less |
+| Dragon Tamer | Dragon | Fast 8 | ₽4 and ₽5 Pokémon roll at the next level's odds; Dragon +12% max HP |
+| Swarm Tactics | Bug | Reroll | Combining pays ₽1 (2★) or ₽4 (3★); Bug +10% Attack Speed |
+| Armory | Steel | Items | Start with 2 components, +1 every 4 floors; 6% less damage taken (Steel 12%) |
+| Haunted Wager | Ghost | High risk | 75 Trainer HP; +₽2 income every floor; Ghost +10% damage |
+| Glacial Patience | Ice | Saving | ₽3 after each floor you buy no Pokémon; Ice starts with a 12% shield |
+| Pickpocket | Dark | Combat gold | Knockouts have a 30% chance to steal ₽1 (₽3 a battle); Dark +10% crit |
+| Lucky Charm | Fairy | Loot | Every chest also holds ₽3; Fairy heals and shields 20% more |
+| Collector | Normal | Flexible | Every 4th Pokémon you buy is free; Normal +10% max HP |
 - A run has three acts of 15 floors each: wild Pokémon on floors 1–2, rivals on floors 5 and 10, a legendary guardian on floor 15, and a route choice for every other floor (see below). Your team, gold, items, relics and augments carry over between acts.
 
 ### Acts and Endless mode
@@ -463,7 +480,7 @@ Legendary Pokémon get dramatic effects that stay on the board and never cover t
 
 ### Audio
 
-All music and sound effects are synthesized live with the Web Audio API: original audio made for PokéRun, no files. Music is quiet ambient in a cosy dungeon-crawler spirit: a title theme (Morning Mist), three tracks per act that rotate as you climb (Verdant Path, Mossy Hollow and Sunbeam Glade in the forest; Ember Trail, Red Cliffs and Heat Haze in the canyon; Tidepool, Glimmering Depths and Moonlit Cove in the grotto), and a Guardian's Theme for boss floors. Tracks crossfade. Each is a key, a mode, a chord loop and a few soft instruments (pads, plucked or bell arpeggios, a recurring flute or ocarina motif, bass). Moves play a sound for their type (18 of them), and hits, crits, faints, buying, selling, rerolling, levelling, combining, evolving, chests and wins and losses have their own. Sound effects are rate-limited so big fights stay calm. Music and sound effects volumes are in Settings › Audio, and audio pauses when the tab is hidden.
+**Music** comes from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, looping at the games' own loop points and crossfading between tracks: the Top Menu Theme on the title screen; Apple Woods, Treeshroud Forest and Sky Peak Forest in Act I; Mt. Bristle, Boulder Quarry and Dark Crater in Act II; Waterfall Cave, Brine Cave and Icicle Forest in Act III (the track changes every 5 floors); Boss Battle! for the first two guardians and Dialga's Fight to the Finish! for the last; Kecleon's Shop in Kecleon shops; a rotation (with Crystal Cave) in Endless mode; and the Exploration Team Theme when you win a run. The tracks are loudness-matched and quiet by default, like background ambience. Sound effects are synthesized by the game. Music and sound effects volumes are in Settings › Audio, and audio pauses when the tab is hidden.
 
 ### Settings
 
@@ -520,7 +537,8 @@ js/fx_manifest.js   frame layout of every particle sheet
 js/carousel.js      carousel rounds
 js/ui.js            pause menu, settings, collapsible shop and bag
 js/market.js        the Market: bonds, shares, daycare and loans
-js/audio.js         synthesized music and sound effects (Web Audio)
+js/audio.js         music player (PMD tracks with loop points) and synthesized sound effects
+assets/music/       PMD music tracks (MP3)
 js/traits.js        trait sets in battle
 js/meter.js         battle meter
 js/fusion.js        fusions and Deoxys formes
@@ -539,6 +557,6 @@ Run locally with any static server, for example `python3 -m http.server`, then o
 
 ## Credits
 
-Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Move effects, beams and treasure boxes are Pokémon Mystery Dungeon assets (Spike Chunsoft) collected by [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
+Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Move effects, beams and treasure boxes are Pokémon Mystery Dungeon assets (Spike Chunsoft) collected by [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). Music is from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, composed by Arata Iiyoshi, Hideki Sakamoto, Keisuke Ito, Ken-ichi Saito and Yoshihiro Maeda (© Nintendo / Spike Chunsoft / The Pokémon Company); the rips and loop points are by ShinxHijinx / PersimBand and the [Explorers of Sky Origins](https://github.com/Minemaker0430/ExplorersOfSkyOrigins) project. The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
 
 This is a non-commercial fan project and is not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon is a trademark of Nintendo, Game Freak and Creatures.

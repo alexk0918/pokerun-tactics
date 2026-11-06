@@ -62,7 +62,7 @@ const SET_TABS=[
     {k:'fx',n:'Move effects',v:[2,1],l:['Full','Reduced'],d:'Reduced plays fewer particles at once and drops status sparkles.'},
     {k:'rays',n:'Light rays',v:[1,0],l:['On','Off']},
     {k:'shake',n:'Screen shake on legendary moves',v:[1,0],l:['On','Off']}]},
-  {id:'audio',n:'Audio',note:'All music and sound effects are synthesized live by the game (original, made for PokéRun).',rows:[
+  {id:'audio',n:'Audio',note:'Music is from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team (see Credits on the title screen). Sound effects are synthesized by the game.',rows:[
     {k:'musVol',n:'Music',v:[0,.15,.3,.5,.7,1],l:['Off','15%','30%','50%','70%','100%'],on:()=>auVolumes()},
     {k:'sfxVol',n:'Sound effects',v:[0,.15,.3,.6,.8,1],l:['Off','15%','30%','60%','80%','100%'],on:()=>{auVolumes();sfx('pick');}}]},
   {id:'gamepad',n:'Gamepad',rows:[

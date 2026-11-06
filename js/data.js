@@ -18,6 +18,18 @@ const STRATS=[
   {id:'ember',name:'Ember Gambit',type:'Fire',si:1,risk:'Aggressive',pts:['Fire Pokémon deal +15% damage.','Win streaks pay double streak gold.','Losses cost 2 more Trainer HP.'],guide:'Build around Fire. Push your streak.'},
   {id:'tidal',name:'Tidal Fortress',type:'Water',si:2,risk:'Steady',pts:['Start with 125 Trainer HP.','Your Pokémon take 10% less damage.','Water Pokémon start with +10 PP.'],guide:'Hold the line with Water tanks.'},
   {id:'verdant',name:'Verdant Investment',type:'Grass',si:0,risk:'Scaling',pts:['Interest pays ₽1 per ₽8 saved (instead of ₽10), up to ₽7.','Grass Pokémon restore +1% max HP per second.'],guide:'Save early, spend late. Grass sustains.'},
+  // each strategy is a different way to make or spend money, paired with one type (si: the starter it features, if any)
+  {id:'overcharge',name:'Overcharge',type:'Electric',risk:'Tempo',pts:['Level up costs ₽3 instead of ₽4.','Electric Pokémon get +15% Attack Speed.'],guide:'Level fast, field more Pokémon early.'},
+  {id:'foresight',name:'Foresight',type:'Psychic',risk:'Rolling',pts:['Your first reroll every floor is free.','Psychic Pokémon start with +15 PP.'],guide:'Roll a little every floor to hit your 3★s.'},
+  {id:'underdog',name:'Underdog',type:'Fighting',risk:'Comeback',pts:['Loss streaks pay double streak gold.','Fighting Pokémon deal +25% damage while you\'re at half Trainer HP or less.'],guide:'Lose early, bank gold, then hit back hard.'},
+  {id:'tamer',name:'Dragon Tamer',type:'Dragon',risk:'Fast 8',pts:['Your shop rolls ₽4 and ₽5 Pokémon as if you were one level higher.','Dragon Pokémon get +12% max HP.'],guide:'Rush levels and chase the big Pokémon.'},
+  {id:'swarm',name:'Swarm Tactics',type:'Bug',risk:'Reroll',pts:['Combining to 2★ pays ₽1; combining to 3★ pays ₽4.','Bug Pokémon get +10% Attack Speed.'],guide:'Stay low, collect copies, chain 3★s.'},
+  {id:'armory',name:'Armory',type:'Steel',risk:'Items',pts:['Start with 2 item components, and get another every 4 floors.','Your Pokémon take 6% less damage; Steel Pokémon 12%.'],guide:'Slam strong items early and stay healthy.'},
+  {id:'wager',name:'Haunted Wager',type:'Ghost',risk:'High risk',pts:['Start with 75 Trainer HP.','Every floor pays ₽2 more income.','Ghost Pokémon deal +10% damage.'],guide:'Trade Trainer HP for a much richer run.'},
+  {id:'glacial',name:'Glacial Patience',type:'Ice',risk:'Saving',pts:['Each floor you don\'t buy a Pokémon pays ₽3.','Ice Pokémon start each battle with a shield of 12% max HP.'],guide:'Skip buying while you build interest, then strike.'},
+  {id:'pickpocket',name:'Pickpocket',type:'Dark',risk:'Combat gold',pts:['Each knockout by your Pokémon has a 30% chance to steal ₽1 (up to ₽3 a battle).','Dark Pokémon get +10% crit chance.'],guide:'Win fights to fund your shop.'},
+  {id:'charm',name:'Lucky Charm',type:'Fairy',risk:'Loot',pts:['Every chest you open also holds ₽3.','Fairy Pokémon heal and shield 20% more.'],guide:'Take every chest and grow from loot.'},
+  {id:'collector',name:'Collector',type:'Normal',risk:'Flexible',pts:['Every 4th Pokémon you buy is free.','Normal Pokémon get +10% max HP.'],guide:'Buy freely and keep your options open.'},
 ];
 
 /* ---------- Items: TFT-style components and recipes ---------- */

@@ -302,7 +302,7 @@ function kCardName(s){if(s.t==='unit')return(s.mut?MUTS[s.mut].n+' ':'')+D[s.roo
 function kCardIcon(s){if(s.t==='unit')return por(s.root);if(s.t==='relic')return iconOf(s.id);return iconOf(itemDef(s.it).id);}
 function kCardTag(s){if(s.t==='unit')return`Pokémon · ₽${MODE.lines[s.root].cost}`;if(s.t==='relic')return'Relic';const t=itemTier(s.it);return t==='common'?'Component':t==='epic'?'Completed':t==='enh'?'Enhancer':'Consumable';}
 function showKecleon(){
-  mode='kshop';hideTip();const K=run.ks,M=K.mut?MUTS[K.mut]:null;
+  mode='kshop';hideTip();if(!SIM.on)music('kecleon');const K=run.ks,M=K.mut?MUTS[K.mut]:null;
   const line=M?`Heh heh... Today everything has a certain ${M.n.toLowerCase()} touch. ${M.d}.`:'Welcome! Take your time and buy whatever you like!';
   ov.innerHTML=`<div class="scrim"></div><div class="screen kshop">
     <div class="win khead${M?' mutated':''}" style="${M?`--mc:${MUTCOL[K.mut]}`:''}"><img class="kpor" src="${por(KECLEON)}" alt="" style="${M?`filter:${KFILTER[K.mut]}`:''}"><div><div class="lbl">${M?'Mutated shop':'Kecleon Shop'}</div><h2>${M?M.n+' ':''}Kecleon</h2><p>${esc(line)}</p></div><div class="kgold"><span class="lbl">Your money</span><b>₽${run.gold}</b></div></div>

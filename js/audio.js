@@ -1,37 +1,40 @@
 "use strict";
-/* PokéRun Tactics — audio. Everything is synthesized live with the Web Audio API (no audio files):
-   original ambient music in a cosy dungeon-crawler spirit, and sound effects for moves, hits and the shop.
-   Music: each track is a key, a mode, a chord loop and a few soft instruments (pad, plucked arpeggio, a recurring melody
-   motif, bass). Tracks crossfade: a title theme, three tracks per act that rotate as you climb, and a guardian theme.
-   Volumes live in Settings › Audio. */
+/* PokéRun Tactics — audio.
+   Music: tracks from the Pokémon Mystery Dungeon games (© Nintendo / Chunsoft / The Pokémon Company), played as background
+   music with their original loop points. Credits are in README.md and Settings › Audio. A fan project, not for profit.
+   Sound effects: synthesized with the Web Audio API. */
 
-const AU={ctx:null,out:null,mus:null,sfx:null,rev:null,track:null,cur:null,nextT:0,step:0,timer:null,last:{},burst:[],want:null};
+const AU={ctx:null,out:null,mus:null,sfx:null,rev:null,cur:null,timer:null,last:{},burst:[],want:null};
 const mtof=m=>440*Math.pow(2,(m-69)/12);
-const MODES={major:[0,2,4,5,7,9,11],dorian:[0,2,3,5,7,9,10],mixo:[0,2,4,5,7,9,10],lydian:[0,2,4,6,7,9,11],minor:[0,2,3,5,7,8,10],phryg:[0,1,3,5,7,8,10]};
 
-/* ---------- tracks ---------- */
-// root: MIDI note · prog: scale degrees, one chord per `bars` bars · arp: chord-tone pattern on 8th notes · mel: motif density
-const TRACKS={
-  title:  {n:'Morning Mist',     root:62,mode:'major', bpm:70,prog:[0,3,5,4],bars:2,seed:11,pad:.07,arp:{v:.035,pat:[0,1,2,3,2,1,0,2],inst:'pluck'},mel:{v:.05,inst:'flute',dens:.45},bass:{v:.07,pat:'half'}},
-  forest1:{n:'Verdant Path',     root:67,mode:'major', bpm:82,prog:[0,4,5,3],bars:2,seed:21,pad:.05,arp:{v:.04,pat:[0,2,1,2,0,2,1,3],inst:'marimba'},mel:{v:.05,inst:'flute',dens:.5},bass:{v:.08,pat:'pulse'},perc:{v:.012,k:'shaker'}},
-  forest2:{n:'Mossy Hollow',     root:64,mode:'dorian',bpm:68,prog:[0,3,0,6],bars:2,seed:22,pad:.07,arp:{v:.03,pat:[0,2,3,2],inst:'bell',every:2},mel:{v:.045,inst:'ocarina',dens:.35},bass:{v:.07,pat:'half'}},
-  forest3:{n:'Sunbeam Glade',    root:60,mode:'lydian',bpm:88,prog:[0,1,0,4],bars:2,seed:23,pad:.05,arp:{v:.035,pat:[0,1,2,1,3,1,2,1],inst:'pluck'},mel:{v:.05,inst:'flute',dens:.55},bass:{v:.07,pat:'pulse'},perc:{v:.01,k:'shaker'}},
-  canyon1:{n:'Ember Trail',      root:57,mode:'mixo',  bpm:84,prog:[0,6,3,0],bars:2,seed:31,pad:.05,arp:{v:.04,pat:[0,2,0,3,0,2,1,2],inst:'pluck'},mel:{v:.05,inst:'ocarina',dens:.45},bass:{v:.09,pat:'pulse'},perc:{v:.014,k:'tom'}},
-  canyon2:{n:'Red Cliffs',       root:62,mode:'dorian',bpm:74,prog:[0,6,5,6],bars:2,seed:32,pad:.06,arp:{v:.035,pat:[0,1,2,3],inst:'marimba',every:2},mel:{v:.045,inst:'flute',dens:.4},bass:{v:.08,pat:'half'}},
-  canyon3:{n:'Heat Haze',        root:53,mode:'lydian',bpm:66,prog:[0,1,4,0],bars:2,seed:33,pad:.07,arp:{v:.03,pat:[0,2,3,2,1,2],inst:'bell'},mel:{v:.04,inst:'ocarina',dens:.3},bass:{v:.07,pat:'half'}},
-  grotto1:{n:'Tidepool',         root:66,mode:'minor', bpm:64,prog:[0,5,2,6],bars:2,seed:41,pad:.07,arp:{v:.03,pat:[0,2,1,3,2,1],inst:'bell'},mel:{v:.045,inst:'flute',dens:.35},bass:{v:.07,pat:'half'}},
-  grotto2:{n:'Glimmering Depths',root:59,mode:'dorian',bpm:58,prog:[0,3,6,3],bars:2,seed:42,pad:.08,arp:{v:.028,pat:[0,1,2,3,2,1],inst:'bell',every:2},mel:{v:.04,inst:'ocarina',dens:.3},bass:{v:.07,pat:'half'}},
-  grotto3:{n:'Moonlit Cove',     root:63,mode:'major', bpm:70,prog:[0,5,3,4],bars:2,seed:43,pad:.06,arp:{v:.035,pat:[0,2,1,2,3,2,1,2],inst:'marimba'},mel:{v:.045,inst:'flute',dens:.45},bass:{v:.07,pat:'pulse'},perc:{v:.01,k:'shaker'}},
-  guardian:{n:'Guardian\'s Theme',root:60,mode:'minor', bpm:96,prog:[0,5,3,4],bars:1,seed:51,pad:.06,arp:{v:.04,pat:[0,1,2,1,0,1,2,3],inst:'pluck'},mel:{v:.05,inst:'ocarina',dens:.55},bass:{v:.1,pat:'pulse'},perc:{v:.02,k:'tom'}},
+/* ---------- tracks: assets/music/<id>.mp3, looping from a to b (seconds) ---------- */
+const MUSIC={
+  menu:{n:"Top Menu Theme",a:0,b:27.7295},
+  theme:{n:"Pok\u00e9mon Exploration Team Theme",a:0,b:78.5241},
+  applewoods:{n:"Apple Woods",a:0,b:86.0},
+  treeshroud:{n:"Treeshroud Forest",a:0.9752,b:90.6684},
+  skypeakforest:{n:"Sky Peak Forest",a:0.6502,b:74.174},
+  mtbristle:{n:"Mt. Bristle",a:0,b:58.6787},
+  boulderquarry:{n:"Boulder Quarry",a:1.9505,b:88.797},
+  darkcrater:{n:"Dark Crater",a:0.9752,b:74.8061},
+  waterfallcave:{n:"Waterfall Cave",a:0,b:86.9418},
+  brinecave:{n:"Brine Cave",a:1.3003,b:85.7275},
+  icicleforest:{n:"Icicle Forest",a:2.2756,b:126.7007},
+  crystalcave:{n:"Crystal Cave",a:0,b:93.3332},
+  boss:{n:"Boss Battle!",a:0,b:45.2591},
+  dialga:{n:"Dialga's Fight to the Finish!",a:34.4584,b:134.9872},
+  kecleon:{n:"Kecleon's Shop",a:0.9752,b:78.9667}
 };
-const ACT_TRACKS=[['forest1','forest2','forest3'],['canyon1','canyon2','canyon3'],['grotto1','grotto2','grotto3']];
+// three tracks per act that rotate as you climb, plus the guardian theme
+const ACT_TRACKS=[['applewoods','treeshroud','skypeakforest'],['mtbristle','boulderquarry','darkcrater'],['waterfallcave','brinecave','icicleforest']];
+const ENDLESS_TRACKS=['crystalcave','applewoods','darkcrater','icicleforest','treeshroud','waterfallcave','boulderquarry','skypeakforest','brinecave','mtbristle'];
 
 /* ---------- setup ---------- */
 function auInit(){
   if(AU.ctx)return AU.ctx.state==='suspended'?AU.ctx.resume():null;
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   try{auGraph(new AC());}catch(e){return;}
-  auVolumes();AU.timer=setInterval(auTick,40);
+  auVolumes();AU.timer=setInterval(auTick,25);
   if(AU.want)music(AU.want,true);
 }
 // the mixing graph: compressor ← master ← music / effects buses, plus a shared reverb send
@@ -47,7 +50,7 @@ function auGraph(c){AU.ctx=c;AU.nb=null;
 function auVolumes(){if(!AU.ctx)return;const t=AU.ctx.currentTime;
   AU.mus.gain.setTargetAtTime(OPTS.musVol??.5,t,.1);AU.sfx.gain.setTargetAtTime(OPTS.sfxVol??.6,t,.05);}
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,auInit,{passive:true}));
-document.addEventListener('visibilitychange',()=>{if(!AU.ctx)return;if(document.hidden)AU.ctx.suspend();else AU.ctx.resume();});
+document.addEventListener('visibilitychange',()=>{if(!AU.ctx)return;if(document.hidden){AU.ctx.suspend();if(AU.cur)AU.cur.el.pause();}else{AU.ctx.resume();if(AU.cur)AU.cur.el.play().catch(()=>{});}});
 const auOK=()=>AU.ctx&&AU.ctx.state==='running'&&!SIM.on;
 
 /* ---------- instruments ---------- */
@@ -75,49 +78,29 @@ function noise(dest,{t,len,v=.1,type='bandpass',f=1000,f1=0,q=1,a=.005,r=.08,sen
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.setTargetAtTime(0,t+len,r);s.start(t,Math.random()*.5);s.stop(t+len+r*6);
 }
 
-/* ---------- the music engine ---------- */
-function rng(seed){let s=seed>>>0||1;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
-function scaleNote(T,deg){const sc=MODES[T.mode],o=Math.floor(deg/sc.length);return T.root+sc[((deg%sc.length)+sc.length)%sc.length]+12*o;}
-function chordOf(T,deg){return[0,2,4,6].map(k=>scaleNote(T,deg+k));}
-// a 2-bar motif built once per track, then repeated with small variations so the melody is recognisable
-function motif(T){const R=rng(T.seed),out=[];let d=4+Math.floor(R()*3);
-  for(let i=0;i<16;i++){const strong=i%4===0;if(R()<(strong?T.mel.dens+.25:T.mel.dens*.6)){d+=Math.round((R()-.5)*4);d=clamp(d,0,11);const len=R()<.4?2:R()<.7?1:3;out.push({i,d,len});i+=len-1;}}
-  return out;}
+/* ---------- the music player ---------- */
+// each track streams from an <audio> element through a gain node (so volume works everywhere, iOS too) and crossfades
 function music(id,force){
-  AU.want=id;if(!AU.ctx)return;if(!force&&AU.cur&&AU.cur.id===id)return;
-  const c=AU.ctx,T=TRACKS[id];if(!T)return;
-  // crossfade: the old track's bus fades out while the new one fades in
-  if(AU.cur){const old=AU.cur.bus;old.gain.setTargetAtTime(0,c.currentTime,.9);setTimeout(()=>{try{old.disconnect();}catch(e){}},5000);}
-  const bus=c.createGain();bus.gain.value=0;bus.connect(AU.mus);bus.gain.setTargetAtTime(1,c.currentTime+.2,1.2);
-  AU.cur={id,T,bus,mot:motif(T),R:rng(T.seed*7+3)};AU.step=0;AU.nextT=c.currentTime+.15;
+  AU.want=id;if(!AU.ctx)return;if(!force&&AU.cur&&AU.cur.id===id)return;const T=MUSIC[id];if(!T)return;
+  const c=AU.ctx,old=AU.cur;
+  if(old){old.g.gain.setTargetAtTime(0,c.currentTime,.5);setTimeout(()=>{try{old.el.pause();old.el.removeAttribute('src');old.g.disconnect();}catch(e){}},3000);}
+  const el=new Audio();el.src=`assets/music/${id}.mp3`;el.preload='auto';
+  // a track without loop points just loops the whole file
+  if(!T.a)el.loop=true;
+  // if it ever reaches the very end before the loop jump, carry on from the loop start
+  else el.addEventListener('ended',()=>{if(AU.cur&&AU.cur.el===el){el.currentTime=T.a;el.play().catch(()=>{});}});
+  const g=c.createGain();g.gain.value=0;try{c.createMediaElementSource(el).connect(g);}catch(e){}g.connect(AU.mus);
+  g.gain.setTargetAtTime(1,c.currentTime+.1,.7);
+  AU.cur={id,el,g,T};el.play().catch(()=>{});
 }
-function musicStop(){AU.want=null;if(AU.cur&&AU.ctx){const old=AU.cur.bus;old.gain.setTargetAtTime(0,AU.ctx.currentTime,.6);setTimeout(()=>{try{old.disconnect();}catch(e){}},4000);}AU.cur=null;}
-function auTick(){
-  if(!AU.ctx||!AU.cur||AU.ctx.state!=='running')return;const c=AU.ctx;
-  if(AU.nextT<c.currentTime-.5)AU.nextT=c.currentTime+.05;
-  while(AU.nextT<c.currentTime+.3){musicStep(AU.cur,AU.step,AU.nextT);AU.nextT+=60/AU.cur.T.bpm/2;AU.step++;}
-}
-function musicStep(M,s,t){
-  const T=M.T,R=M.R,bus=M.bus,e=60/T.bpm/2,stepsPerChord=T.bars*8,ci=Math.floor(s/stepsPerChord)%T.prog.length,inC=s%stepsPerChord,ch=chordOf(T,T.prog[ci]);
-  // pad: a long chord at each change (an octave below the melody)
-  if(inC===0)for(const m of ch.slice(0,3))inst('pad',m-12,t,stepsPerChord*e,T.pad,bus);
-  // bass
-  const bp=T.bass.pat==='pulse'?[0,3,4,6]:[0,4];if(bp.includes(s%8))inst('bass',ch[0]-24+(s%8===6?7:0),t,e*(T.bass.pat==='pulse'?1.6:3.5),T.bass.v,bus);
-  // arpeggio
-  const ev=T.arp.every||1;if(s%ev===0){const k=T.arp.pat[(s/ev)%T.arp.pat.length],m=ch[k%4]+(k>=4?12:0);if(R()<.92)inst(T.arp.inst,m,t,e,T.arp.v*(s%8===0?1.2:1),bus);}
-  // melody: the motif plays in a 16-bar cycle (A A' B A), resting for the first phrase of each loop so the track breathes
-  const ph=Math.floor(s/16)%8,pos=s%16;if(ph>=2){const var_=ph===5?2:ph===4||ph===7?1:0;
-    for(const n of M.mot)if(n.i===pos){let d=n.d+(var_===2?2:0);if(var_===1&&R()<.4)d+=R()<.5?1:-1;let m=scaleNote(T,d)+12;
-      // strong beats lean towards chord tones
-      if(pos%4===0){const near=ch.map(x=>x+12*Math.round((m-x)/12)).sort((a,b)=>Math.abs(a-m)-Math.abs(b-m))[0];m=near;}
-      inst(T.mel.inst,m,t,n.len*e*.95,T.mel.v,bus);}}
-  // light percussion
-  if(T.perc){if(T.perc.k==='shaker'&&s%2===1)noise(bus,{t,len:.03,v:T.perc.v*(s%4===3?1.3:.8),type:'highpass',f:6000,r:.03});
-    if(T.perc.k==='tom'&&(s%8===0||s%8===5))voice(bus,{f:110,glide:55,t,len:.18,type:'sine',v:T.perc.v*4,a:.003,d:.1,sus:.2,r:.1});}
-}
+function musicStop(){AU.want=null;const o=AU.cur;if(o&&AU.ctx){o.g.gain.setTargetAtTime(0,AU.ctx.currentTime,.4);setTimeout(()=>{try{o.el.pause();}catch(e){}},2500);}AU.cur=null;}
+// jump back to the loop start just before the loop end (the file runs a second past it, so the jump is seamless)
+function auTick(){const M=AU.cur;if(!M||!M.T.a)return;const el=M.el,t=el.currentTime;if(t>=M.T.b-.02)el.currentTime=M.T.a+(t-M.T.b);}
 // which track to play right now
-function musicForRun(){if(!run)return'title';if(floorKind(run.floor)==='boss')return'guardian';
-  const a=actOf(),L=ACT_TRACKS[a%ACT_TRACKS.length],i=Math.min(L.length-1,Math.floor((run.floor-1)/5));return L[(i+(a>=ACT_TRACKS.length?a:0))%L.length];}
+function musicForRun(){if(!run)return'menu';const a=actOf();
+  if(floorKind(run.floor)==='boss')return a>=2?'dialga':'boss';
+  if(a>=ACT_TRACKS.length)return ENDLESS_TRACKS[(a*3+Math.floor((run.floor-1)/5))%ENDLESS_TRACKS.length];
+  return ACT_TRACKS[a][Math.min(2,Math.floor((run.floor-1)/5))];}
 
 /* ---------- sound effects ---------- */
 // rate limit so a busy battle doesn't turn into noise
