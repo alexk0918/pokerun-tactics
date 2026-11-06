@@ -1,10 +1,10 @@
 "use strict";
 /* PokéRun Tactics — controller support (standard gamepad mapping: Xbox-style layouts such as the AYN Thor).
-   Left stick moves a cursor, D-pad snaps between targets. A selects: press A on a Pokémon or item to pick it up and A again to place it
+   Left stick moves a visible cursor; the D-pad snaps between targets and hides the cursor (the target is highlighted instead). A selects: press A on a Pokémon or item to pick it up and A again to place it
    (holding A and dragging also works).
    B back / cancel · X reroll · Y level up · Start battle / open chest · Select menu · LB hide or show the shop · RB release Pokémon under cursor
    Right stick zooms (up/down) and pans (left/right) the board · R3 resets the zoom · L3 battle speed. Cursor speed and dead zone live in Settings › Gamepad. */
-const PAD={on:false,x:640,y:360,prev:[],aDown:false,downEl:null,lastMove:0,repeat:{},el:null,hint:null};
+const PAD={on:false,x:640,y:360,prev:[],aDown:false,downEl:null,lastMove:0,repeat:{},el:null,hint:null,cur:false};
 const BTN={A:0,B:1,X:2,Y:3,LB:4,RB:5,LT:6,RT:7,SELECT:8,START:9,L3:10,R3:11,UP:12,DOWN:13,LEFT:14,RIGHT:15};
 
 function padStageRect(){return stage.getBoundingClientRect();}
@@ -27,7 +27,8 @@ function padShow(on){
 let padHoverEl=null;
 function padHover(){const p=padClient();const el=document.elementFromPoint(p.x,p.y);const t=el&&el.closest?el.closest('[data-craft],button,.pick,.mode,.card,.srow,.slot:not(.empty),.trait,.mcard'):null;
   if(t===padHoverEl)return;if(padHoverEl)padHoverEl.classList.remove('padhover');padHoverEl=t;if(t)t.classList.add('padhover');}
-function padDraw(){PAD.el.style.left=PAD.x+'px';PAD.el.style.top=PAD.y+'px';PAD.el.classList.toggle('grab',PAD.aDown);}
+function padDraw(){PAD.el.style.left=PAD.x+'px';PAD.el.style.top=PAD.y+'px';PAD.el.classList.toggle('grab',PAD.aDown);let onCv=false;if(!PAD.cur){const p=padClient(),e=document.elementFromPoint(p.x,p.y);onCv=e===cv;}
+  PAD.el.classList.toggle('snap',!PAD.cur);PAD.el.style.visibility=PAD.cur||onCv?'':'hidden';}
 
 /* targets for D-pad snapping, in stage coordinates */
 function padTargets(){
@@ -52,6 +53,7 @@ function padSnap(dx,dy){
   for(const p of t){const vx=p.x-PAD.x,vy=p.y-PAD.y,d=Math.hypot(vx,vy);if(d<8)continue;
     const along=(vx*dx+vy*dy)/d;if(along<.5)continue;const perp=Math.abs(vx*dy-vy*dx);
     const sc=d+perp*2;if(sc<bs){bs=sc;best=p;}}
+  PAD.cur=false;
   if(best){PAD.x=best.x;PAD.y=best.y;padFire('pointermove');}
 }
 function padPressed(gp,i){const b=gp.buttons[i];return !!b&&(b.pressed||b.value>.5);}
@@ -78,11 +80,11 @@ function padPoll(dt){
   if(any&&!PAD.on)padShow(true);
   if(!PAD.on){PAD.prev=gp.buttons.map(b=>b.pressed);return;}
   // stick: analog cursor with acceleration
-  if(mag>DZ){const sp=(mag-DZ)/(1-DZ),v=(420+1100*sp*sp)*(OPTS.padSens||1);PAD.x=clamp(PAD.x+ax/mag*sp*v*dt,4,1276);PAD.y=clamp(PAD.y+ay/mag*sp*v*dt,4,716);
+  if(mag>DZ){const sp=(mag-DZ)/(1-DZ),v=(420+1100*sp*sp)*(OPTS.padSens||1);PAD.cur=true;PAD.x=clamp(PAD.x+ax/mag*sp*v*dt,4,1276);PAD.y=clamp(PAD.y+ay/mag*sp*v*dt,4,716);
     if(now-PAD.lastMove>30){PAD.lastMove=now;padFire('pointermove');}}
   // right stick: zoom (up/down) and pan (left/right) the board, or a fine cursor nudge if chosen in Settings
   const rx=gp.axes[2]||0,ry=gp.axes[3]||0;
-  if(OPTS.padRS==='fine'){if(Math.hypot(rx,ry)>.3){PAD.x=clamp(PAD.x+rx*220*(OPTS.padSens||1)*dt,4,1276);PAD.y=clamp(PAD.y+ry*220*(OPTS.padSens||1)*dt,4,716);padFire('pointermove');}}
+  if(OPTS.padRS==='fine'){if(Math.hypot(rx,ry)>.3){PAD.cur=true;PAD.x=clamp(PAD.x+rx*220*(OPTS.padSens||1)*dt,4,1276);PAD.y=clamp(PAD.y+ry*220*(OPTS.padSens||1)*dt,4,716);padFire('pointermove');}}
   else if($('pause').hidden&&!document.querySelector('#overlay .screen')){if(Math.abs(ry)>.3)camZoom(Math.exp(-(ry-Math.sign(ry)*.3)*1.2*(OPTS.zoomSpd||1)*dt));if(Math.abs(rx)>.3)camPan((rx-Math.sign(rx)*.3)*260*dt,0);}
   if(padRepeat(gp,BTN.UP,now))padSnap(0,-1);if(padRepeat(gp,BTN.DOWN,now))padSnap(0,1);
   if(padRepeat(gp,BTN.LEFT,now))padSnap(-1,0);if(padRepeat(gp,BTN.RIGHT,now))padSnap(1,0);

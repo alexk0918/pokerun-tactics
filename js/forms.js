@@ -44,7 +44,7 @@ function transform(c,fid,opt={}){
   const frac=c.hp/c.maxHp;c.maxHp*=R(0,.8);c.hp=c.maxHp*frac;
   c.atk*=R(1,.85);c.def*=R(2,.85);c.spa*=R(3,.85);c.res*=R(4,.85);c.as*=R(5,.5);
   const oldAb=kitOf(c.dex).ab,newAb=kitOf(fid).ab;c.dex=fid;
-  if(newAb&&(!oldAb||newAb.id!==oldAb.id))applyLiveAbility(c,newAb);
+  if(newAb&&!newAb.own&&(!oldAb||newAb.id!==oldAb.id))applyLiveAbility(c,newAb);
   if(!SIM.on){ensure(fid);burst(c.x,c.y-12,opt.col||'#ffffff',opt.big?36:22,opt.big?1.6:1.1);ring(c.x,c.y-8,opt.col||'#ffffff');
     if(opt.label)texts.push({x:c.x,y:c.y-40,txt:opt.label,col:opt.col||'#ffe27a',life:1.6,label:1});}
 }
@@ -66,7 +66,7 @@ const hasAb=(c,a)=>SPECIES_FORM_ABIL[baseOf(c.dex)]===a||(abilOf(c).includes(a)&
 function formsOnStart(c){
   const base=baseOf(c.dex);
   // held-item forms (canon: Primal Reversion, Origin Forme, Crowned, Therian, masks…)
-  for(const it of c.u.items||[]){const FI=it.k.startsWith('form:')&&FORM_ITEMS[it.k.slice(5)];if(!FI)continue;
+  for(const it of[...(c.u.items||[]),...(c.u.formItem?[{k:'form:'+c.u.formItem}]:[])]){const FI=it.k.startsWith('form:')&&FORM_ITEMS[it.k.slice(5)];if(!FI)continue;
     const fid=FI.forms.find(f=>FORMS[f].base===base);if(fid){transform(c,fid,{label:FORMS[fid].ident.includes('primal')?'Primal Reversion!':D[fid].n+'!',col:'#ffd34d',big:1});
       if(FORMS[fid].ident.includes('primal'))applyLiveAbility(c,{e:{weather:base===383?'sun':'rain'}});}}
   if(hasAb(c,'schooling')&&c.u.star>=1){const f=formOf(base,'battle');if(f)transform(c,f,{label:'Schooling!',col:'#8fd3ff'});}
@@ -96,7 +96,15 @@ function formsOnHp(c){
 function formsOnDisguiseBroken(c){if(baseOf(c.dex)===778){const f=formOf(778,'battle');if(f)transform(c,f,{label:'Its disguise was busted!',col:'#ffe27a'});}}
 function formsOnIceFace(c){if(baseOf(c.dex)===875){const f=formOf(875,'battle');if(f)transform(c,f,{label:'Ice Face melted!',col:'#c6f4ff'});}}
 function formsAfterBattle(u){if(baseOf(u.dex)===964&&(KITS[964].a||[]).includes('zero-to-hero')&&!u.hero){u.hero=1;if(!SIM.on)setTimeout(()=>toast('Palafin became Hero Palafin for the rest of the run!'),1400);}}
-const megaShown=u=>run&&run.gimmick==='mega'&&u.stone&&!u.megaOff&&typeof megaFor==='function'?megaFor(u.dex,u.stone):null;
+// gimmicks stack: every key item you've unlocked keeps working (run.gimmick is just the most recent one)
+const gimList=()=>run?(run.gimmicks&&run.gimmicks.length?[...new Set(run.gimmicks)]:(run.gimmick?[run.gimmick]:[])):[];
+const gimOn=g=>gimList().includes(g);
+// who uses each one-per-battle gimmick (older saves kept a single run.gimTarget for their one gimmick)
+function gimT(g){run.gimT=run.gimT||{};if(run.gimT[g]===undefined&&g===run.gimmick&&run.gimTarget)run.gimT[g]=run.gimTarget;return run.gimT[g]||0;}
+function setGimT(g,uid){run.gimT=run.gimT||{};gimT(g);for(const k in run.gimT)if(k!==g&&run.gimT[k]===uid)run.gimT[k]=0;run.gimT[g]=uid;}
+const ITEMG={stone:'mega',z:'zmove',shard:'tera',mush:'dmax'};
+const gimOfItem=it=>ITEMG[it.k.split(':')[1]];
+const megaShown=u=>run&&gimOn('mega')&&u.stone&&!u.megaOff&&typeof megaFor==='function'?megaFor(u.dex,u.stone):null;
 const shownDex=u=>{if(u.fuse)return u.fuse.fid;if(u.forme)return u.forme;const mg=megaShown(u);if(mg)return mg;if(u.hero){const f=formOf(baseOf(u.dex),'battle');if(f)return f;}if(u.app&&typeof rotomDex==='function')return rotomDex(u);return u.dex;};
 
 /* ---------- generation gimmicks ---------- */
@@ -130,6 +138,14 @@ const MUSH_MAX=10, GMAX_MUSH=3;
 /* gimmick items live in the bag as {k:'g:stone:charizardite-x'} / 'g:z:firium-z' / 'g:shard:Fire' / 'g:mush' and form items as {k:'form:red-orb'} */
 const isGim=it=>it.k.startsWith('g:');
 const isFormItem=it=>it.k.startsWith('form:');
+// form items (Red Orb, Griseous Orb, masks…) sit in their own slot like Mega Stones, so they never take one of the 3 item slots
+const formItemFits=(it,u)=>{const FI=FORM_ITEMS[it.k.slice(5)];return!!FI&&MODE.lines[u.root]&&MODE.lines[u.root].mem.some(m=>FI.forms.some(f=>FORMS[f].base===m));};
+function equipFormItem(bi,u){const it=run.bag[bi];
+  if(!formItemFits(it,u)){toast(`${nameOf(u)} can't use the ${formItemDef(it).n}.`);return false;}
+  run.bag.splice(bi,1);if(u.formItem)run.bag.push({k:'form:'+u.formItem,mut:[]});u.formItem=it.k.slice(5);
+  if(!SIM.on)toast(`${nameOf(u)} is holding the ${formItemDef(it).n}. It doesn't use an item slot.`);renderUI();return true;}
+// older saves kept form items in the normal item slots
+function migrateFormItems(){if(!run)return;run.bag=run.bag.filter(i=>!(typeof i.k==='string'&&i.k.startsWith('gear:')&&!GEAR[i.k.slice(5)]));for(const u of allOwned())u.items=(u.items||[]).filter(i=>!(typeof i.k==='string'&&i.k.startsWith('gear:')&&!GEAR[i.k.slice(5)]));for(const u of allOwned()){const j=(u.items||[]).findIndex(isFormItem);if(j>=0&&!u.formItem){u.formItem=u.items[j].k.slice(5);u.items.splice(j,1);}}}
 function gimDef(it){
   const p=it.k.split(':');
   if(p[1]==='stone'){const fids=Object.keys(FORMS).filter(f=>FORMS[f].item===p[2]);const f=FORMS[fids[0]];return{id:p[2],n:f?f.itemName:p[2],d:`Mega Stone. Lets ${fids.map(x=>D[FORMS[x].base].n).join(' / ')} Mega Evolve into ${fids.map(x=>D[x].n).join(' / ')}.`};}
@@ -142,8 +158,8 @@ function formItemDef(it){const FI=FORM_ITEMS[it.k.slice(5)];return FI?{id:FI.id,
 
 const megaFor=(dex,stone)=>(FORMS_BY_BASE[baseOf(dex)]||[]).find(f=>FORMS[f].kind==='mega'&&FORMS[f].item===stone);
 const gmaxFor=dex=>formOf(baseOf(dex),'gmax');
-function gimEligible(u){
-  const g=run.gimmick;if(!g)return false;
+function gimEligible(u,g){
+  if(!g)return gimList().some(x=>gimEligible(u,x));if(!gimOn(g))return false;
   if(g==='mega')return !!(u.stone&&megaFor(u.dex,u.stone));
   if(g==='zmove')return !!(u.crystal&&ZTYPE[u.crystal]===kitOf(u.dex).mv.t&&kitOf(u.dex).type!=='tank');
   if(g==='dmax')return true;
@@ -155,41 +171,45 @@ function equipGim(bi,u){
   if(p[1]==='mush'){if((u.mush||0)>=MUSH_MAX){toast(`${nameOf(u)} is already at Dynamax Level ${MUSH_MAX}.`);return false;}
     u.mush=(u.mush||0)+1;run.bag.splice(bi,1);
     if(u.mush>=GMAX_MUSH&&gmaxFor(u.dex)&&!u.gmax){u.gmax=1;if(!SIM.on)toast(`${nameOf(u)} drank Max Soup and gained the Gigantamax factor!`);}else if(!SIM.on)toast(`${nameOf(u)} is now Dynamax Level ${u.mush}.`);
+    if(!gimT('dmax')||!allOwned().some(o=>o.uid===gimT('dmax')))setGimT('dmax',u.uid);
     renderUI();return true;}
   const slot=p[1]==='stone'?'stone':p[1]==='z'?'crystal':'shard',val=p[1]==='shard'?p[2]:p[2];
   if(slot==='stone'&&!(FORMS_BY_BASE[baseOf(u.dex)]||[]).some(f=>FORMS[f].kind==='mega'&&FORMS[f].item===val)&&!lineHasMega(u.root,val)){toast(`${nameOf(u)} can't use that Mega Stone.`);return false;}
   run.bag.splice(bi,1);
   if(u[slot])run.bag.push({k:`g:${p[1]}:${p[1]==='shard'?u[slot]:u[slot]}`,mut:[]});
   u[slot]=val;
-  if(!run.gimTarget||!allOwned().some(o=>o.uid===run.gimTarget))if(gimEligible(u))run.gimTarget=u.uid;
-  if(slot==='stone'&&run.gimmick==='mega'&&megaFor(u.dex,val)){u.megaOff=false;const fid=megaFor(u.dex,val);if(!SIM.on){ensure(fid);toast(`${nameOf(u)} Mega Evolved into ${D[fid].n}!`);const p=locate(u);if(p)['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach((col,i)=>{burst(p.x,p.y-12,col,10,1.4);schedule&&ring(p.x,p.y-8,col);});}}
+  {const g=ITEMG[p[1]];if(g!=='mega'&&(!gimT(g)||!allOwned().some(o=>o.uid===gimT(g)))&&gimEligible(u,g))setGimT(g,u.uid);}
+  if(slot==='stone'&&gimOn('mega')&&megaFor(u.dex,val)){u.megaOff=false;const fid=megaFor(u.dex,val);if(!SIM.on){ensure(fid);toast(`${nameOf(u)} Mega Evolved into ${D[fid].n}!`);const p=locate(u);if(p)['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach((col,i)=>{burst(p.x,p.y-12,col,10,1.4);schedule&&ring(p.x,p.y-8,col);});}}
   else if(!SIM.on)toast(`${nameOf(u)} is holding the ${gimDef(it).n}.`);renderUI();return true;
 }
 const lineHasMega=(root,stone)=>MODE.lines[root]&&MODE.lines[root].mem.some(m=>(FORMS_BY_BASE[m]||[]).some(f=>FORMS[f].kind==='mega'&&FORMS[f].item===stone));
 function ownedMegaStones(){const out=new Set();for(const u of allOwned())for(const m of MODE.lines[u.root].mem)for(const f of FORMS_BY_BASE[m]||[])if(FORMS[f].kind==='mega')out.add(FORMS[f].item);return[...out];}
 function ownedFormItems(){const out=new Set();for(const u of allOwned())for(const m of MODE.lines[u.root].mem)for(const f of FORMS_BY_BASE[m]||[])if(FORMS[f].kind==='item')out.add(FORMS[f].item);return[...out];}
-function gimLootItem(){
-  const g=run.gimmick;
+function gimLootItem(only){
+  if(!only){for(const g of shuffle(gimList())){const it=gimLootItem(g);if(it)return it;}return null;}
+  const g=only;
   if(g==='mega'){const have=new Set([...allOwned().map(u=>u.stone),...run.bag.filter(isGim).map(i=>i.k.split(':')[2])]);const opts=ownedMegaStones().filter(s=>!have.has(s));return opts.length?{k:'g:stone:'+pick(opts),mut:[]}:null;}
   if(g==='zmove'){const ts=[...new Set(allOwned().map(u=>kitOf(u.dex).mv.t))];return{k:'g:z:'+ZCRYSTAL[Math.random()<.75&&ts.length?pick(ts):pick(Object.keys(ZCRYSTAL))],mut:[]};}
   if(g==='dmax')return{k:'g:mush',mut:[]};
   if(g==='tera'){const ts=[...new Set(allOwned().flatMap(u=>D[u.dex].t))];return{k:'g:shard:'+(Math.random()<.5&&ts.length?pick(ts):pick(Object.keys(TYPES))),mut:[]};}
   return null;
 }
-function gimStarterGift(){
-  const g=run.gimmick,own=allOwned();
+function gimStarterGift(g){
+  const own=allOwned();
   if(g==='mega'){const s=ownedMegaStones();if(s.length)run.bag.push({k:'g:stone:'+pick(s),mut:[]});else run.megaPity=1;}
   if(g==='zmove'){const best=own.sort((a,b)=>lineOf(b).cost*b.star-lineOf(a).cost*a.star)[0];run.bag.push({k:'g:z:'+ZCRYSTAL[best?kitOf(best.dex).mv.t:'Normal'],mut:[]});}
   if(g==='dmax')for(let i=0;i<3;i++)run.bag.push({k:'g:mush',mut:[]});
   if(g==='tera'){const ct={};for(const u of own)for(const t of D[u.dex].t)ct[t]=(ct[t]||0)+1;const t=Object.keys(ct).sort((a,b)=>ct[b]-ct[a])[0]||'Normal';run.bag.push({k:'g:shard:'+t,mut:[]});}
 }
-function chooseGimmick(id){run.gimmick=id;(run.gimmicks=run.gimmicks||[]).push(id);gimStarterGift();renderUI();}
+function chooseGimmick(id){if(run.gimmick&&!(run.gimmicks||[]).length)run.gimmicks=[run.gimmick];run.gimmick=id;run.gimmicks=run.gimmicks||[];if(!run.gimmicks.includes(id))run.gimmicks.push(id);gimStarterGift(id);renderUI();}
 
 /* ---------- applying a gimmick in battle ---------- */
 function applyGimmicks(){
   // Mega Evolution has no cap: every Pokémon holding its Mega Stone (and not switched off in its menu) Mega Evolves
-  if(run.gimmick==='mega'){for(const c of units.filter(c=>c.team===0&&!c.u.megaOff&&gimEligible(c.u)))startGimmick(c,'mega',{});}
-  else if(run.gimmick){const cap=units.find(c=>c.team===0&&c.u.uid===run.gimTarget);if(cap&&gimEligible(cap.u))startGimmick(cap,run.gimmick,{mush:cap.u.mush||0,gmax:cap.u.gmax});}
+  // the others each power one Pokémon per battle; a Pokémon only uses one gimmick at a time
+  const used=new Set();
+  if(gimOn('mega'))for(const c of units.filter(c=>c.team===0&&!c.u.megaOff&&gimEligible(c.u,'mega'))){used.add(c);startGimmick(c,'mega',{});}
+  for(const g of gimList()){if(g==='mega')continue;const cap=units.find(c=>c.team===0&&!c.summon&&c.u.uid===gimT(g));if(cap&&!used.has(cap)&&gimEligible(cap.u,g)){used.add(cap);startGimmick(cap,g,{mush:cap.u.mush||0,gmax:cap.u.gmax});}}
   // rivals, late trainers and the boss bring a gimmick of their own
   const f=run.floor,k=floorKind(f);
   if(k==='elite'||k==='boss'||(k==='trainer'&&f>=13&&Math.random()<.35)){

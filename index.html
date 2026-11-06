@@ -97,6 +97,11 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
 #shop{position:absolute;left:14px;right:14px;bottom:10px;height:130px;display:flex;gap:12px;padding:10px 12px;align-items:stretch;}
 #shop.sell{background:#ffe9e4;}
 #shop .side{width:150px;display:flex;flex-direction:column;gap:8px;justify-content:center;}
+#shop .rrow{display:flex;gap:6px;}#shop .rrow #reroll{flex:1;min-width:0;}
+#shoplock{width:34px;padding:0;display:grid;place-items:center;flex:none;}#shoplock svg{width:18px;height:18px;}
+#shoplock[aria-pressed="false"] #lockarc{d:path("M8 11V8a4 4 0 0 1 7.6-1.7");}
+#shoplock[aria-pressed="true"]{background:var(--gold);}
+#shop.locked .cards{outline:3px solid var(--gold);outline-offset:2px;border-radius:8px;}
 .btn{font-family:var(--display);font-size:16px;border:3px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 0 var(--ink);position:relative;}
 .btn:hover:not(:disabled){background:#fff8d6;}
 .btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--ink);}
@@ -286,6 +291,10 @@ body{background:var(--night);color:var(--paper);overflow:hidden;font-family:var(
 #padcursor{position:absolute;left:0;top:0;width:28px;height:28px;z-index:60;pointer-events:none;transform:translate(-4px,-2px);filter:drop-shadow(0 2px 0 #0007);transition:transform .08s;}
 #padcursor.grab{transform:translate(-4px,-2px) scale(.85);}
 #padcursor svg{width:100%;height:100%;}
+#padcursor.snap{width:44px;height:44px;transform:translate(-50%,-50%);border:3px solid var(--gold);border-radius:50%;box-shadow:0 0 0 2px #24303d,inset 0 0 0 2px #24303d;filter:none;animation:padpulse 1s ease-in-out infinite;}
+#padcursor.snap.grab{transform:translate(-50%,-50%) scale(.8);}
+#padcursor.snap svg{display:none;}
+@keyframes padpulse{50%{opacity:.55}}
 body.pad .btn:hover:not(:disabled)::before{display:none;}
 #tip .ladder{font-size:16px;color:var(--muted);margin-top:4px;}
 #tip .ladder b{color:var(--ink);}
@@ -304,6 +313,13 @@ body,button{-webkit-font-smoothing:none;font-smooth:never;}
 .card .info{gap:2px;}
 .trait .hex .in{font-size:16px;}
 #tip{font-size:16px;line-height:1.2;}
+#tip .roster{margin-top:8px;padding-top:6px;border-top:2px dashed #c9d2c4;}#tip .roster .lbl{margin-bottom:4px;}
+#tip .rgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;}
+#tip .rp{position:relative;display:block;aspect-ratio:1;border:2px solid #9aa39a;border-radius:4px;background:#e8efe2;overflow:hidden;}
+#tip .rp img{width:100%;height:100%;image-rendering:pixelated;display:block;filter:grayscale(1) brightness(1.1);opacity:.4;}
+#tip .rp.on img{filter:none;opacity:1;}#tip .rp.bench img{filter:none;opacity:.7;}
+#tip .rp.on.c1,#tip .rp.bench.c1{border-color:#c42f2c;}#tip .rp.on.c2,#tip .rp.bench.c2{border-color:#2d62b8;}#tip .rp.on.c3,#tip .rp.bench.c3{border-color:#1e1e22;}#tip .rp.on.c4,#tip .rp.bench.c4{border-color:#3f6e3a;}#tip .rp.on.c5,#tip .rp.bench.c5{border-color:#7a35c0;}
+#tip .rp.bench{border-style:dashed;}
 #tip .stats b{font-size:24px;}
 .screen.title{gap:22px;}
 .menu-row{display:flex;gap:18px;align-items:flex-start;}
@@ -644,7 +660,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
     <div class="oddstab" id="odds" aria-label="Shop odds"></div>
     <div class="side">
       <button class="btn sm" id="buyxp">Level up <span class="lbl" style="color:inherit">₽4</span></button>
-      <button class="btn sm" id="reroll">Reroll <span class="lbl" style="color:inherit" id="rerollcost">₽2</span></button>
+      <div class="rrow"><button class="btn sm" id="reroll">Reroll <span class="lbl" style="color:inherit" id="rerollcost">₽2</span></button><button class="btn sm" id="shoplock" aria-pressed="false" title="Lock the shop (L): it won't refresh next floor" aria-label="Lock the shop"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path id="lockarc" d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.6"/></svg></button></div>
       <button class="btn go" id="fight">Battle!</button>
     </div>
   </div>

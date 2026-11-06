@@ -26,8 +26,11 @@ function buildMode(id,unspr=OPTS.unsprited){
   else{S=new Set();for(const r of ROOTS){const f=fam(r);if(f.some(i=>D[i].g===gen&&(!(D[i].rf||D[i].af)||i===r)))f.filter(i=>D[i].g<=gen).forEach(i=>S.add(i));}
     // trait sets must be completable: if this generation has too few lines for a trait's top breakpoint, guest lines join from the nearest generations
     const need=traitNeed(),inS=r=>fam(r).some(i=>S.has(i));
-    for(const t in need){const rootIn=i=>S.has(i)&&!(D[i].f&&S.has(D[i].f)),have=[...S].filter(i=>rootIn(i)&&(TRAITS[i]||[]).includes(t)).length;if(have>=need[t])continue;
-      const cand=shuffle(ROOTS.filter(r=>!inS(r)&&fam(r).length&&(TRAITS[r]||[]).includes(t)&&!fam(r).some(i=>D[i].L||D[i].M))).sort((a,b)=>Math.abs(D[a].g-gen)-Math.abs(D[b].g-gen));
+    const lineHas=(r,t)=>fam(r).some(i=>originOf(i)===t);
+    for(const t in need){const rootIn=i=>S.has(i)&&!(D[i].f&&S.has(D[i].f)),have=[...S].filter(i=>rootIn(i)&&lineHas(i,t)).length;if(have>=need[t])continue;
+      // a set this generation has no lines for simply doesn't appear in it; the others get topped up from the nearest generations
+      if(!have)continue;
+      const cand=shuffle(ROOTS.filter(r=>!inS(r)&&fam(r).length&&lineHas(r,t)&&!fam(r).some(i=>D[i].L||D[i].M))).sort((a,b)=>Math.abs(D[a].g-gen)-Math.abs(D[b].g-gen));
       for(const r of cand.slice(0,need[t]-have))fam(r).forEach(i=>{if(!S.has(i))guestDex.add(i);S.add(i);});}}
   const kids=i=>(KIDS[i]||[]).filter(k=>S.has(k));
   const sub=i=>{const o=[i];for(const k of kids(i))o.push(...sub(k));return o;};
@@ -44,6 +47,9 @@ function buildMode(id,unspr=OPTS.unsprited){
   for(const r of roots)if(lines[r].leg)lines[r].cost=5;
   const byCost=[1,2,3,4,5].map(c=>roots.filter(r=>lines[r].cost===c));const byCostAll=byCost.map(l=>[...l]);
   const starGen=gen||1+Math.floor(Math.random()*9);
+  // kinship sets only go as high as the members this mode has (three Eeveelutions in Gen I, so it tops out at 3)
+  {const all=new Set(roots.flatMap(r=>lines[r].mem));for(const k in KIN){const S0=SETS[k];if(!S0)continue;S0.bp0=S0.bp0||S0.bp.slice();
+    const n=gen?KIN[k].filter(d=>all.has(d)).length:KIN[k].length;S0.bp=S0.bp0.filter((b,i)=>!i||b<=n);}}
   return{id,gen,unspr:!!unspr,guestDex,S,kids,roots,lines,byCost,byCostAll,starGen,label:gen?`Gen ${ROMAN[gen-1]}`:'National',region:gen?REGIONS[gen-1]:'National Dex'};
 }
 function depth(i,kids){return 1+Math.max(0,...kids(i).map(k=>depth(k,kids)));}
@@ -58,14 +64,22 @@ const FALLBACK_MOVE={n:'Tackle',t:'Normal',p:40,c:2,tg:10,acc:100,prio:0,st:[],i
 // the stage a line grows into: the only evolution, or the first one when every branch keeps the same primary type
 function nextStage(d){const k=KIDS[d];if(!k||!k.length)return d;if(k.length===1)return k[0];const t=D[d].t[0];return k.every(x=>D[x].t[0]===t)?k[0]:d;}
 function ancestors(dex){const a=[];let d=dex;while(d){a.push(d);d=D[d].f;}return a;}
-function stylesOf(dex,abs){
-  const out=[],anc=ancestors(dex);
-  if(anc.some(a=>PARTNER_IDS.includes(a)))out.push('Partner');
-  if(anc.some(a=>FOSSIL_IDS.includes(a)))out.push('Fossil');
-  if(anc.some(a=>PSEUDO_IDS.includes(a)))out.push('Pseudo');
-  for(const a of abs){if(out.length>=2)break;for(const st in STYLE_ABIL)if(STYLE_ABIL[st].includes(a)&&!out.includes(st)){out.push(st);break;}}
-  const o=out.slice(0,2);for(const k in KIN)if(KIN[k].includes(dex))o.push(k);for(const t of TRAITS[dex]||[])if(!o.includes(t))o.push(t);return o;
+// a Pokémon's one non-type, non-class set: kinship groups first, then lineage (Partner, Fossil, Pseudo),
+// then whichever trait or weather/Intimidator ability comes first in ORIGIN_ORDER, judged on the line's final form
+// so the whole line shares it
+const ORIGINC={};
+function originOf(dex){
+  if(ORIGINC[dex]!==undefined)return ORIGINC[dex];
+  let o=null;for(const k in KIN)if(KIN[k].includes(dex)){o=k;break;}
+  if(!o){const base=D[dex].form?D[dex].base:dex;let fin=base;while((KIDS[fin]||[]).length)fin=KIDS[fin][0];
+    const anc=ancestors(base),abs=[...new Set([...((KITS[fin]||{}).a||[]),...((KITS[base]||{}).a||[])])];
+    const c=new Set(TRAITS[base]||[]);
+    if(anc.some(a=>PARTNER_IDS.includes(a)))c.add('Partner');if(anc.some(a=>FOSSIL_IDS.includes(a)))c.add('Fossil');if(anc.some(a=>PSEUDO_IDS.includes(a)))c.add('Pseudo');
+    for(const st in STYLE_ABIL)if(STYLE_ABIL[st].some(a=>abs.includes(a)))c.add(st);
+    o=ORIGIN_ORDER.find(k=>c.has(k)&&SETS[k])||null;}
+  return ORIGINC[dex]=o;
 }
+function stylesOf(dex){const o=originOf(dex);return o?[o]:[];}
 function kitOf(dex){
   if(KITCACHE[dex])return KITCACHE[dex];
   // A line keeps one play style: unbranched lines use their final form's stats to decide the kit
@@ -89,8 +103,19 @@ function kitOf(dex){
   const range=type==='heal'?2:(cat==='spec'&&(type==='cast'))?3:1;
   const abs=k.a||[],abId=abs.find(a=>typeof FORM_ABIL!=='undefined'&&FORM_ABIL[a])||abs.find(a=>ABILITIES[a]&&ABILITIES[a].d);
   const mana=type==='cast'?clamp(Math.round(55+(mv.p||60)*hits*.25),60,100):type==='heal'?80:type==='guard'?85:0;
-  return KITCACHE[dex]=applySig({type,cls,mv,hm,gm,hits,aoe,cat,range,mana,ladder:moveLine(dex),start:mv.prio>0?35:type==='guard'?25:10,
-    ab:abId?{id:abId,n:ABNAME[abId]||abId,d:ABILITIES[abId].d,e:ABILITIES[abId].e}:null,styles:stylesOf(dex,k.a||[])},dex);
+  return KITCACHE[dex]=sigAbility(applySig({type,cls,mv,hm,gm,hits,aoe,cat,range,mana,ladder:moveLine(dex),start:mv.prio>0?35:type==='guard'?25:10,
+    ab:abId?{id:abId,n:ABNAME[abId]||abId,d:ABILITIES[abId].d,e:ABILITIES[abId].e}:null,styles:stylesOf(dex)},dex));
+}
+/* A signature kit that names its ability in its own text implements that ability itself (often with its own numbers),
+   so the generic ability isn't applied on top of it and the tooltip shows it once.
+   A few kits only mention the ability and rely on the generic effect: their sentence is dropped instead (ABIL_MENTION),
+   and a few describe a different side of it, so both stay (ABIL_BOTH). */
+const ABIL_MENTION=[237,596,802,10169,10170],ABIL_BOTH=[289,964,10114];
+function sigAbility(K){
+  if(!K.sig||!K.ab)return K;const S=K.sig;if(S.ids.some(x=>ABIL_BOTH.includes(x)))return K;
+  let t='';try{t=(S.lead||'')+' '+(S.tail?S.tail({star:1,u:{star:1,items:[]},dex:S.ids[0],maxHp:1000,atk:100,spa:100,def:50,res:50,fx:{}},K.si):'');}catch(e){}
+  if(!t.toLowerCase().includes('<b>'+K.ab.n.toLowerCase()))return K;
+  K.ab=Object.assign({},K.ab,S.ids.some(x=>ABIL_MENTION.includes(x))?{strip:1}:{own:1});return K;
 }
 function moveLine(dex){if(!KITS[dex]||!KITS[dex].lad)return null;
   const up=ancestors(dex).reverse();let d=dex;const down=[];while(nextStage(d)!==d){d=nextStage(d);down.push(d);}
@@ -281,10 +306,15 @@ const SIM={on:false}; // headless balancing mode: skips timers and UI
 
 const NATPOOL=[22,26,24,16,12];
 // trait sets need one more line in the pool than their top breakpoint
-function traitNeed(){const o={};for(const k in SETS)if(SETS[k].trait)o[k]=SETS[k].bp[SETS[k].bp.length-1]+1;return o;}
+// every trait set needs as many lines in the pool as its top breakpoint, so it can always be maxed
+function traitNeed(){const o={};for(const k in SETS)if(SETS[k].cat==='style'&&!SETS[k].kin)o[k]=SETS[k].bp[SETS[k].bp.length-1];return o;}
 function samplePool(keep=[]){if(MODE.gen)return;MODE.byCost=MODE.byCostAll.map((l,i)=>shuffle(l).slice(0,NATPOOL[i]));
-  {const need=traitNeed(),inPool=new Set(MODE.byCost.flat());for(const t in need){let have=[...inPool].filter(r=>setsOf(r,r).includes(t)).length;
-    for(const r of shuffle(MODE.roots.filter(r=>!inPool.has(r)&&MODE.lines[r].cost<=4&&setsOf(r,r).includes(t)))){if(have>=need[t])break;MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}for(const r of keep){const c=MODE.lines[r].cost-1;if(!MODE.byCost[c].includes(r))MODE.byCost[c].push(r);}}
+  {const need=traitNeed(),inPool=new Set(MODE.byCost.flat());for(const t in need){let have=[...inPool].filter(r=>lineSets(r).includes(t)).length;
+    for(const r of shuffle(MODE.roots.filter(r=>!inPool.has(r)&&MODE.lines[r].cost<=4&&lineSets(r).includes(t)))){if(have>=need[t])break;MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}for(const r of keep){const c=MODE.lines[r].cost-1;if(!MODE.byCost[c].includes(r))MODE.byCost[c].push(r);}
+  // kinship groups come as a set: if one member's line made the pool, the rest of the group joins it so the set can be finished
+  {const inPool=new Set(MODE.byCost.flat());for(const k in KIN){const rs=[...new Set(MODE.roots.filter(r=>MODE.lines[r].mem.some(d=>KIN[k].includes(d))))];
+    if(!rs.some(r=>inPool.has(r)))continue;const top=(SETS[k].bp0||SETS[k].bp).slice(-1)[0];let have=rs.filter(r=>inPool.has(r)).length;
+    for(const r of shuffle(rs))if(have<top&&!inPool.has(r)){MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}}
 function newRun(strat,keep=[]){
   samplePool(keep);
   const tidal=strat.id==='tidal';
@@ -346,7 +376,7 @@ const bondOf=u=>{const s=STARTER_SLOT[u.root];return s===undefined?null:BOND[s];
 const growthOf=u=>{const L=MODE.lines[u.root];if(!L)return null;return GROWTH.find(g=>L.mem.some(i=>g.ids.includes(i)))||null;};
 
 /* ---------- sets ---------- */
-function setsOf(dex,root){const K=kitOf(dex),out=[...D[dex].t,K.cls,...K.styles];if(!MODE.gen&&MODE.lines[root])out.push(REGIONS[MODE.lines[root].region]);return out;}
+function setsOf(dex,root){const K=kitOf(dex);return[...D[dex].t,K.cls,...K.styles];}
 function lineSets(root){MODE.lsCache=MODE.lsCache||{};if(!MODE.lsCache[root]){const s=new Set();for(const d of MODE.lines[root].mem)for(const k of setsOf(d,root))s.add(k);MODE.lsCache[root]=[...s];}return MODE.lsCache[root];}
 function unitSets(u){const s=setsOf(shownDex(u),u.root);for(const it of u.items||[])if(isPlate(it)&&!s.includes(plateType(it)))s.push(plateType(it));if(u.shard&&!s.includes(u.shard))s.push(u.shard);return s;}
 // enemies keep their types, classes, styles and regions, but not the Pokédex trait sets (Titans, Fox Spirits…)
@@ -356,7 +386,7 @@ const ENEMY_HP={base:0,per:.004};
 const enemyHpMul=()=>run?1+ENEMY_HP.base+ENEMY_HP.per*Math.max(0,effFloor(run.floor)-1):1;
 function countTraits(list){const seen=new Set(),ct={};
   for(const u of list){if(seen.has(u.root))continue;seen.add(u.root);for(const k of unitSets(u))ct[k]=(ct[k]||0)+1;
-    if(run&&run.gimmick==='tera'&&u.shard&&u.uid===run.gimTarget)ct[u.shard]=(ct[u.shard]||0)+1;}
+    if(run&&gimOn('tera')&&u.shard&&u.uid===gimT('tera'))ct[u.shard]=(ct[u.shard]||0)+1;}
   // kinship sets count different members (forms) rather than lines
   for(const k in KIN){const seen=new Set();for(const u of list)for(const d of kinDex(u))if(KIN[k].includes(d))seen.add(d);if(seen.size)ct[k]=seen.size;}
   if(run&&list.length&&list.some(u=>u&&u.uid!==undefined&&allOwned().includes(u)))augSetBonus(ct);
@@ -406,19 +436,25 @@ const maxCostAt=lv=>{const o=LVODDS[clamp(lv,2,MAXLV)];let c=1;o.forEach((p,i)=>
 function rollCostFor(odds){let x=Math.random(),c=0;while(c<4&&x>=odds[c]){x-=odds[c];c++;}
   // an empty pool falls back to the nearest cost this level can actually roll
   for(let d=0;d<5;d++){for(const cc of[c-d,c+d])if(cc>=0&&cc<5&&odds[cc]>0&&MODE.byCost[cc].length)return cc+1;}return 1;}
+// once you own a 3★ of a line it stops showing up in the shop (it can't go any higher)
+function maxedRoots(){return new Set(allOwned().filter(u=>u.star>=3).map(u=>u.root));}
+function shopPool(cost){const all=MODE.byCost[cost-1],mx=maxedRoots();if(!mx.size)return all;const p=all.filter(r=>!mx.has(r));return p.length?p:all;}
 function rollShop(first){
   const o=LVODDS[run.level],sc=first?{focus:[],p:0}:scoutState();
   run.shop=[];run.scouted=[];let hit=false;
   for(let i=0;i<5;i++){let cost=rollCostFor(o),r=null;
     if(sc.focus.length&&Math.random()<sc.p){
       const costs=[cost,...[1,2,3,4,5].filter(c=>c!==cost&&o[c-1]>0).sort((a,b)=>Math.abs(a-cost)-Math.abs(b-cost))];
-      for(const c of costs){const cand=MODE.byCost[c-1].filter(x=>lineSets(x).some(k=>sc.focus.includes(k)));if(cand.length){r=scoutPick(cand,sc.focus);break;}}
+      for(const c of costs){const cand=shopPool(c).filter(x=>lineSets(x).some(k=>sc.focus.includes(k)));if(cand.length){r=scoutPick(cand,sc.focus);break;}}
       if(r){run.scouted[i]=true;hit=true;}}
-    run.shop.push(r||pick(MODE.byCost[cost-1]));}
+    run.shop.push(r||pick(shopPool(cost)));}
   if(first)run.shop[0]=run.featured[0];
   if(sc.focus.length)run.pity=hit?0:(run.pity||0)+1;
   if(!SIM.on)preload(run.shop,2000);
 }
+// a locked shop keeps its offers through the next floors until you unlock it (TFT-style)
+function autoShop(first){if(!first&&run.shopLock&&run.shop&&run.shop.some(Boolean))return;rollShop(first);}
+function toggleLock(){if(!run)return;run.shopLock=!run.shopLock;if(!SIM.on)toast(run.shopLock?'Shop locked: it keeps these Pokémon next floor.':'Shop unlocked.');renderUI();}
 function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{const c=rerollCost();if(run.gold<c)return false;run.gold-=c;}rollShop(false);renderUI();return true;}
 function buy(i){
   const root=run.shop[i];if(!root||mode!=='plan')return false;const L=MODE.lines[root];
@@ -427,10 +463,12 @@ function buy(i){
   const slot=run.bench.indexOf(null);
   if(slot<0&&copies<2){toast('Your bench is full. Release a Pokémon first.');return false;}
   run.gold-=L.cost;run.shop[i]=null;const u=mkUnit(root);if(!SIM.on)ensure(root);
-  if(slot>=0)run.bench[slot]=u;else{const v=run.bench.findIndex(b=>b&&b.dex===root&&b.star===1);run.bench[v]=u;}
-  combine();renderUI();return true;
+  if(slot>=0)run.bench[slot]=u;else run.bench.push(u); // full bench: it waits in an overflow slot and combines straight away
+  combine();benchFix();renderUI();return true;
 }
-function addCopy(root){const slot=run.bench.indexOf(null);if(slot<0)return false;run.bench[slot]=mkUnit(root);if(!SIM.on)ensure(root);combine();return true;}
+// put anything left in the overflow slot back into a free slot (sold if there's truly no room)
+function benchFix(){while(run.bench.length>BENCH_N){const x=run.bench.pop();if(!x)continue;const j=run.bench.indexOf(null);if(j>=0)run.bench[j]=x;else{run.gold+=sellValue(x);for(const it of x.items)run.bag.push(it);}}}
+function addCopy(root){const slot=run.bench.indexOf(null);if(slot<0&&allOwned().filter(u=>u.dex===root&&u.star===1).length<2)return false;const u=mkUnit(root);if(slot>=0)run.bench[slot]=u;else run.bench.push(u);if(!SIM.on)ensure(root);combine();benchFix();return true;}
 function locate(u){for(const[k,v]of Object.entries(run.board))if(v===u){const[c,r]=k.split(',').map(Number);return{kind:'board',c,r,...hexXY(c,r)};}
   const i=run.bench.indexOf(u);if(i>=0)return{kind:'bench',i,...benchXY(i)};return null;}
 function removeUnit(u){for(const k in run.board)if(run.board[k]===u)delete run.board[k];const i=run.bench.indexOf(u);if(i>=0)run.bench[i]=null;}
@@ -441,7 +479,7 @@ function combine(){
     for(const k in groups){const list=groups[k];if(list.length<3)continue;
       const ordered=list.sort((a,b)=>(locate(a).kind==='board'?0:1)-(locate(b).kind==='board'?0:1)||b.items.length-a.items.length);
       const keep=ordered[0];
-      for(const o of[ordered[1],ordered[2]]){removeUnit(o);if(o.fuse){if(!keep.fuse)keep.fuse=o.fuse;else returnPartner(o.fuse.p);}if(o.forme&&!keep.forme)keep.forme=o.forme;if(o.formeAsked)keep.formeAsked=1;
+      for(const o of[ordered[1],ordered[2]]){removeUnit(o);if(o.fuse){if(!keep.fuse)keep.fuse=o.fuse;else returnPartner(o.fuse.p);}if(o.forme&&!keep.forme)keep.forme=o.forme;for(const g of['stone','crystal','shard','formItem'])if(o[g]){if(!keep[g])keep[g]=o[g];else run.bag.push({k:g==='formItem'?'form:'+o[g]:`g:${{stone:'stone',crystal:'z',shard:'shard'}[g]}:${o[g]}`,mut:[]});}if(o.formeAsked)keep.formeAsked=1;
         for(const it of o.items)if(keep.items.length<3)equipRaw(it,keep);else run.bag.push(it);
         for(const s in o.g)keep.g[s]=(keep.g[s]||0)+o.g[s];keep.gs+=o.gs;if(o.mut&&!keep.mut)keep.mut=o.mut;keep.mgs=Math.max(keep.mgs||0,o.mgs||0);}
       keep.star++;
@@ -456,20 +494,23 @@ function evolveStep(u){
   else if(!SIM.on)toast(`${before} is now ${u.star}★!`);
 }
 function sellValue(u){return lineOf(u).cost*Math.pow(3,u.star-1)-(u.star>1?1:0);}
-function sell(u){run.gold+=sellValue(u);if(u.fuse){returnPartner(u.fuse.p);u.fuse=null;}removeUnit(u);for(const it of u.items)run.bag.push(it);if(u.items.length&&!SIM.on)toast(`${nameOf(u)}'s items went back to your bag.`);renderUI();}
+function sell(u){run.gold+=sellValue(u);if(u.fuse){returnPartner(u.fuse.p);u.fuse=null;}removeUnit(u);for(const it of u.items)run.bag.push(it);
+  // held gimmick and form items go back to the bag too
+  if(u.stone)run.bag.push({k:'g:stone:'+u.stone,mut:[]});if(u.crystal)run.bag.push({k:'g:z:'+u.crystal,mut:[]});if(u.shard)run.bag.push({k:'g:shard:'+u.shard,mut:[]});if(u.formItem)run.bag.push({k:'form:'+u.formItem,mut:[]});if(u.items.length&&!SIM.on)toast(`${nameOf(u)}'s items went back to your bag.`);renderUI();}
 
 /* ---------- equipping ---------- */
 function equipRaw(it,u){
   if(isComp(it)){const j=u.items.findIndex(isComp);if(j>=0){u.items[j]=combineItems(u.items[j],it);return{crafted:u.items[j]};}}
   if(u.items.length>=3)return false;u.items.push(it);return'equipped';
 }
-function canEquip(it,u){if(isPlate(it))return canHoldPlate(it,u);if(isGear(it))return canWearGear(it,u);if(isEnh(it))return u.items.some(canEnhance);if(isGim(it))return true;if(isFormItem(it))return u.items.length<3;if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
+function canEquip(it,u){if(isPlate(it))return canHoldPlate(it,u);if(isGear(it))return canWearGear(it,u);if(isEnh(it))return u.items.some(canEnhance);if(isGim(it))return true;if(isFormItem(it))return formItemFits(it,u);if(isUse(it))return!!USE[it.k].target;if(isComp(it)&&u.items.some(isComp))return true;return u.items.length<3;}
 function useItem(bi,u){
   const it=run.bag[bi];if(!it)return false;
   if(isPlate(it)){if(!u)return false;if(!canHoldPlate(it,u)){toast(u.items.length>=3?`${nameOf(u)} can't hold more than 3 items.`:`${nameOf(u)} is already ${plateType(it)} type.`);return false;}}
   if(isGear(it)){if(!u)return false;if(!canWearGear(it,u)){toast(`Only ${GEAR[gearKey(it)].set} Pokémon can wear the ${GEAR[gearKey(it)].n} (one set gear each).`);return false;}}
   if(isEnh(it)){if(!u)return false;return enhOnUnit(bi,u);}
   if(isGim(it)){if(!u)return false;return equipGim(bi,u);}
+  if(isFormItem(it)){if(!u)return false;return equipFormItem(bi,u);}
   if(isUse(it)){
     if(it.k==='eject-pack'){if(!u)return false;if(!u.items.length){toast(`${nameOf(u)} isn't holding anything.`);return false;}
       if(run.bag.length-1+u.items.length>BAGMAX){toast('Not enough room in your bag.');return false;}
@@ -527,12 +568,12 @@ async function startFloor(){
   if(hasRelic('shiny-charm'))run.freeRerolls=Math.max(run.freeRerolls,1);
   if(run.augFloor!==effFloor(f)){run.augFloor=effFloor(f);augOnFloor();}
   chest=null;
-  if(NONCOMBAT.has(nodeK(f))){rollShop(false);if(!SIM.on){await preload([...allOwned().map(u=>u.dex),KECLEON]);showGameUI(true);renderUI();}return startNode();}
+  if(NONCOMBAT.has(nodeK(f))){autoShop(false);if(!SIM.on){await preload([...allOwned().map(u=>u.dex),KECLEON]);showGameUI(true);renderUI();}return startNode();}
   return setupCombatFloor(false);
 }
 async function setupCombatFloor(fromEvent){
   const f=run.floor;
-  enemyPreview=buildEnemy(f);if(!fromEvent)rollShop(f===1);chest=null;
+  enemyPreview=buildEnemy(f);if(!fromEvent)autoShop(f===1);chest=null;
   if(!SIM.on)await preload([...enemyPreview.map(e=>e.u.dex),...allOwned().map(u=>u.dex),run.boss.dex]);
   mode='plan';if(SIM.on)return;
   showGameUI(true);renderUI();
@@ -620,7 +661,7 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
   const bone=u.items.find(it=>it.enh==='rare-bone'),bst=bone?2*(bone.st||0):0;
   for(const k of unitSets(u)){const ti=tierOf(k,tr[k]||0);if(ti&&SETS[k].m)addE(E,SETS[k].m[ti-1]);}
   for(const k in tr){const ti=tierOf(k,tr[k]);if(ti&&SETS[k].t)addE(E,SETS[k].t[ti-1]);}
-  if(K.ab)addE(E,K.ab.e);
+  if(K.ab&&!K.ab.own)addE(E,K.ab.e);
   if(u.mut&&MUTS[u.mut])addE(E,MUTS[u.mut].e);if(u.mgs)E.dmg=(E.dmg||0)+u.mgs;
   let taken=1;
   if(team===0){const s=run.strat.id,ty=D[u.dex].t;
@@ -758,7 +799,7 @@ function checkHp(tg,src){
   if(tg.fx.halfShield&&!tg.hsOn&&tg.hp>0&&lowHp(tg,.5)){tg.hsOn=1;tg.shield+=tg.maxHp*tg.fx.halfShield;if(tg.fx.redCard)for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)stun(o,tg.fx.redCard);if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Red Card!',col:'#ff8a7a',life:1});ring(tg.x,tg.y-8,'#ff6b6b');}}
   if(tg.hp>0){formsOnHp(tg);return;}
   if(tg.focus>0){tg.focus--;tg.hp=1;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Hung on!',col:'#ff8a7a',life:1.2});return;}
-  if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;cureStatus(tg);if(tg.fx.hideRevive){tg.airT=combatT+tg.fx.hideRevive;tg.busy=Math.max(tg.busy,tg.fx.hideRevive);tg.target=null;if(!SIM.on)burst(tg.x,tg.y-6,'#b8a0ff',16,1);}if(tg.fx.ashFull){tg.mana=tg.maxMana;tg.dmg+=tg.fx.ashFull;}if(tg.fx.ancient){const a=tg.fx.ancient;tg.atk*=1+a;tg.spa*=1+a;tg.def*=1+a;tg.res*=1+a;tg.as*=1+a;for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)damage(tg,o,tg.maxHp*.15,{ab:1,cat:'spec',noCrit:1,refl:1});}if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
+  if(tg.revive>0){tg.hp=tg.maxHp*tg.revive;tg.revive=0;cureStatus(tg);if(tg.fx.ghostDodge)tg.dodge=Math.min(.6,tg.dodge+tg.fx.ghostDodge);if(tg.fx.hideRevive){tg.airT=combatT+tg.fx.hideRevive;tg.busy=Math.max(tg.busy,tg.fx.hideRevive);tg.target=null;if(!SIM.on)burst(tg.x,tg.y-6,'#b8a0ff',16,1);}if(tg.fx.ashFull){tg.mana=tg.maxMana;tg.dmg+=tg.fx.ashFull;}if(tg.fx.ancient){const a=tg.fx.ancient;tg.atk*=1+a;tg.spa*=1+a;tg.def*=1+a;tg.res*=1+a;tg.as*=1+a;for(const o of alive(1-tg.team))if(hdist(o,tg)<=1)damage(tg,o,tg.maxHp*.15,{ab:1,cat:'spec',noCrit:1,refl:1});}if(!SIM.on){texts.push({x:tg.x,y:tg.y-30,txt:'Revived!',col:'#ffe27a',life:1.2});burst(tg.x,tg.y-10,'#ffe27a',16,1);}return;}
   if(tg.team===0&&battle.flute){battle.flute=false;tg.hp=tg.maxHp*.35;if(!SIM.on)texts.push({x:tg.x,y:tg.y-30,txt:'Woke up!',col:'#c6b3ff',life:1.2});return;}
   tg.dead=true;tg.hp=0;setAnim(tg,'Faint');tg.move=null;if(!SIM.on)burst(tg.x,tg.y-8,'#ffffff',10,.7);
   battle.kills[1-tg.team]++;
@@ -798,7 +839,7 @@ function damage(src,tg,amt,o={}){
     if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Immune',col:'#cfe0ff',life:.8});return 0;}
   if(!o.ab&&!src.fx.noGuard){if(tg.dodgeN>0){tg.dodgeN--;if(tg.fx.dodgePP){gainMana(tg,tg.fx.dodgePP);tg.as*=1.1;}if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Miss',col:'#cfe0ff',life:.7});return 0;}
     if(tg.dodge&&Math.random()<tg.dodge){if(tg.fx.dodgeAS)tg.as*=1+tg.fx.dodgeAS;if(!SIM.on)texts.push({x:tg.x,y:tg.y-22,txt:'Miss',col:'#cfe0ff',life:.7});return 0;}}
-  const canCrit=!o.noCrit&&!tg.fx.noCrit&&(!o.ab||src.abCrit||o.cr);
+  const canCrit=!o.noCrit&&!tg.fx.noCrit&&!(tg.fx.stoneNoCrit&&tg.shield>0)&&(!o.ab||src.abCrit||o.cr);
   const crit=canCrit&&(Math.random()<src.crit+(o.cr||0)||(src.fx.merciless&&tg.poison));
   let d=amt*dmgMult(src,tg)*(crit?1+src.critD:1);
   if(src.fx.deep&&tg.hp<tg.maxHp*.5)d*=1+src.fx.deep;
@@ -972,9 +1013,9 @@ function rollLoot(lost){
   if(!lost&&(elite||q>=1)&&Math.random()<.45)out[out.length-1]={k:'eject-pack',mut:[]};
   // rival chests often hold a type Plate (an emblem)
   if(!lost&&elite&&Math.random()<.5)out[0]=rollPlate();
-  if(run.gimmick&&Math.random()<({dmax:.4,mega:.5,zmove:.35,tera:.35}[run.gimmick])*(lost?.6:1)){const g=gimLootItem();if(g)out[out.length-1]=g;}
-  if(run.megaPity&&run.gimmick==='mega'){const g=gimLootItem();if(g){out[0]=g;run.megaPity=0;}}
-  {const fi=ownedFormItems().filter(x=>!run.bag.some(b=>b.k==='form:'+x)&&!allOwned().some(u=>u.items.some(i=>i.k==='form:'+x)));if(fi.length&&Math.random()<.15)out[1]={k:'form:'+pick(fi),mut:[]};}
+  if(gimList().length&&Math.random()<Math.max(...gimList().map(g=>({dmax:.4,mega:.5,zmove:.35,tera:.35}[g])))*(lost?.6:1)){const g=gimLootItem();if(g)out[out.length-1]=g;}
+  if(run.megaPity&&gimOn('mega')){const g=gimLootItem('mega');if(g){out[0]=g;run.megaPity=0;}}
+  {const fi=ownedFormItems().filter(x=>!run.bag.some(b=>b.k==='form:'+x)&&!allOwned().some(u=>u.formItem===x||u.items.some(i=>i.k==='form:'+x)));if(fi.length&&Math.random()<.15)out[1]={k:'form:'+pick(fi),mut:[]};}
   return out;
 }
 function takeLoot(i){
@@ -1262,7 +1303,7 @@ const pct=v=>Math.round(v*100)+'%';
 const STATN={2:'Attack',3:'Defense',4:'Sp. Atk',5:'Sp. Def',6:'Speed'};
 const setChip=k=>`<span class="chip set" style="background:${setColor(k)}">${k}</span>`;
 function moveDesc(c){
-  const K=c.kit;if(K.sig)return`<p><b>${esc(c.mv.n)}</b> <span class="sc">${K.role} · ${c.mv.t} · ${c.maxMana} PP · range ${c.range}</span></p><p>${K.sig.d(c,K.si)}</p>`;
+  const K=c.kit;if(K.sig)return`<p><b>${esc(c.mv.n)}</b> <span class="sc">${K.role} · ${c.mv.t} · ${c.maxMana} PP · range ${c.range}</span></p><p>${K.ab&&K.ab.strip?K.sig.d(c,K.si).replace(new RegExp('\\s*<b>'+K.ab.n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[:.]</b>.*$','i'),''):K.sig.d(c,K.si)}</p>`;
   const v=moveValue(c),T=Math.round(v.total),sk=v.statN==='Sp. Atk'?'spa':v.statN==='Attack'?'atk':'hp',r=`<span class="sc">(${Math.round(v.base)} + <span class="s-${sk}">${pct(v.ratio)} ${v.statN}</span>)</span>`,dw=x=>`<span class="s-${x==='spec'?'spa':'atk'}">${x==='spec'?'special':'physical'}</span>`;
   if(K.type==='tank')return`<p><b>Passive.</b> Has no move; fights with basic attacks and +${pct(KIT.tankHp)} max HP.</p>`;
   if(K.type==='heal'){const hm=K.hm;return`<p><b>${hm.n}</b> <span class="sc">${hm.t} · ${c.maxMana} PP</span></p><p>Restores <b class="s-hp">${T}</b> HP ${r} to ${hm.tg===7?'itself':'the most injured ally'}${hm.st&&hm.st.some(x=>x[1]>0)?' and raises its '+hm.st.filter(x=>x[1]>0).map(x=>STATN[x[0]]).join(', '):''}, then uses <b>${c.mv.n}</b> at 50% power.</p>`;}
@@ -1291,7 +1332,7 @@ function showTip(u,e,hit={}){
     <div class="stars">${'★'.repeat(u.star)}</div><div class="chips">${sets.map(k=>SETS[k]&&SETS[k].cat==='type'?chip(k,TYPES[k]):setChip(k)).join('')}</div></div></div>
     <div class="stats"><div><span class="lbl">HP</span><b>${hp}</b></div><div><span class="lbl">Atk</span><b>${Math.round(c.atk)}</b></div><div><span class="lbl">Sp.Atk</span><b>${Math.round(c.spa)}</b></div><div><span class="lbl">Speed</span><b>${c.as.toFixed(2)}</b></div>
     <div><span class="lbl">Def</span><b>${Math.round(c.def)}</b></div><div><span class="lbl">Sp.Def</span><b>${Math.round(c.res)}</b></div><div><span class="lbl">Range</span><b>${c.range}</b></div><div><span class="lbl">PP</span><b>${c.maxMana?Math.round(c.mana)+'/'+c.maxMana:'—'}</b></div></div>
-    <div class="ab">${moveDesc(c)}${K.ladder?`<p class="ladder">${K.ladder.map(x=>x.dex===u.dex?`<b>${esc(x.n)}</b>`:esc(x.n)).join(' → ')}</p>`:''}${K.ab?`<p class="abil"><b>${esc(K.ab.n)}</b> <span class="sc">Ability</span><br>${K.ab.d}</p>`:''}</div>
+    <div class="ab">${moveDesc(c)}${K.ladder?`<p class="ladder">${K.ladder.map(x=>x.dex===u.dex?`<b>${esc(x.n)}</b>`:esc(x.n)).join(' → ')}</p>`:''}${K.ab&&!K.ab.own?`<p class="abil"><b>${esc(K.ab.n)}</b> <span class="sc">Ability</span><br>${K.ab.d}</p>`:''}</div>
     ${u.items&&u.items.length?`<div class="items">${u.items.map(it=>`<div><img src="${iconOf(itemDef(it).id)}" alt=""><span><b>${esc(itemName(it))}</b>${itemCalc(it,c)}</span></div>`).join('')}</div>`:''}
     ${u.mut?`<div class="grow mutu"><b>${unitMutName(u)}</b>: ${MUTS[u.mut].d}${u.mut==='growing'&&u.mgs?` (now +${pct(u.mgs)})`:''}.</div>`:''}
     ${gimLines(u,enemy)}
@@ -1307,8 +1348,8 @@ function gimLines(u,enemy){
   if(u.crystal){const ok=ZTYPE[u.crystal]===kitOf(u.dex).mv.t;out.push(`<div><img src="${iconOf(u.crystal)}" alt=""><span><b>${esc(ZNAME[ZTYPE[u.crystal]])}</b>${ok?'':' (needs a '+ZTYPE[u.crystal]+' move)'}</span></div>`);}
   if(u.shard)out.push(`<div><img src="${iconOf(u.shard.toLowerCase()+'-tera-shard')}" alt=""><span><b>Tera ${u.shard}</b>: counts as ${u.shard} type</span></div>`);
   if(u.mush)out.push(`<div><img src="${iconOf('max-mushrooms')}" alt=""><span><b>Dynamax Level ${u.mush}</b>${u.gmax?' · Gigantamax factor':''}</span></div>`);
-  if(run&&run.gimmick==='mega'&&!u.stone){const ms=MODE.lines[u.root].mem.flatMap(m=>(FORMS_BY_BASE[m]||[]).filter(f=>FORMS[f].kind==='mega'));if(ms.length)out.push(`<div><span class="sc">Can Mega Evolve: ${ms.map(f=>esc(D[f].n)).join(', ')}</span></div>`);}
-  if(run&&run.gimmick==='dmax'&&!u.gmax&&gmaxFor(u.dex))out.push(`<div><span class="sc">Has a Gigantamax form (${GMAX_MUSH} Max Mushrooms)</span></div>`);
+  if(run&&gimOn('mega')&&!u.stone){const ms=MODE.lines[u.root].mem.flatMap(m=>(FORMS_BY_BASE[m]||[]).filter(f=>FORMS[f].kind==='mega'));if(ms.length)out.push(`<div><span class="sc">Can Mega Evolve: ${ms.map(f=>esc(D[f].n)).join(', ')}</span></div>`);}
+  if(run&&gimOn('dmax')&&!u.gmax&&gmaxFor(u.dex))out.push(`<div><span class="sc">Has a Gigantamax form (${GMAX_MUSH} Max Mushrooms)</span></div>`);
   const fi=MODE.lines[u.root].mem.flatMap(m=>(FORMS_BY_BASE[m]||[]).filter(f=>FORMS[f].kind==='item'));if(fi.length)out.push(`<div><span class="sc">Form item: ${[...new Set(fi.map(f=>FORMS[f].itemName))].join(', ')}</span></div>`);
   return out.length?`<div class="items gimrow">${out.join('')}</div>`:'';
 }
@@ -1326,7 +1367,7 @@ function itemBody(it,compact){
 // hovering a recipe in any item card shows the completed item
 addEventListener('pointermove',e=>{const r=e.target.closest&&e.target.closest('#overlay [data-craft]');if(r){showItemTip({k:r.dataset.craft,mut:[]},e);r.dataset.tipOn=1;}else if(e.target.closest&&e.target.closest('#overlay')&&document.querySelector('#overlay [data-tip-on]')){document.querySelectorAll('#overlay [data-tip-on]').forEach(x=>delete x.dataset.tipOn);hideTip();}});
 function showItemTip(it,e,head){const tip=$('tip');const t=itemTier(it);
-  tip.innerHTML=`${head?`<div class="lbl" style="color:#2f8f3a;margin-bottom:6px">${head}</div>`:''}<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?(it.enh?'Enhanced item':'Completed item'):t==='gim'?(run&&run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick item'):t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
+  tip.innerHTML=`${head?`<div class="lbl" style="color:#2f8f3a;margin-bottom:6px">${head}</div>`:''}<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?(it.enh?'Enhanced item':'Completed item'):t==='gim'?(GIMMICKS[gimOfItem(it)]||{n:'Gimmick item'}).n:t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
   <div class="lbl" style="margin-top:8px">${isEnh(it)?'Drag onto a completed item or a Pokémon holding one':isUse(it)?(USE[it.k].target?'Drag onto a Pokémon':'Click to use'):isComp(it)?'Drag onto a Pokémon or another component':isGim(it)?'Drag onto a Pokémon (own slot)':'Drag onto a Pokémon'}</div>`;placeTip(e);}
 function showInfoTip(html,e){$('tip').innerHTML=html;placeTip(e);}
 function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.width/1280;let x=(e.clientX-sr.left)/sc+18,y=(e.clientY-sr.top)/sc-40;
@@ -1357,13 +1398,13 @@ function renderUI(){
   const tr1=k=>{const n=ct[k],ti=tierOf(k,n),S=SETS[k];
     return`<div class="trait ${ti?'t'+ti+' m-'+medalOf(k,ti):'off'}" data-trait="${k}"><div class="hex"><span class="in" style="background:${setColor(k)}">${k.replace(/ /g,'').slice(0,3).toUpperCase()}</span></div><div><div class="nm">${k}</div><div class="bp">${S.bp.map(b=>n>=b?`<b>${b}</b>`:b).join(' › ')}</div></div><div class="ct">${n}</div></div>`;};
   $('traits').innerHTML=keys.length?shown.map(tr1).join('')+(keys.length>MAXT?`<div class="more" data-more="1">+${keys.length-MAXT} more sets</div>`:'')
-    :`<div class="hint">Place Pokémon on the field to activate sets: types, classes, styles${MODE.gen?'':' and regions'}.</div>`;
+    :`<div class="hint">Place Pokémon on the field to activate sets: types, classes and traits.</div>`;
   const s=run.strat,inc=incomePreview();
   let mh=`<div class="mod mini"><div class="k">Strategy</div><div class="v">${s.name}</div></div>`;
   for(const x of run.augs||[]){const a=AUGMAP[x.id];if(a)mh+=`<div class="mod mini ${x.tier}" title="${esc(a.d)}"><div class="k">${x.tier} augment</div><div class="v">${esc(a.name)}</div></div>`;}
-  if(run.gimmick){const GM=GIMMICKS[run.gimmick],el=allOwned().filter(gimEligible);
-    const tgt=allOwned().find(u=>u.uid===run.gimTarget&&gimEligible(u));const onField=tgt&&Object.values(run.board).includes(tgt);
-    mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${(run.gimmick==='mega'?!u.megaOff:u===tgt)?' on':''}" data-cap="${u.uid}" aria-label="${run.gimmick==='mega'?`Toggle Mega Evolution for ${esc(nameOf(u))}`:`Use ${esc(GM.n)} with ${esc(nameOf(u))}`}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${run.gimmick==='mega'?'Every Pokémon holding its Mega Stone Mega Evolves. Click one (or right-click it on the board) to switch its Mega Evolution on or off.':tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Put a Pokémon on the field to Dynamax it.',tera:'Give a Tera Shard to a Pokémon.'}[run.gimmick]}</p>`}</div>`;}
+  for(const g of gimList()){const GM=GIMMICKS[g],mega=g==='mega',el=allOwned().filter(u=>gimEligible(u,g)&&(mega||!(gimOn('mega')&&!u.megaOff&&gimEligible(u,'mega'))));
+    const tgt=mega?null:allOwned().find(u=>u.uid===gimT(g)&&gimEligible(u,g));const onField=tgt&&Object.values(run.board).includes(tgt);
+    mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${(mega?!u.megaOff:u===tgt)?' on':''}" data-cap="${u.uid}" data-capg="${g}" aria-label="${mega?`Toggle Mega Evolution for ${esc(nameOf(u))}`:`Use ${esc(GM.n)} with ${esc(nameOf(u))}`}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${mega?'Every Pokémon holding its Mega Stone Mega Evolves. Click one (or right-click it on the board) to switch it on or off.':tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Feed a Pokémon Max Mushrooms, then pick it here.',tera:'Give a Tera Shard to a Pokémon.'}[g]}</p>`}</div>`;}
   if(run.relics.length)mh+=`<div class="mod"><div class="k">Relics</div><div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" data-relic="${r}">`).join('')}</div></div>`;
   mh+=`<div class="mod mini"><div class="k">Next floor income</div><div class="v inc">₽${inc.base+inc.interest+inc.streak+inc.extra}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}</p></div>`;
   {const sc=scoutState();
@@ -1379,7 +1420,7 @@ function renderUI(){
       <div class="body"><span class="porwrap"><img class="por" src="${por(r)}" alt="">${run.scouted&&run.scouted[i]?'<span class="pbadge scouted" title="Scouted for your sets">Scout</span>':G?'<span class="pbadge grows" title="Grows stronger over the run">Grows</span>':''}</span><div class="info"><span class="role" style="color:${CLASSCOL[roleOf(r)]}">${kitOf(r).role||roleOf(r)} · ${moveName(r)}</span><div class="chips">${typeChips(r)}${(()=>{const st=kitOf(r).styles,sh=st.slice(0,3);return sh.map(setChip).join('')+(st.length>3?`<span class="chip more" title="${esc(st.slice(3).join(', '))}">+${st.length-3}</span>`:'');})()}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div></div></div></button>`;}).join('');
   $('minicards').innerHTML=run.shop.map((r,i)=>r?`<button class="mcard c${MODE.lines[r].cost}" data-i="${i}" aria-label="${esc(D[r].n)}, ₽${MODE.lines[r].cost}. Show the shop"><img src="${por(r)}" alt="">₽${MODE.lines[r].cost}</button>`:`<span class="mcard empty"><img alt="" src="data:," style="visibility:hidden"></span>`).join('');
   renderGimBtn();
-  $('reroll').disabled=!plan||(run.gold<rerollCost()&&run.freeRerolls<=0);$('rerollcost').textContent=run.freeRerolls>0?`Free ×${run.freeRerolls}`:`₽${rerollCost()}`;
+  $('shoplock').setAttribute('aria-pressed',run.shopLock?'true':'false');$('shop').classList.toggle('locked',!!run.shopLock);$('reroll').disabled=!plan||(run.gold<rerollCost()&&run.freeRerolls<=0);$('rerollcost').textContent=run.freeRerolls>0?`Free ×${run.freeRerolls}`:`₽${rerollCost()}`;
   $('buyxp').disabled=!plan||run.gold<4||run.level>=MAXLV;
   {const o=LVODDS[run.level];$('odds').innerHTML=`<span class="lbl">Lv ${run.level}</span>`+o.map((p,i)=>`<span class="od c${i+1}${p?'':' off'}" title="${i+1}-cost Pokémon: ${Math.round(p*100)}% per shop slot">₽${i+1} <b>${Math.round(p*100)}%</b></span>`).join('');
    $('buyxp').title=run.level>=MAXLV?'Max level':`Buy 4 XP for ₽4 (${run.xp}/${XPNEXT[run.level]} to level ${run.level+1})`;}
@@ -1395,23 +1436,33 @@ $('cards').addEventListener('pointermove',e=>{const c=e.target.closest('.card');
 $('cards').addEventListener('pointerleave',hideTip);
 $('mods').addEventListener('pointermove',e=>{const r=e.target.dataset&&e.target.dataset.relic;if(r)showInfoTip(`<div class="top"><img src="${iconOf(r)}" alt="" style="width:48px;height:48px"><div><div class="lbl">Relic</div><h3 style="font-size:19px">${RELICS[r].n}</h3></div></div><div class="ab"><p>${RELICS[r].d}</p></div>`,e);else hideTip();});
 $('mods').addEventListener('pointerleave',hideTip);
-$('mods').addEventListener('click',e=>{const b=e.target.closest('[data-cap]');if(!b)return;const id=+b.dataset.cap;if(run.gimmick==='mega'){const u=allOwned().find(x=>x.uid===id);if(u)u.megaOff=!u.megaOff;renderUI();return;}run.gimTarget=run.gimTarget===id?0:id;renderUI();});
+$('mods').addEventListener('click',e=>{const b=e.target.closest('[data-cap]');if(!b)return;const id=+b.dataset.cap,g=b.dataset.capg;if(g==='mega'){const u=allOwned().find(x=>x.uid===id);if(u)u.megaOff=!u.megaOff;renderUI();return;}setGimT(g,gimT(g)===id?0:id);renderUI();});
+// every Pokémon this run can offer for a set, by cost: in colour if it's on your field, faded if it's on your bench, grey otherwise
+function setRoster(k){
+  const pool=[...new Set(MODE.byCost.flat())],board=Object.values(run.board),bench=run.bench.filter(Boolean),out=[];
+  const has=(list,d)=>list.some(u=>(KIN[k]?kinDex(u).includes(d):u.root===d.root&&setsOf(shownDex(u),u.root).includes(k)));
+  if(KIN[k]){for(const d of KIN[k]){const r=pool.find(x=>MODE.lines[x].mem.includes(d));if(r)out.push({d,root:r,cost:MODE.lines[r].cost});}}
+  else for(const r of pool){const m=MODE.lines[r].mem.filter(d=>setsOf(d,r).includes(k));if(!m.length)continue;const ou=[...board,...bench].find(u=>u.root===r&&setsOf(shownDex(u),r).includes(k));out.push({d:ou?shownDex(ou):m[m.length-1],root:r,cost:MODE.lines[r].cost});}
+  if(!out.length)return'';out.sort((a,b)=>a.cost-b.cost||a.d-b.d);
+  const st=o=>{return KIN[k]?(has(board,o.d)?'on':has(bench,o.d)?'bench':''):(board.some(u=>u.root===o.root&&setsOf(shownDex(u),u.root).includes(k))?'on':bench.some(u=>u.root===o.root)?'bench':'');};
+  const on=out.filter(o=>st(o)==='on').length;
+  return`<div class="roster"><div class="lbl">${out.length} in this run · ${on} on your field</div><div class="rgrid">${out.map(o=>`<span class="rp c${o.cost} ${st(o)}" title="${esc(D[o.d].n)}"><img src="${por(o.d)}" alt="${esc(D[o.d].n)}"></span>`).join('')}</div></div>`;
+}
 $('traits').addEventListener('pointermove',e=>{const ct=countTraits(Object.values(run.board));
   if(e.target.closest('[data-more]')){const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||ct[b]-ct[a]);
     showInfoTip(`<div class="lbl">All sets on the field</div><div class="setlist">${keys.map(k=>`<div><span class="dot" style="background:${setColor(k)}"></span>${k}<b>${ct[k]}</b><span class="sc">/ ${SETS[k].bp.join(', ')}</span></div>`).join('')}</div>`,e);return;}
   const el=e.target.closest('.trait');if(!el){hideTip();return;}const k=el.dataset.trait,S=SETS[k],n=ct[k]||0;
-  const mem=[...new Set(Object.values(run.board).filter(u=>setsOf(u.dex,u.root).includes(k)).map(u=>u.dex))];
   const SD=setDescHtml(k,n);
-  showInfoTip(`<div class="lbl">${SETCAT_LABEL[S.cat]} set</div><h3 style="font-size:20px;margin:2px 0 4px">${k}</h3><div class="bprow">${SD.bps}<span class="sc"> · you have ${n}</span></div><p style="margin:6px 0 0;line-height:1.4">${SD.t}</p>${k==='Kanto'?`<p class="sc" style="margin:6px 0 0">Badges: ${run.badges||0}/8</p>`:''}${k==='Dragon'?`<p class="sc" style="margin:6px 0 0">Hoard stacks: ${run.hoard||0} (+${Math.min(40,run.hoard||0)}% damage)</p>`:''}${mem.length?`<div class="por3" style="display:flex;gap:4px;margin-top:6px">${mem.map(d=>`<img src="${por(d)}" alt="" style="width:30px;height:30px;border:2px solid var(--ink);border-radius:4px">`).join('')}</div>`:''}`,e);});
+  showInfoTip(`<div class="lbl">${SETCAT_LABEL[S.cat]} set</div><h3 style="font-size:20px;margin:2px 0 4px">${k}</h3><div class="bprow">${SD.bps}<span class="sc"> · you have ${n}</span></div><p style="margin:6px 0 0;line-height:1.4">${SD.t}</p>${k==='Dragon'?`<p class="sc" style="margin:6px 0 0">Hoard stacks: ${run.hoard||0} (+${Math.min(40,run.hoard||0)}% damage)</p>`:''}${setRoster(k)}`,e);});
 $('traits').addEventListener('pointerleave',hideTip);
-$('reroll').onclick=reroll;
+$('reroll').onclick=reroll;$('shoplock').onclick=toggleLock;
 $('buyxp').onclick=buyXP;
 $('fight').onclick=()=>{if(mode==='loot'){if(chest&&chest.open)showLootPicks();else openChest();}else startCombat();};
 $('dexbtn').onclick=()=>{if(ov.innerHTML.trim()&&!$('dexclose'))return toast('Finish this choice first.');if($('dexclose'))return closeKitDex();$('pause').hidden=true;showKitDex('game');};
 $('speed').onclick=()=>{speed=speed===1?2:1;$('speed').setAttribute('aria-pressed',speed===2);};
 addEventListener('keydown',e=>{if(evoOpen||!run||paused||ov.innerHTML.trim())return;
   if(mode==='loot'&&(e.key===' '||e.key==='Enter')){e.preventDefault();openChest();return;}
-  if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key===' '){e.preventDefault();startCombat();}});
+  if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key==='l'||e.key==='L')toggleLock();if(e.key===' '){e.preventDefault();startCombat();}});
 
 /* ================= Options & saving ================= */
 const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1,meterOpen:1,unsprited:0};
@@ -1432,7 +1483,7 @@ async function continueRun(){
   const d=readSave();if(!d)return showTitle();
   MODE=buildMode(d.mode,d.run.unspr!==undefined?d.run.unspr:1);if(d.pool)MODE.byCost=d.pool;
   run=d.run;run.strat=STRATS.find(x=>x.id===run.strat)||STRATS[0];
-  if(!run.augs){run.augs=run.aug?[{id:run.aug,tier:run.augTier||'gold'}]:[];run.augsAt=run.aug?[2]:[];}delete run.aug;
+  if(!run.augs){run.augs=run.aug?[{id:run.aug,tier:run.augTier||'gold'}]:[];run.augsAt=run.aug?[2]:[];}delete run.aug;migrateFormItems();
   enemyPreview=d.enemy||[];uidc=d.uidc||1000;ov.innerHTML='';
   await preload([...enemyPreview.map(e=>e.u.dex),...allOwned().map(u=>shownDex(u)),run.boss.dex,...run.shop.filter(Boolean)]);
   showGameUI(true);
@@ -1459,7 +1510,7 @@ function showTitle(){
   const d=readSave();
   const sum=d?(()=>{const r=d.run,team=Object.values(r.board).concat(r.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,6);
     const st=STRATS.find(x=>x.id===r.strat);const m=d.mode==='nat'?'National Dex':`Gen ${ROMAN[+d.mode.slice(3)-1]} · ${REGIONS[+d.mode.slice(3)-1]}`;
-    return`<div class="win save"><div class="lbl">Saved run</div><h3>${m}</h3><p>${r.act?(r.act<ACTS.length?'Act '+ROMAN[r.act]:'Endless '+(r.act-ACTS.length+1))+' · ':''}Floor ${r.floor} / ${FLOORS} · Trainer HP ${r.hp} · ₽${r.gold}</p><p>${st?st.name:''}${r.gimmick?' · '+GIMMICKS[r.gimmick].n:''}</p>
+    return`<div class="win save"><div class="lbl">Saved run</div><h3>${m}</h3><p>${r.act?(r.act<ACTS.length?'Act '+ROMAN[r.act]:'Endless '+(r.act-ACTS.length+1))+' · ':''}Floor ${r.floor} / ${FLOORS} · Trainer HP ${r.hp} · ₽${r.gold}</p><p>${st?st.name:''}${(r.gimmicks&&r.gimmicks.length?r.gimmicks:r.gimmick?[r.gimmick]:[]).map(g=>' · '+GIMMICKS[g].n).join('')}</p>
       <div class="team">${team.map(u=>`<img src="${por(shownDex(u))}" alt="${esc(D[u.dex].n)}" title="${esc(D[u.dex].n)} ${'★'.repeat(u.star)}">`).join('')}</div></div>`;})():'';
   ov.innerHTML=`<div class="screen title"><div class="logo">PokéRun<small>Tactics</small></div>
     <div class="menu-row"><nav class="win menu" aria-label="Main menu">
@@ -1525,7 +1576,7 @@ function showStrategy(){
 function itemCard(it,i,cls=''){const t=isRelicId(it)?'relic':itemTier(it);
   const id=isRelicId(it)?it:itemDef(it).id,name=isRelicId(it)?RELICS[it].n:itemName(it);
   const body=isRelicId(it)?`<p>${RELICS[it].d}</p>`:itemBody(it,true);
-  const tl=t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(run.gimmick?GIMMICKS[run.gimmick].n:'Gimmick'):t==='formi'?'Form item':'Relic';
+  const tl=t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(GIMMICKS[gimOfItem(it)]||{n:'Gimmick'}).n:t==='formi'?'Form item':'Relic';
   return`<button class="pick win item p-${t==='common'?'common':t} ${cls}" data-i="${i}"><div class="icon"><img src="${iconOf(id)}" alt=""></div><span class="tier ${t==='common'?'common':t}">${tl}</span><h2 style="font-size:20px">${esc(name)}</h2><div class="desc">${body}</div></button>`;}
 const isRelicId=x=>typeof x==='string'&&RELICS[x];
 function openChest(){
@@ -1552,15 +1603,13 @@ function peekOn(label,back){const b=$('lootback');PEEK.mode=mode;PEEK.back=back;
 function peekOff(){PEEK.mode=null;const b=$('lootback');if(b)b.hidden=true;}
 function lootPeek(on){if(on)peekOn('Back to the chest',showLootPicks);else peekOff();}
 function chooseLoot(i){const r=takeLoot(i);if(r===false)return;lootPeek(false);if(r==='relic')showRelics();}
-function gimDue(){if(!run||run.floor!==GIMMICK_FLOOR)return false;const ga=run.gimAct??(run.gimmick?0:-1);return ga<actOf();}
+function gimDue(){if(!run||run.floor!==GIMMICK_FLOOR)return false;const ga=run.gimAct??(run.gimmick?0:-1);return ga<actOf()&&GIM_ORDER.some(g=>!gimOn(g));}
+// each act unlocks one more gimmick; the ones you already have keep working
 function showGimmickChoice(){
   mode='augment';$('bannerhost').innerHTML='';
-  let opts=GIM_ORDER.filter(g=>!(run.gimmicks||[]).includes(g));if(!opts.length)opts=GIM_ORDER.filter(g=>g!==run.gimmick);
-  const cur=run.gimmick&&GIMMICKS[run.gimmick];
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">${actLabel().toUpperCase()} · GENERATION GIMMICK</div><h1 class="h1">${cur?'Switch your key item?':'Choose your key item'}</h1><p class="sub">${cur?`Each act lets you pick a new gimmick, or keep the ${esc(cur.n)} you have.`:'You get one generation gimmick for this act. The others can be chosen in later acts.'}</p>
+  const opts=GIM_ORDER.filter(g=>!gimOn(g)),have=gimList();
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">${actLabel().toUpperCase()} · GENERATION GIMMICK</div><h1 class="h1">${have.length?'Unlock another key item':'Choose your key item'}</h1><p class="sub">${have.length?`Your ${have.map(g=>esc(GIMMICKS[g].n)).join(' and ')} keep${have.length>1?'':'s'} working. Add one more:`:'Each act unlocks one more generation gimmick, and they all keep working.'}</p>
     <div class="picks gims">${opts.map(g=>{const G=GIMMICKS[g];return`<button class="pick win item gim" data-g="${g}" style="--gc:${G.col}"><div class="icon"><img src="${iconOf(G.key)}" alt=""></div><span class="tier" style="background:${G.col}">${G.gen}</span><h2 style="font-size:24px">${G.n}</h2><div class="desc"><p>${G.d}</p><p class="sc">${G.start}</p></div></button>`;}).join('')}</div></div>`;
-  if(cur){const k=document.createElement('button');k.className='btn skip';k.id='gimkeep';k.textContent=`Keep the ${cur.n}`;ov.querySelector('.screen').appendChild(k);
-    k.onclick=()=>{run.gimAct=actOf();ov.innerHTML='';mode='plan';renderUI();banner(`Floor ${run.floor}`,trainerName(run.floor),1400);};}
   ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ov.innerHTML='';mode='plan';chooseGimmick(b.dataset.g);run.gimAct=actOf();const G=GIMMICKS[run.gimmick];toast(`You received the ${G.keyN}!`);banner(`Floor ${run.floor}`,trainerName(run.floor),1400);});
 }
 /* ---------- act transitions and Endless mode ---------- */
@@ -1595,9 +1644,14 @@ function showRelics(){
 function showEvoChoice(){
   const job=evoQueue.shift();if(!job){evoOpen=false;return;}
   evoOpen=true;hideTip();
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${esc(job.before)} is evolving!</h1><p class="sub">Choose what it evolves into.</p>
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${esc(job.before)} is evolving!</h1><p class="sub">Choose what it evolves into. Hover or right-click an option to see its full kit.</p>
     <div class="evo">${job.ks.map(k=>`<button class="pick win" data-k="${k}"><img src="${por(k)}" alt=""><h2>${esc(D[k].n)}</h2><div class="chips">${typeChips(k)}</div><div class="lbl">${kitOf(k).role||roleOf(k)} · ${moveName(k)}</div></button>`).join('')}</div></div>`;
-  ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{job.u.dex=+b.dataset.k;ensure(job.u.dex);ov.innerHTML='';evoOpen=false;
+  // preview each branch as the unit it would become (same stars and items)
+  const prev=k=>Object.assign({},job.u,{dex:k});
+  ov.querySelectorAll('.pick').forEach(b=>{b.addEventListener('pointermove',e=>showTip(prev(+b.dataset.k),e));b.addEventListener('pointerleave',hideTip);
+    b.addEventListener('contextmenu',e=>{e.preventDefault();const r=b.getBoundingClientRect();showTip(prev(+b.dataset.k),{clientX:r.right,clientY:r.top+20});});
+    b.addEventListener('focus',()=>{const r=b.getBoundingClientRect();showTip(prev(+b.dataset.k),{clientX:r.right,clientY:r.top+20});});});
+  ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{hideTip();job.u.dex=+b.dataset.k;ensure(job.u.dex);ov.innerHTML='';evoOpen=false;
     toast(`${job.before} evolved into ${D[job.u.dex].n}!`);combine();renderUI();if(evoQueue.length)showEvoChoice();});
 }
 function showEnd(won){

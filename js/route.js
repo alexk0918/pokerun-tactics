@@ -381,7 +381,7 @@ const EVENTS={
     opts:[{t:'Accept',d:'A random Pokémon on the field becomes Shadow: +15% damage, takes 5% more damage.',ok:()=>Object.values(run.board).some(u=>!u.mut),fn:()=>{const u=pick(Object.values(run.board).filter(x=>!x.mut));u.mut='shadow';return`${nameOf(u)} is wreathed in dark energy. It's now Shadow ${nameOf(u)}.`;}},
       {t:'Take a sample instead',d:'Gain a Shadow component.',fn:()=>gainBag(mkComp(randComp(),['shadow']))},
       {t:'Refuse',d:'Leave.',fn:()=>'"You\'ll regret this." The tent is gone when you look back.'}]},
-  stone:{n:'A glowing stone',img:()=>iconOf(run.gimmick?GIMMICKS[run.gimmick].key:'odd-keystone'),txt:'Something buried in the roots is glowing with the same light as your key item.',need:()=>!!run.gimmick,
+  stone:{n:'A glowing stone',img:()=>iconOf(run.gimmick?GIMMICKS[run.gimmick].key:'odd-keystone'),txt:'Something buried in the roots is glowing with the same light as your key item.',need:()=>gimList().length>0,
     opts:[{t:'Dig it up',d:'Gain an item for your generation gimmick.',fn:()=>{const g=gimLootItem();return g?gainBag(g):'It crumbles to dust.';}},
       {t:'Leave it',d:'Nothing happens.',fn:()=>'You leave it to glow in peace.'}]},
   center:{n:'Pokémon Center',img:()=>iconOf('max-potion'),txt:'"Welcome to the Pokémon Center! We restore your tired Pokémon to full health." Choose one service.',

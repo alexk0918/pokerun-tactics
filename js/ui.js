@@ -22,9 +22,8 @@ $('minicards').addEventListener('pointerleave',hideTip);
 (function panelLoop(){try{applyPanels();}catch(e){}requestAnimationFrame(panelLoop);})();
 
 /* ---------- gimmick shortcut on the HUD ---------- */
-function renderGimBtn(){const b=$('gimbtn');if(!run||!run.gimmick){b.hidden=true;return;}const GM=GIMMICKS[run.gimmick];
-  const tgt=allOwned().find(u=>u.uid===run.gimTarget&&gimEligible(u));b.hidden=false;
-  b.innerHTML=`<img src="${iconOf(GM.key)}" alt="">${tgt?`<img src="${por(shownDex(tgt))}" alt="">`:'Pick'}`;b.title=`${GM.n}: ${tgt?nameOf(tgt)+' will use it':'choose who uses it'} (opens the menu)`;}
+function renderGimBtn(){const b=$('gimbtn'),L=gimList();if(!run||!L.length){b.hidden=true;return;}b.hidden=false;
+  b.innerHTML=L.map(g=>`<img src="${iconOf(GIMMICKS[g].key)}" alt="">`).join('');b.title=`${L.map(g=>GIMMICKS[g].n).join(', ')}: choose who uses them (opens the menu)`;}
 $('gimbtn').onclick=()=>openPause();
 
 /* ---------- pause menu ---------- */
@@ -126,8 +125,8 @@ function showUnitMenu(u,h={}){
   const owned=allOwned().includes(u);hideTip();
   showTip(u,{clientX:-9999,clientY:-9999},h);$('tip').querySelectorAll('.items').forEach(n=>n.remove());const details=$('tip').innerHTML;hideTip();
   const slots=[0,1,2].map(i=>{const it=u.items[i];return it?`<div class="umslot t-${{epic:'epic',gear:'gear',enh:'enh'}[itemTier(it)]||'common'}" data-uitem="${i}"><img src="${iconOf(itemDef(it).id)}" alt=""><span>${esc(itemName(it))}</span></div>`:`<div class="umslot empty"><span>Empty slot</span></div>`;}).join('');
-  const gims=[['stone','Mega Stone','stone'],['crystal','Z-Crystal','z'],['shard','Tera Shard','shard']].filter(([k])=>u[k]).map(([k,n,p])=>{const it={k:`g:${p}:${u[k]}`,mut:[]};return`<div class="umslot gim" data-ugim="${p}:${u[k]}"><img src="${iconOf(itemDef(it).id)}" alt=""><span>${esc(itemDef(it).n)}</span></div>`;}).join('')+(u.mush?`<div class="umslot gim"><span>Dynamax Level ${u.mush}${u.gmax?' · Gigantamax':''}</span></div>`:'');
-  const mg=u.stone&&run.gimmick==='mega'&&megaFor(u.dex,u.stone);
+  const gims=[['stone','Mega Stone','stone'],['crystal','Z-Crystal','z'],['shard','Tera Shard','shard']].filter(([k])=>u[k]).map(([k,n,p])=>{const it={k:`g:${p}:${u[k]}`,mut:[]};return`<div class="umslot gim" data-ugim="${p}:${u[k]}"><img src="${iconOf(itemDef(it).id)}" alt=""><span>${esc(itemDef(it).n)}</span></div>`;}).join('')+(u.formItem?(()=>{const it={k:'form:'+u.formItem,mut:[]};return`<div class="umslot gim" data-uform="${u.formItem}"><img src="${iconOf(itemDef(it).id)}" alt=""><span>${esc(itemDef(it).n)}</span></div>`;})():'')+(u.mush?`<div class="umslot gim"><span>Dynamax Level ${u.mush}${u.gmax?' · Gigantamax':''}</span></div>`:'');
+  const mg=u.stone&&gimOn('mega')&&megaFor(u.dex,u.stone);
   const acts=[];
   if(owned&&mg)acts.push(`<button class="btn" id="um-mega">${u.megaOff?'Mega Evolution: Off':'Mega Evolution: On'}</button>`);
   if(owned&&u.root===479&&typeof showRotomCatalog==='function'&&mode==='plan')acts.push(`<button class="btn" id="um-rotom">Rotom Catalog</button>`);
@@ -140,7 +139,7 @@ function showUnitMenu(u,h={}){
     <div class="umside"><div class="lbl">Held items</div>${slots}${gims?`<div class="lbl" style="margin-top:8px">Gimmick</div>${gims}`:''}
     <div class="umacts">${acts.join('')}<button class="btn" id="back">Close</button></div></div></div></div>`;
   ov.querySelector('.umwin').addEventListener('pointermove',e=>{const s=e.target.closest('[data-uitem]');const g=e.target.closest('[data-ugim]');
-    if(s){showItemTip(u.items[+s.dataset.uitem],e);return;}if(g){const[p,v]=g.dataset.ugim.split(':');showItemTip({k:`g:${p}:${v}`,mut:[]},e);return;}hideTip();});
+    if(s){showItemTip(u.items[+s.dataset.uitem],e);return;}if(g){const[p,v]=g.dataset.ugim.split(':');showItemTip({k:`g:${p}:${v}`,mut:[]},e);return;}const fm=e.target.closest('[data-uform]');if(fm){showItemTip({k:'form:'+fm.dataset.uform,mut:[]},e);return;}hideTip();});
   const close=()=>{hideTip();ov.innerHTML='';paused=umWasPaused;renderUI();};
   $('back').onclick=close;$('um-scrim').onclick=close;
   if($('um-mega'))$('um-mega').onclick=()=>{u.megaOff=!u.megaOff;close();if(!u.megaOff&&!SIM.on){const p=locate(u);if(p){toast(`${nameOf(u)} Mega Evolved!`);['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach(col=>burst(p.x,p.y-12,col,10,1.4));}}else toast(`${nameOf(u)} will stay in its normal form.`);};

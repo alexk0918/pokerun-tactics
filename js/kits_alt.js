@@ -74,3 +74,7 @@ kit({ids:[10191],role:'Rapid Strike',cls:'Striker',cat:'phys',range:1,mana:60,pf
 
 // tuning pass (kitbalA): form units against the generations at the same cost
 for(const[d,m]of Object.entries({10123:.8,10124:.75,10125:.8,10184:.8,10152:.8}))tuneSig(+d,m);
+
+// signature kits that own their ability no longer get the generic version on top (it was applying twice);
+// the damage dealers that leaned on that hidden bonus get some of it back in their move power
+for(const[d,m]of Object.entries({959:1.12,982:1.12,10113:1.08,689:1.1,986:1.08,1020:1.1,781:1.06,10230:1.05,470:1.05,638:1.15,491:1.12,809:1.05,494:1.08,486:1.1}))tuneSig(+d,m);

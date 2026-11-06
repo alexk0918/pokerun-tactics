@@ -93,7 +93,7 @@ kit({ids:[557,558],role:'Rock Hermit',cls:'Vanguard',type:'guard',cat:'phys',ran
   staged(seq(B.shield(.2),B.hit(.9,{proj:false})),{d:c=>`Smashes its shell: +15% <span class="s-atk">Attack</span> and <span class="s-as">Attack Speed</span> for the battle (it loses 5 <span class="s-def">Defense</span>), then X-Scissors the target for ${DT(c,1.2)}.`,
     cast(c,tg){c.atk*=1.15;c.as*=1.15;c.def=Math.max(0,c.def-5);hitAb(c,tg,1.2);}}));
 kit({ids:[559,560],role:'Hoodlum',cls:'Bruiser',cat:'phys',range:1,mana:[55,65],pf:[.8,1.1],names:['Brick Break','High Jump Kick'],mvType:'Fighting',tail:(c,i)=>i?'<b>Intimidate:</b> enemies within 2 hexes lose 10% Attack at the start of battle.':''},
-  staged(B.hit(1.1,{proj:false,fx:{shred:6}}),seq(B.shield(.1),B.hit(1.5,{dash:1,to:'far'}))));
+  Object.assign(staged(B.hit(1.1,{proj:false,fx:{shred:6}}),seq(B.shield(.1),B.hit(1.5,{dash:1,to:'far'}))),{begin(c,i){if(i)for(const o of foesOf(c).filter(o=>hdist(o,c)<=2&&!o.fx.clear))debuff(o,'atk',.1,6);}}));
 kit({ids:[561],role:'Ancient Guardian',cls:'Mystic',cat:'spec',range:3,mana:65,pf:1.1,names:['Psychic'],mvType:'Psychic'},
   seq(B.shield(.1,{who:'adjacent'}),B.hit(1.3,{fx:{conf:2}})));
 kit({ids:[562,563],role:'Coffin Curse',cls:'Juggernaut',type:'guard',cat:'spec',range:2,mana:[65,75],start:20,pf:[.8,1.05],names:['Hex','Mummy'],mvType:'Ghost',tail:(c,i)=>i?'<b>Mummy:</b> melee attackers that hit it are cursed: they deal 10% less damage for 3s.':''},

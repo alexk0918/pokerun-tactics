@@ -230,8 +230,6 @@ const GEAR={
     lines:['The wearer becomes the Apex: +35% max HP, damage and Attack Speed, and it grows bigger.','Radiant: the Apex gains +60% instead.']},
   Fossil:{id:'old-amber',n:'Ancient Amber',set:'Fossil',tiers:[{revive:.5,ancient:.15},{revive:.7,ancient:.25}],
     lines:['Revives once with 50% HP. On reviving, gains +15% to all stats and lets out an Ancient Power blast: 15% of its max HP as special damage to enemies within 1 hex.','Revives with 70% HP and gains +25% instead.']},
-  Kanto:{id:'star-piece',n:'Champion Ribbon',set:'Kanto',mission:1,tiers:[{dmg:.25,hpP:.25,as:.15},{dmg:.25,hpP:.25,as:.15}],
-    lines:['Earned by collecting all 8 Kanto Badges. +25% damage and max HP and +15% Attack Speed.']},
 };
 const isGear=it=>typeof it.k==='string'&&it.k.startsWith('gear:');
 /* Type plates work like TFT emblems: the holder also counts as that type for sets. They make the top tiers reachable. */

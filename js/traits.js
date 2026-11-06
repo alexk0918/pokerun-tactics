@@ -1,11 +1,12 @@
 "use strict";
 /* PokéRun Tactics — trait sets in battle (Titans, Sky Squadron, Fox Spirits, Showstoppers, Fae Folk …).
+   Every Pokémon has its types, its class and at most one of these (see originOf in game.js).
    Membership comes from data/traits.json (Pokédex weight, body shape, egg groups and categories). */
 
 function traitsOnStart(u,F,foes){
   if(u.decoy)return;
   // Titans: an opening stomp
-  if(F.titan){for(const o of foes)if(hdist(o,u)<=1)stun(o,F.titan);if(!SIM.on){ring(u.x,u.y-4,'#c9a46b');burst(u.x,u.y,'#b08a5a',18,1.2);}}
+  if(F.titan){for(const o of foes)if(hdist(o,u)<=1){stun(o,F.titan);if(F.titanDmg)hurt(o,u.maxHp*F.titanDmg,u);}if(!SIM.on){ring(u.x,u.y-4,'#c9a46b');burst(u.x,u.y,'#b08a5a',18,1.2);}}
   // Sky Squadron: take off, then dive onto the farthest enemy
   if(F.sky){u.airT=combatT+1;u.busy=Math.max(u.busy,1.05);u.target=null;if(!SIM.on)burst(u.x,u.y-10,'#cfe8ff',14,1);
     schedule(1,()=>{if(u.dead||mode!=='combat')return;const t=foesOf(u).sort((a,b)=>hdist(u,b)-hdist(u,a))[0];if(!t)return;dashTo(u,t,true,.25);

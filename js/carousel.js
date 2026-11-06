@@ -11,7 +11,7 @@ function genCarousel(f){
   const n=8,opts=[],used=new Set(),F=effFloor(f),open=F===1;
   const odds=open?LVODDS[2]:LVODDS[run.level];
   for(let i=0;i<n;i++){let root=null;
-    for(let k=0;k<12&&!root;k++){const c=open?1:Math.max(F>=11?2:1,rollCostFor(odds));const pool=MODE.byCost[c-1].filter(r=>!used.has(r));if(pool.length)root=pick(pool);}
+    for(let k=0;k<12&&!root;k++){const c=open?1:Math.max(F>=11?2:1,rollCostFor(odds));const mx=maxedRoots(),pool=MODE.byCost[c-1].filter(r=>!used.has(r)&&!mx.has(r));if(pool.length)root=pick(pool);}
     if(!root)root=pick(MODE.byCost[0]);used.add(root);
     // later acts: more finished items and more 2-star Pokémon on the carousel
     const item=F>=11&&i%(F>=30?2:3)===0?{k:randCraft(),mut:[]}:mkComp(randComp(),[]);
