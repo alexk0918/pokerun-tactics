@@ -480,7 +480,7 @@ Legendary Pokémon get dramatic effects that stay on the board and never cover t
 
 ### Audio
 
-**Music** comes from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, looping at the games' own loop points and crossfading between tracks: the Top Menu Theme on the title screen; Apple Woods, Treeshroud Forest and Sky Peak Forest in Act I; Mt. Bristle, Boulder Quarry and Dark Crater in Act II; Waterfall Cave, Brine Cave and Icicle Forest in Act III (the track changes every 5 floors); Boss Battle! for the first two guardians and Dialga's Fight to the Finish! for the last; Kecleon's Shop in Kecleon shops; a rotation (with Crystal Cave) in Endless mode; and the Exploration Team Theme when you win a run. The tracks are loudness-matched and quiet by default, like background ambience. Sound effects are synthesized by the game. Music and sound effects volumes are in Settings › Audio, and audio pauses when the tab is hidden.
+**Music** comes from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, looping at the games' own loop points and crossfading between tracks: the Top Menu Theme on the title screen; Apple Woods, Treeshroud Forest and Sky Peak Forest in Act I; Mt. Bristle, Boulder Quarry and Dark Crater in Act II; Waterfall Cave, Brine Cave and Icicle Forest in Act III (the track changes every 5 floors); Boss Battle! for the first two guardians and Dialga's Fight to the Finish! for the last; Kecleon's Shop in Kecleon shops; a rotation (with Crystal Cave) in Endless mode; and the Exploration Team Theme when you win a run. The tracks are loudness-matched and quiet by default, like background ambience. **Sound effects** are Explorers of Sky's own: each move type plays one of two PMD move sounds (Flamethrower or Ember for Fire, Thunder Shock or Spark for Electric, and so on), plus PMD hit, critical, faint, money, menu, chest, level-up, evolution and mission clear/fail sounds. Hit sounds are rate-limited so big fights stay calm. Music and sound effects volumes are in Settings › Audio, and audio pauses when the tab is hidden.
 
 ### Settings
 
@@ -537,8 +537,9 @@ js/fx_manifest.js   frame layout of every particle sheet
 js/carousel.js      carousel rounds
 js/ui.js            pause menu, settings, collapsible shop and bag
 js/market.js        the Market: bonds, shares, daycare and loans
-js/audio.js         music player (PMD tracks with loop points) and synthesized sound effects
+js/audio.js         music player (PMD tracks with loop points) and PMD sound effects
 assets/music/       PMD music tracks (MP3)
+assets/sfx/         PMD sound effects (MP3)
 js/traits.js        trait sets in battle
 js/meter.js         battle meter
 js/fusion.js        fusions and Deoxys formes
@@ -557,6 +558,6 @@ Run locally with any static server, for example `python3 -m http.server`, then o
 
 ## Credits
 
-Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Move effects, beams and treasure boxes are Pokémon Mystery Dungeon assets (Spike Chunsoft) collected by [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). Music is from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, composed by Arata Iiyoshi, Hideki Sakamoto, Keisuke Ito, Ken-ichi Saito and Yoshihiro Maeda (© Nintendo / Spike Chunsoft / The Pokémon Company); the rips and loop points are by ShinxHijinx / PersimBand and the [Explorers of Sky Origins](https://github.com/Minemaker0430/ExplorersOfSkyOrigins) project. The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
+Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Move effects, beams and treasure boxes are Pokémon Mystery Dungeon assets (Spike Chunsoft) collected by [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). Music is from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, composed by Arata Iiyoshi, Hideki Sakamoto, Keisuke Ito, Ken-ichi Saito and Yoshihiro Maeda (© Nintendo / Spike Chunsoft / The Pokémon Company); the rips and loop points are by ShinxHijinx / PersimBand and the [Explorers of Sky Origins](https://github.com/Minemaker0430/ExplorersOfSkyOrigins) project. Sound effects are from Explorers of Sky, as collected by [PMD Origins](https://github.com/audinowho/DumpAsset). The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
 
 This is a non-commercial fan project and is not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon is a trademark of Nintendo, Game Freak and Creatures.

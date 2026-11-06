@@ -471,7 +471,7 @@ function toggleLock(){if(!run)return;run.shopLock=!run.shopLock;if(!SIM.on)sfx('
 function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{const c=rerollCost();if(run.gold<c)return false;run.gold-=c;}rollShop(false);if(!SIM.on)sfx('reroll');renderUI();return true;}
 function buy(i){
   const root=run.shop[i];if(!root||mode!=='plan')return false;const L=MODE.lines[root];
-  if(run.gold<L.cost){toast(`Not enough Pokédollars for ${D[root].n}.`);return false;}
+  if(run.gold<L.cost){if(!SIM.on)sfx('error',200);toast(`Not enough Pokédollars for ${D[root].n}.`);return false;}
   const copies=allOwned().filter(u=>u.dex===root&&u.star===1).length;
   const slot=run.bench.indexOf(null);
   if(slot<0&&copies<2){toast('Your bench is full. Release a Pokémon first.');return false;}
@@ -1573,7 +1573,7 @@ function showCredits(){
     <p>Pokémon sprites and portraits: the artists of the <a href="https://sprites.pmdcollab.org/" target="_blank" rel="noopener">PMD SpriteCollab</a>.</p>
     <p>Move effects, beams and treasure boxes: <a href="https://github.com/PMDCollab/RawAsset" target="_blank" rel="noopener">PMDCollab RawAsset</a>.</p>
     <p>Pokédex, moves, abilities, forms and item sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>.</p>
-    <p>Music: from <i>Pokémon Mystery Dungeon: Explorers of Sky</i> and <i>Rescue Team</i>, composed by Arata Iiyoshi, Hideki Sakamoto, Keisuke Ito, Ken-ichi Saito and Yoshihiro Maeda (© Nintendo / Spike Chunsoft / The Pokémon Company). Rips and loop points by ShinxHijinx / PersimBand and the <a href="https://github.com/Minemaker0430/ExplorersOfSkyOrigins" target="_blank" rel="noopener">Explorers of Sky Origins</a> project.</p>
+    <p>Music: from <i>Pokémon Mystery Dungeon: Explorers of Sky</i> and <i>Rescue Team</i>, composed by Arata Iiyoshi, Hideki Sakamoto, Keisuke Ito, Ken-ichi Saito and Yoshihiro Maeda (© Nintendo / Spike Chunsoft / The Pokémon Company). Rips and loop points by ShinxHijinx / PersimBand and the <a href="https://github.com/Minemaker0430/ExplorersOfSkyOrigins" target="_blank" rel="noopener">Explorers of Sky Origins</a> project. Sound effects: Explorers of Sky, as collected by <a href="https://github.com/audinowho/DumpAsset" target="_blank" rel="noopener">PMD Origins</a>.</p>
     <p>Font: Pokémon Emerald's glyphs, from the <a href="https://github.com/pret/pokeemerald" target="_blank" rel="noopener">pret/pokeemerald</a> decompilation.</p>
     <p class="sc">Non-commercial fan project. Pokémon is © Nintendo, Game Freak and Creatures.</p>
     <div class="row"><button class="btn" id="back">Back</button></div></div></div>`;
@@ -1626,7 +1626,7 @@ function itemCard(it,i,cls=''){const t=isRelicId(it)?'relic':itemTier(it);
   const tl=t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(GIMMICKS[gimOfItem(it)]||{n:'Gimmick'}).n:t==='formi'?'Form item':'Relic';
   return`<button class="pick win item p-${t==='common'?'common':t} ${cls}" data-i="${i}"><div class="icon"><img src="${iconOf(id)}" alt=""></div><span class="tier ${t==='common'?'common':t}">${tl}</span><h2 style="font-size:20px">${esc(name)}</h2><div class="desc">${body}</div></button>`;}
 const isRelicId=x=>typeof x==='string'&&RELICS[x];
-function openChest(){if(!SIM.on)sfx('chest',300);
+function openChest(){if(!SIM.on){sfx('chest',300);setTimeout(()=>sfx('treasure',600),250);}
   if(mode!=='loot'||!run.loot||(chest&&chest.open))return;
   if(run.strat.id==='charm'){run.gold+=3;if(!SIM.on)toast('Lucky Charm: +₽3');}
   if(chest){chest.open=true;openChestFx(chest);}

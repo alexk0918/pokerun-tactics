@@ -2,10 +2,9 @@
 /* PokéRun Tactics — audio.
    Music: tracks from the Pokémon Mystery Dungeon games (© Nintendo / Chunsoft / The Pokémon Company), played as background
    music with their original loop points. Credits are in README.md and Settings › Audio. A fan project, not for profit.
-   Sound effects: synthesized with the Web Audio API. */
+   Sound effects: Pokémon Mystery Dungeon: Explorers of Sky samples, as collected by the PMDO project (audinowho/DumpAsset). */
 
 const AU={ctx:null,out:null,mus:null,sfx:null,rev:null,cur:null,timer:null,last:{},burst:[],want:null};
-const mtof=m=>440*Math.pow(2,(m-69)/12);
 
 /* ---------- tracks: assets/music/<id>.mp3, looping from a to b (seconds) ---------- */
 const MUSIC={
@@ -34,49 +33,20 @@ function auInit(){
   if(AU.ctx)return AU.ctx.state==='suspended'?AU.ctx.resume():null;
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   try{auGraph(new AC());}catch(e){return;}
-  auVolumes();AU.timer=setInterval(auTick,25);
+  auVolumes();AU.timer=setInterval(auTick,25);sfxLoad();
   if(AU.want)music(AU.want,true);
 }
-// the mixing graph: compressor ← master ← music / effects buses, plus a shared reverb send
-function auGraph(c){AU.ctx=c;AU.nb=null;
+// the mixing graph: compressor ← master ← music and effects buses
+function auGraph(c){AU.ctx=c;
   const comp=c.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;comp.connect(c.destination);
-  AU.out=c.createGain();AU.out.gain.value=1.8;AU.out.connect(comp);
+  AU.out=c.createGain();AU.out.gain.value=1;AU.out.connect(comp);
   AU.mus=c.createGain();AU.sfx=c.createGain();AU.mus.connect(AU.out);AU.sfx.connect(AU.out);
-  // a soft room: generated impulse response
-  AU.rev=c.createConvolver();const len=c.sampleRate*2.4,ir=c.createBuffer(2,len,c.sampleRate);
-  for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2);}
-  AU.rev.buffer=ir;const rg=c.createGain();rg.gain.value=.35;AU.rev.connect(rg);rg.connect(AU.out);
 }
 function auVolumes(){if(!AU.ctx)return;const t=AU.ctx.currentTime;
   AU.mus.gain.setTargetAtTime(OPTS.musVol??.5,t,.1);AU.sfx.gain.setTargetAtTime(OPTS.sfxVol??.6,t,.05);}
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,auInit,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!AU.ctx)return;if(document.hidden){AU.ctx.suspend();if(AU.cur)AU.cur.el.pause();}else{AU.ctx.resume();if(AU.cur)AU.cur.el.play().catch(()=>{});}});
 const auOK=()=>AU.ctx&&AU.ctx.state==='running'&&!SIM.on;
-
-/* ---------- instruments ---------- */
-function env(g,t,a,peak,d,sus,r,len){const p=g.gain;p.setValueAtTime(0,t);p.linearRampToValueAtTime(peak,t+a);p.setTargetAtTime(peak*sus,t+a,d);p.setTargetAtTime(0,t+len,r);}
-function voice(dest,{f,t,len,type='sine',v=.1,a=.01,d=.2,sus=.5,r=.2,cut=0,q=.7,det=0,vib=0,send=0,glide=0}){
-  const c=AU.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(glide)o.frequency.exponentialRampToValueAtTime(Math.max(20,glide),t+len);if(det)o.detune.value=det;
-  let n=o;if(cut){const fl=c.createBiquadFilter();fl.type='lowpass';fl.frequency.value=cut;fl.Q.value=q;o.connect(fl);n=fl;}
-  if(vib){const l=c.createOscillator(),lg=c.createGain();l.frequency.value=5.2;lg.gain.value=f*vib;l.connect(lg);lg.connect(o.frequency);l.start(t+.15);l.stop(t+len+r*5);}
-  n.connect(g);g.connect(dest);if(send){const sg=c.createGain();sg.gain.value=send;g.connect(sg);sg.connect(AU.rev);}
-  env(g,t,a,v,d,sus,r,len);o.start(t);o.stop(t+len+r*6);
-}
-function inst(name,m,t,len,v,dest){const f=mtof(m);
-  if(name==='pluck')voice(dest,{f,t,len:.05,type:'triangle',v,a:.004,d:.18,sus:.15,r:.25,cut:2600,send:.4});
-  else if(name==='marimba'){voice(dest,{f,t,len:.04,type:'sine',v,a:.002,d:.15,sus:.1,r:.2,send:.3});voice(dest,{f:f*4,t,len:.02,type:'sine',v:v*.25,a:.001,d:.04,sus:0,r:.05});}
-  else if(name==='bell'){voice(dest,{f,t,len:.05,type:'sine',v,a:.003,d:.6,sus:.25,r:1.1,send:.6});voice(dest,{f:f*2.76,t,len:.02,type:'sine',v:v*.3,a:.002,d:.25,sus:0,r:.3,send:.6});}
-  else if(name==='flute')voice(dest,{f,t,len,type:'sine',v,a:.06,d:.3,sus:.75,r:.18,vib:.006,send:.45});
-  else if(name==='ocarina'){voice(dest,{f,t,len,type:'triangle',v:v*.8,a:.04,d:.3,sus:.7,r:.16,cut:1800,vib:.005,send:.45});}
-  else if(name==='bass')voice(dest,{f,t,len,type:'triangle',v,a:.01,d:.3,sus:.6,r:.12,cut:600});
-  else if(name==='pad'){for(const d of[-7,7])voice(dest,{f,t,len:len-.4,type:'sawtooth',v:v*.45,a:1,d:1,sus:.85,r:.55,cut:700,q:.3,det:d,send:.6});voice(dest,{f:f/2,t,len:len-.4,type:'triangle',v:v*.6,a:1,d:1,sus:.85,r:.55,send:.35});}
-}
-function noiseBuf(){if(AU.nb)return AU.nb;const c=AU.ctx,b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return AU.nb=b;}
-function noise(dest,{t,len,v=.1,type='bandpass',f=1000,f1=0,q=1,a=.005,r=.08,send=0}){
-  const c=AU.ctx,s=c.createBufferSource(),fl=c.createBiquadFilter(),g=c.createGain();s.buffer=noiseBuf();s.loop=true;fl.type=type;fl.frequency.setValueAtTime(f,t);if(f1)fl.frequency.exponentialRampToValueAtTime(f1,t+len);fl.Q.value=q;
-  s.connect(fl);fl.connect(g);g.connect(dest);if(send){const sg=c.createGain();sg.gain.value=send;g.connect(sg);sg.connect(AU.rev);}
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.setTargetAtTime(0,t+len,r);s.start(t,Math.random()*.5);s.stop(t+len+r*6);
-}
 
 /* ---------- the music player ---------- */
 // each track streams from an <audio> element through a gain node (so volume works everywhere, iOS too) and crossfades
@@ -102,46 +72,17 @@ function musicForRun(){if(!run)return'menu';const a=actOf();
   if(a>=ACT_TRACKS.length)return ENDLESS_TRACKS[(a*3+Math.floor((run.floor-1)/5))%ENDLESS_TRACKS.length];
   return ACT_TRACKS[a][Math.min(2,Math.floor((run.floor-1)/5))];}
 
-/* ---------- sound effects ---------- */
+/* ---------- sound effects: PMD samples in assets/sfx, decoded once and played from memory ---------- */
+const SFX_FILES=['Normal','Normal2','Fire','Fire2','Water','Water2','Grass','Grass2','Electric','Electric2','Ice','Ice2','Fighting','Fighting2','Poison','Poison2','Ground','Ground2','Flying','Flying2','Psychic','Psychic2','Bug','Bug2','Rock','Rock2','Ghost','Ghost2','Dragon','Dragon2','Dark','Dark2','Steel','Steel2','Fairy','Fairy2',
+  'hit','crit','miss','faint','buy','sell','reroll','level','star','evolve','win','lose','chest','treasure','pick','lock','coin','error','select'];
+// how loud each one sits in the mix (hits are frequent, so they're quiet)
+const SFX_VOL={hit:.35,crit:.55,miss:.4,faint:.6,select:.5,lock:.6,coin:.6,buy:.7,sell:.6,reroll:.6};
+const SFXBUF={};
+function sfxLoad(){if(!AU.ctx||AU.sfxLoading)return;AU.sfxLoading=1;
+  for(const k of SFX_FILES)fetch(`assets/sfx/${k}.mp3`).then(r=>r.arrayBuffer()).then(b=>AU.ctx.decodeAudioData(b)).then(buf=>{SFXBUF[k]=buf;}).catch(()=>{});}
 // rate limit so a busy battle doesn't turn into noise
-function sfxGate(k,gap){const t=performance.now();if((AU.last[k]||0)>t-gap)return false;AU.burst=AU.burst.filter(x=>x>t-120);if(AU.burst.length>=7)return false;AU.last[k]=t;AU.burst.push(t);return true;}
-const SFXT=()=>AU.ctx.currentTime+.005;
-const MOVE_SFX={
-  Normal:t=>{voice(AU.sfx,{f:520,glide:260,t,len:.08,type:'triangle',v:.12,a:.003,d:.06,sus:.2,r:.05});noise(AU.sfx,{t,len:.05,v:.08,f:1800,q:.8});},
-  Fire:t=>{noise(AU.sfx,{t,len:.35,v:.14,type:'bandpass',f:500,f1:2400,q:.7,a:.03,r:.15,send:.2});voice(AU.sfx,{f:180,glide:90,t,len:.3,type:'sawtooth',v:.04,cut:700});},
-  Water:t=>{for(let i=0;i<4;i++)voice(AU.sfx,{f:400+i*90,glide:900+i*140,t:t+i*.045,len:.07,type:'sine',v:.07,a:.004,d:.05,sus:.3,r:.05,send:.3});},
-  Electric:t=>{for(let i=0;i<5;i++)voice(AU.sfx,{f:900+Math.random()*900,t:t+i*.025,len:.025,type:'square',v:.035,a:.001,d:.02,sus:.4,r:.02,cut:4000});noise(AU.sfx,{t,len:.12,v:.05,type:'highpass',f:3000});},
-  Grass:t=>{noise(AU.sfx,{t,len:.2,v:.08,type:'bandpass',f:2400,f1:900,q:1.2,a:.02});voice(AU.sfx,{f:1320,t:t+.08,len:.05,type:'sine',v:.05,a:.003,d:.2,sus:.1,r:.3,send:.5});},
-  Ice:t=>{for(const[k,f]of[[0,1760],[1,2350],[2,2960]])voice(AU.sfx,{f,t:t+k*.05,len:.03,type:'sine',v:.05,a:.002,d:.3,sus:.1,r:.4,send:.6});},
-  Fighting:t=>{voice(AU.sfx,{f:160,glide:60,t,len:.12,type:'sine',v:.22,a:.002,d:.08,sus:.2,r:.06});noise(AU.sfx,{t,len:.04,v:.12,type:'lowpass',f:1500});},
-  Poison:t=>{for(let i=0;i<3;i++)voice(AU.sfx,{f:220+Math.random()*120,glide:140,t:t+i*.07,len:.09,type:'sine',v:.08,a:.01,d:.06,sus:.3,r:.05,cut:900});},
-  Ground:t=>{noise(AU.sfx,{t,len:.35,v:.18,type:'lowpass',f:300,f1:120,q:.5,a:.02,r:.15});voice(AU.sfx,{f:70,glide:45,t,len:.3,type:'sine',v:.15});},
-  Flying:t=>{noise(AU.sfx,{t,len:.28,v:.09,type:'bandpass',f:600,f1:3200,q:2,a:.06,r:.1});},
-  Psychic:t=>{voice(AU.sfx,{f:660,t,len:.35,type:'sine',v:.07,a:.05,d:.2,sus:.7,r:.2,vib:.04,send:.5});voice(AU.sfx,{f:990,t:t+.05,len:.3,type:'sine',v:.04,a:.05,d:.2,sus:.6,r:.2,vib:.05,send:.5});},
-  Bug:t=>{voice(AU.sfx,{f:240,t,len:.18,type:'sawtooth',v:.04,a:.01,d:.1,sus:.8,r:.05,cut:1400,vib:.08});},
-  Rock:t=>{for(let i=0;i<3;i++)noise(AU.sfx,{t:t+i*.05,len:.04,v:.12,type:'lowpass',f:900-i*150,q:1});voice(AU.sfx,{f:120,glide:70,t,len:.12,type:'triangle',v:.1});},
-  Ghost:t=>{voice(AU.sfx,{f:520,glide:220,t,len:.45,type:'sine',v:.07,a:.08,d:.3,sus:.7,r:.25,vib:.03,send:.7});},
-  Dragon:t=>{voice(AU.sfx,{f:110,glide:80,t,len:.35,type:'sawtooth',v:.07,a:.03,d:.2,sus:.7,r:.15,cut:800,q:4});noise(AU.sfx,{t,len:.3,v:.06,type:'bandpass',f:400,f1:200});},
-  Dark:t=>{noise(AU.sfx,{t,len:.2,v:.1,type:'bandpass',f:1600,f1:300,q:1.5,a:.02});voice(AU.sfx,{f:200,glide:120,t,len:.15,type:'triangle',v:.06});},
-  Steel:t=>{voice(AU.sfx,{f:880,t,len:.03,type:'square',v:.04,a:.001,d:.15,sus:.1,r:.3,cut:3000});voice(AU.sfx,{f:1235,t,len:.03,type:'sine',v:.06,a:.001,d:.25,sus:.1,r:.4,send:.4});},
-  Fairy:t=>{[1568,1976,2349,3136].forEach((f,i)=>voice(AU.sfx,{f,t:t+i*.04,len:.03,type:'sine',v:.045,a:.002,d:.2,sus:.1,r:.3,send:.6}));},
-};
-const UI_SFX={
-  buy:t=>{voice(AU.sfx,{f:988,t,len:.05,type:'square',v:.04,cut:3000});voice(AU.sfx,{f:1319,t:t+.06,len:.12,type:'square',v:.04,cut:3000});},
-  sell:t=>{voice(AU.sfx,{f:1319,t,len:.05,type:'square',v:.035,cut:2600});voice(AU.sfx,{f:880,t:t+.06,len:.1,type:'square',v:.035,cut:2600});},
-  reroll:t=>{for(let i=0;i<4;i++)voice(AU.sfx,{f:500+i*120,t:t+i*.03,len:.02,type:'triangle',v:.05});},
-  level:t=>{[0,4,7,12].forEach((k,i)=>voice(AU.sfx,{f:mtof(72+k),t:t+i*.07,len:.07,type:'square',v:.035,cut:3500,send:.2}));},
-  star:t=>{[0,7,12,16,19].forEach((k,i)=>voice(AU.sfx,{f:mtof(76+k),t:t+i*.05,len:.05,type:'sine',v:.06,a:.002,d:.2,sus:.2,r:.3,send:.5}));},
-  evolve:t=>{for(let i=0;i<10;i++)voice(AU.sfx,{f:mtof(60+i*3),t:t+i*.06,len:.06,type:'triangle',v:.05,send:.5});voice(AU.sfx,{f:mtof(84),t:t+.65,len:.4,type:'sine',v:.07,a:.01,d:.4,sus:.5,r:.6,send:.7});},
-  win:t=>{[[72,0],[76,.12],[79,.24],[84,.36]].forEach(([m,d])=>voice(AU.sfx,{f:mtof(m),t:t+d,len:d===.36?.5:.1,type:'square',v:.045,cut:3000,send:.3}));},
-  lose:t=>{[[67,0],[63,.18],[60,.36]].forEach(([m,d])=>voice(AU.sfx,{f:mtof(m),t:t+d,len:.2,type:'triangle',v:.06,send:.3}));},
-  chest:t=>{noise(AU.sfx,{t,len:.08,v:.06,type:'lowpass',f:800});[0,4,7,11,14].forEach((k,i)=>voice(AU.sfx,{f:mtof(79+k),t:t+.08+i*.04,len:.04,type:'sine',v:.05,a:.002,d:.2,sus:.2,r:.3,send:.6}));},
-  pick:t=>{voice(AU.sfx,{f:mtof(84),t,len:.05,type:'sine',v:.06,send:.4});voice(AU.sfx,{f:mtof(91),t:t+.07,len:.12,type:'sine',v:.05,send:.4});},
-  hit:t=>{voice(AU.sfx,{f:200,glide:90,t,len:.05,type:'triangle',v:.06,a:.002,d:.04,sus:.2,r:.03});},
-  crit:t=>{voice(AU.sfx,{f:300,glide:120,t,len:.07,type:'square',v:.05,a:.002,d:.05,sus:.2,r:.04,cut:2000});noise(AU.sfx,{t,len:.05,v:.08,type:'highpass',f:2500});},
-  faint:t=>{voice(AU.sfx,{f:600,glide:150,t,len:.35,type:'triangle',v:.07,a:.01,d:.2,sus:.6,r:.1});},
-  lock:t=>{voice(AU.sfx,{f:1400,t,len:.02,type:'square',v:.03,cut:4000});noise(AU.sfx,{t:t+.03,len:.03,v:.05,type:'bandpass',f:2500,q:3});},
-  coin:t=>{voice(AU.sfx,{f:1976,t,len:.04,type:'square',v:.025,cut:5000});voice(AU.sfx,{f:2637,t:t+.05,len:.1,type:'square',v:.025,cut:5000});},
-};
-function sfx(k,gap=40){if(!auOK()||!(OPTS.sfxVol??.6))return;const f=UI_SFX[k];if(!f||!sfxGate(k,gap))return;try{f(SFXT());}catch(e){}}
-function sfxMove(type){if(!auOK()||!(OPTS.sfxVol??.6))return;const f=MOVE_SFX[type]||MOVE_SFX.Normal;if(!sfxGate('mv:'+type,70))return;try{f(SFXT());}catch(e){}}
+function sfxGate(k,gap){const t=performance.now();if((AU.last[k]||0)>t-gap)return false;AU.burst=AU.burst.filter(x=>x>t-150);if(AU.burst.length>=6)return false;AU.last[k]=t;AU.burst.push(t);return true;}
+function playBuf(k,vol=1,rate=1){const b=SFXBUF[k];if(!b)return;const c=AU.ctx,s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;s.connect(g);g.connect(AU.sfx);s.start();}
+function sfx(k,gap=40){if(!auOK()||!(OPTS.sfxVol??.6)||!sfxGate(k,gap))return;playBuf(k,SFX_VOL[k]??.8,k==='hit'?.92+Math.random()*.16:1);}
+// each type has two PMD move sounds; one is picked at random
+function sfxMove(type){if(!auOK()||!(OPTS.sfxVol??.6))return;const t=SFXBUF[type]?type:'Normal';if(!sfxGate('mv:'+t,90))return;playBuf(Math.random()<.5?t:t+'2',.7);}
