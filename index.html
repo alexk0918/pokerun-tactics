@@ -320,7 +320,26 @@ body,button{-webkit-font-smoothing:none;font-smooth:never;}
 #tip .rp.on img{filter:none;opacity:1;}#tip .rp.bench img{filter:none;opacity:.7;}
 #tip .rp.on.c1,#tip .rp.bench.c1{border-color:#c42f2c;}#tip .rp.on.c2,#tip .rp.bench.c2{border-color:#2d62b8;}#tip .rp.on.c3,#tip .rp.bench.c3{border-color:#1e1e22;}#tip .rp.on.c4,#tip .rp.bench.c4{border-color:#3f6e3a;}#tip .rp.on.c5,#tip .rp.bench.c5{border-color:#7a35c0;}
 #tip .rp.bench{border-style:dashed;}
-#tip .stats b{font-size:24px;}
+/* unit card */
+#tip{width:310px;}
+#tip .top{align-items:flex-start;}
+#tip .top>img{width:60px;height:60px;flex:none;}
+#tip .hd{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+#tip .nmrow{display:flex;align-items:center;gap:6px;}#tip .nmrow h3{font-size:20px;flex:1;min-width:0;}
+#tip .cost{flex:none;color:#fff;font-size:14px;padding:1px 6px;border-radius:10px;border:2px solid var(--ink);}
+#tip .cost.c1{background:#c42f2c;}#tip .cost.c2{background:#2d62b8;}#tip .cost.c3{background:#1e1e22;}#tip .cost.c4{background:#3f6e3a;}#tip .cost.c5{background:#7a35c0;}
+#tip .sub{display:flex;align-items:center;gap:6px;min-height:16px;}#tip .tag{font-size:13px;color:#fff;background:#b5532f;border-radius:3px;padding:0 5px;}
+#tip .chips{margin-top:2px;}
+#tip .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:2px 6px;margin:8px 0 6px;padding:5px 6px;background:#eef2ea;border-radius:6px;}
+#tip .strip .st{display:flex;justify-content:space-between;align-items:baseline;gap:3px;}
+#tip .strip i{font-style:normal;font-size:13px;color:var(--muted);}#tip .strip b{font-size:15px;font-variant-numeric:tabular-nums;}
+#tip .strip .hi b{color:#c0392b;}
+#tip .ab{padding-top:6px;}#tip .ab .mvh{margin:0;}
+#tip .abil{font-size:15px;}#tip .abil .sc{font-size:15px;}
+#tip .notes{margin-top:6px;padding-top:4px;border-top:2px dashed #c5d1d9;}
+#tip .notes p{margin:3px 0 0;font-size:15px;line-height:1.3;padding-left:7px;border-left:3px solid #5fae45;}
+#tip .notes b{color:#2f7a22;}#tip .notes b.nm{color:#6a3fc0;}
+#tip .items div{font-size:15px;}
 .screen.title{gap:22px;}
 .menu-row{display:flex;gap:18px;align-items:flex-start;}
 .menu{display:flex;flex-direction:column;padding:12px 10px;min-width:260px;}
@@ -619,6 +638,22 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .pick.forme{width:210px;}.pick.forme.cur{box-shadow:0 0 0 4px var(--gold);}
 .fstats{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 8px;font-family:var(--label);font-size:13px;}
 .card .chip{font-size:13px;line-height:13px;padding:1px 3px 2px;}.card .chip.more{background:#55606a;}
+
+/* the Market */
+.screen.market{max-width:1060px;width:94%;}
+.mkgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;}
+.mk{padding:12px 12px 14px;display:flex;flex-direction:column;gap:8px;min-height:250px;}
+.mk h2{font-size:20px;margin:0;}.mk>.sc{margin:0;line-height:1.35;font-size:14px;}
+.mk.bond{border-top:6px solid #c9961d;}.mk.share{border-top:6px solid #2f8f3a;}.mk.day{border-top:6px solid #e58aa8;}.mk.loan{border-top:6px solid #b5532f;}
+.mkrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;}.mkrow .btn{flex:1 1 auto;}
+.mklist{display:flex;flex-wrap:wrap;gap:4px;}.mklist .chip{color:var(--ink);background:#efe6c8;border:2px solid var(--ink);border-radius:4px;padding:1px 6px;font-size:13px;}
+.mkprice{display:flex;align-items:center;gap:8px;}.mkprice b{font-size:24px;}.mkprice .up{color:#2f8f3a;}.mkprice .down{color:#c42f2c;}
+.mkprice .spark{width:100px;height:30px;color:#2f8f3a;margin-left:auto;}
+.mkday{display:flex;gap:10px;align-items:center;}.mkday img{width:48px;height:48px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#e8efe2;}
+.mkbench{gap:4px;}.mkpor{position:relative;width:44px;height:44px;padding:0;border:2px solid var(--ink);border-radius:6px;background:#e8efe2;cursor:pointer;flex:none !important;}
+.mkpor img{width:100%;height:100%;image-rendering:pixelated;}.mkpor span{position:absolute;bottom:-2px;right:1px;font-size:10px;color:#c9961d;text-shadow:0 1px 0 #000;}
+.mkpor:hover,.mkpor.padhover{outline:3px solid var(--gold);}
+@media (max-width:900px){.mkgrid{grid-template-columns:repeat(2,1fr);}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -643,7 +678,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
     </div>
     <div class="win" id="teambox"><div><div class="lbl">Level <b id="lvl">2</b></div><div class="num" id="teamnum">0<small>/2</small></div><div class="xpbar" id="xpbar" title="XP"><i></i></div></div></div>
     <div class="win" id="goldbox"><div class="coin">₽</div><div><div class="lbl">Pokédollars</div><div class="num" id="goldnum">0</div></div></div>
-    <div class="win hudbtns"><button class="btn-speed" id="gimbtn" hidden title="Choose who uses your gimmick"></button><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button><button class="btn-speed" id="menubtn" title="Menu (Esc)" aria-haspopup="dialog"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Menu</button></div>
+    <div class="win hudbtns"><button class="btn-speed" id="mktbtn" title="The Market: bonds, shares, daycare and loans (M)">Market</button><button class="btn-speed" id="gimbtn" hidden title="Choose who uses your gimmick"></button><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button><button class="btn-speed" id="menubtn" title="Menu (Esc)" aria-haspopup="dialog"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Menu</button></div>
   </div>
   <div id="traits" hidden></div>
   <div id="bag" class="win" hidden><button class="baghead" id="bagtog" aria-expanded="true"><span class="lbl">Bag</span><span class="lbl" id="bagct">0/10</span><span class="caret" aria-hidden="true"></span></button><div class="slots" id="slots"></div><div class="baghint" id="baghint">Drag items onto a Pokémon</div></div>
@@ -675,33 +710,35 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 </div></div>
 
 <script src="js/data.js?v=18"></script>
-<script src="js/sets.js?v=21"></script>
-<script src="js/game.js?v=51"></script>
+<script src="js/sets.js?v=22"></script>
+<script src="js/game.js?v=52"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=7"></script>
 <script src="js/cine.js?v=10"></script>
-<script src="js/forms.js?v=16"></script>
-<script src="js/route.js?v=22"></script>
-<script src="js/carousel.js?v=4"></script>
-<script src="js/kits.js?v=22"></script>
+<script src="js/forms.js?v=17"></script>
+<script src="js/route.js?v=23"></script>
+<script src="js/carousel.js?v=5"></script>
+<script src="js/kits.js?v=23"></script>
 <script src="js/kits_gen1.js?v=5"></script>
 <script src="js/kits_gen2.js?v=4"></script>
 <script src="js/kits_gen3.js?v=4"></script>
 <script src="js/kits_gen4.js?v=8x"></script>
-<script src="js/kits_gen5.js?v=5"></script>
+<script src="js/kits_gen5.js?v=6"></script>
 <script src="js/kits_gen6.js?v=4"></script>
 <script src="js/kits_gen7.js?v=3"></script>
 <script src="js/kits_gen8.js?v=2"></script>
 <script src="js/kits_forms.js?v=4"></script>
 <script src="js/kits_gen9.js?v=3"></script>
-<script src="js/kits_alt.js?v=2"></script>
+<script src="js/kits_alt.js?v=3"></script>
 <script src="js/fusion.js?v=1"></script>
-<script src="js/traits.js?v=1"></script>
+<script src="js/traits.js?v=2"></script>
+<script src="js/market.js?v=2"></script>
+<script src="js/audio.js?v=2"></script>
 <script src="js/kitdex.js?v=4"></script>
-<script src="js/augments.js?v=4"></script>
-<script src="js/ui.js?v=13"></script>
+<script src="js/augments.js?v=5"></script>
+<script src="js/ui.js?v=14"></script>
 <script src="js/meter.js?v=1"></script>
-<script src="js/gamepad.js?v=17"></script>
+<script src="js/gamepad.js?v=18"></script>
 </body>
 </html>

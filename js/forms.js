@@ -221,7 +221,7 @@ function startGimmick(c,g,o){
   c.gim=g;
   if(g==='mega'){const fid=o.enemy?formOf(baseOf(c.dex),'mega'):megaFor(c.dex,c.u.stone);if(!fid)return;
     // Mega Evolution pops right away
-    schedule(.05,()=>{if(c.dead)return;transform(c,fid,{label:'Mega Evolution!',col:'#ff9be6',big:1});c.mega=1;c.dmg+=.1;c.as*=1.1;
+    schedule(.05,()=>{if(c.dead)return;transform(c,fid,{label:'Mega Evolution!',col:'#ff9be6',big:1});if(!SIM.on)sfx('evolve',300);c.mega=1;c.dmg+=.1;c.as*=1.1;
       if(!SIM.on)['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach(col=>burst(c.x,c.y-12,col,10,1.5));});}
   if(g==='zmove'){c.zReady=1;c.mana=Math.min(c.maxMana,c.mana+30);if(o.enemy)c.zType=kitOf(c.dex).mv.t;}
   if(g==='tera'){const t=o.enemy?D[c.dex].t[0]:c.u.shard;c.tera=t;c.teraOn=1;c.maxHp*=1.12;c.hp*=1.12;

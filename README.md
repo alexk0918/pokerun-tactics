@@ -203,6 +203,12 @@ Scaling and damage are color coded:
 
 While you drag a Pokémon, or hover one on the field, the hexes it can reach from that spot light up: blue on your side, red on the enemy side.
 
+The unit card is compact, TFT-style: portrait, name, stars, cost and sets up top; a two-row stat strip (the attacking stat the Pokémon uses is red); the move with its scaling; the ability in one line; items; then slim notes (growth, Friendship, what it evolves into). When an evolution branches, hover or right-click each option to see its full card before you choose.
+
+A signature kit that names its ability in its own text (Thundurus' Prankster, Golurk's Iron Fist…) implements that ability itself, so the generic version isn't added on top and the card shows it once.
+
+Form items (Red Orb, Griseous Core, Rusted Sword, masks…) sit in their own slot like Mega Stones, so they never take one of the 3 item slots. Selling a Pokémon returns its Mega Stone, Z-Crystal, Tera Shard and form item to your bag.
+
 ### Economy
 
 - Income each floor: ₽5 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win.
@@ -222,7 +228,21 @@ While you drag a Pokémon, or hover one on the field, the hexes it can reach fro
 | 10 | 5% | 10% | 20% | 40% | 25% |
 
 - Kecleon stock, event eggs and trades also stay within the costs your level can roll.
-- Shortcuts: D rerolls, F buys XP, Space starts the battle or opens the chest.
+- **Shop lock** (the padlock next to Reroll, or L): a locked shop keeps its offers through the next floors until you unlock it, like TFT.
+- Once you own a 3★ of a line it stops appearing in the shop and on the carousel (it can't go higher).
+- Buying the copy that completes a combine works even with a full bench.
+- Shortcuts: D rerolls, F buys XP, L locks the shop, M opens the Market, Space starts the battle or opens the chest.
+
+### The Market (investments)
+
+Open it from the **Market** button on the HUD (or M) while planning. These work with any team, and everything settles when your next floor's income arrives:
+
+| Investment | How it works | When it's good |
+|---|---|---|
+| League Bonds | Lock ₽5 / ₽10 / ₽20 away for 3 floors and get back +40% (up to 3 bonds) | Locked money earns no interest, but bonds have no cap, so they keep a rich trainer growing past the ₽5 interest cap |
+| Sponsor Shares | The price rises 12% after a win and falls 10% after a loss, plus some noise; every 4 shares pay ₽1 a floor (up to 12 shares) | Buy into a win streak, sell before it ends |
+| Daycare | Leave one 1★ or 2★ bench Pokémon: it frees the slot and gains a star (3 floors to 2★, 5 to 3★) for ₽1–₽3 a floor; it evolves when you pick it up | Growing a pricey unit you can't find copies of |
+| Goldenrod Loan | Borrow ₽10 or ₽20 now, pay back 130% over your next two floors (any shortfall costs Trainer HP) | A power spike: level up or roll for a key unit a floor early |
 
 ### Items
 
@@ -268,9 +288,11 @@ Weather now does what it does in the games, with PMD weather art on screen (rain
 
 ### Sets
 
-Every Pokémon belongs to several sets, and each set activates at its breakpoints (counting different Pokémon on the field). Hover a set to see its bonuses the TFT way. Breakpoints you've reached are green, and the value for your current tier is highlighted. Other tiers' values, and bonuses that unlock at higher counts, are greyed out.
+Every Pokémon has its **types**, its **class** and **at most one trait** (or none), so a card never carries more than four sets. Each set activates at its breakpoints (counting different Pokémon on the field). Hover a set to see its bonuses the TFT way (breakpoints you've reached are green, and the value for your current tier is highlighted), plus a portrait of **every Pokémon this run can offer for it**: in colour if it's on your field, faded if it's on your bench, grey otherwise.
 
-Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type sets and most classes go 2 / 4 / 6 / 8; the bigger styles and the regions (National Dex) go 2 / 4 / 6. The top tier is built to be hard to reach with a 10-Pokémon team and does something big: Fire's Wildfire makes Burn permanent, Ice's Absolute Zero freezes enemies at 10 Chill, Ghost's Undying brings each Ghost back once, Poison's Venom Tide doubles Poison damage, Juggernauts become immune to status, Tricksters' statuses add 50% more stacks, Water's Tsunami hits every enemy for 10% max HP every 5 seconds, and so on (hover a set in game for the full text).
+Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type sets and most classes go 2 / 4 / 6 / 8, and traits go 2 / 4 (small groups 2 / 3). The top tiers do something big: Fire's Wildfire makes Burn permanent, Ice's Absolute Zero freezes enemies at 10 Chill, Ghost's Undying brings each Ghost back once, Poison's Venom Tide doubles Poison damage, Juggernauts become immune to status, Water's Tsunami hits every enemy for 10% max HP every 5 seconds, and so on.
+
+**Every set in a run can be maxed.** Each pool has at least as many lines as a trait's top breakpoint (a generation tops up from the nearest generations if needed, and a trait it has no Pokémon for simply doesn't appear there), and kinship sets only go as high as the members the mode has.
 
 **Type Plates** are this game's emblems: a Plate held by a Pokémon makes it count as that type for sets, so the prismatic tiers become reachable. Rival chests often hold one (usually for a type you're already running), and Kecleon sometimes sells one for ₽10.
 
@@ -308,24 +330,13 @@ Sets scale like TFT traits, with bronze, silver, gold and prismatic medals. Type
 - Tricksters leap behind the enemy back line at the start of battle.
 - Medic overhealing becomes shields at 4.
 
-**Style sets** come from real abilities and lineage. Weather styles set the weather. Two styles grow with you:
+**Lineage traits (2 / 3)** grow with you:
 
-- **Partner:** Friendship stacks up over the run, and at 10 the Pokémon hangs on through a fainting blow.
-- **Pseudo:** your strongest pseudo-legendary becomes a bigger, stronger Apex; at 3, all of them do.
+- **Partner** (starters, Pikachu, Eevee): Friendship stacks up over the run, and at 10 the Pokémon hangs on through a fainting blow.
+- **Fossil:** revives once; the Ancient Amber makes its wearer come back stronger.
+- **Pseudo:** your strongest pseudo-legendary becomes a bigger, stronger Apex; at 3, it turns Radiant.
 
-**Region sets (National Dex only, 2 / 4)** play like their games:
-
-| Region | Mechanic |
-|---|---|
-| Kanto (Gym Challenge) | Each win earns a Badge (+2.5% damage each); all 8 unlock the Champion Ribbon |
-| Johto (Day & Night) | Odd floors are Day (Attack Speed), even floors are Night (crit and damage) |
-| Hoenn (Primal Weather) | Shields; at 4, calls sun or rain and gains Attack Speed in it |
-| Sinnoh (Time & Space) | Defenses; at 4, enemies lose 40% Attack Speed for the first 4s |
-| Unova (Ideals & Truth) | Physical-heavy fields get Attack Speed, special-heavy fields get PP |
-| Kalos (Fairy Aura) | PP, and the first move each battle hits much harder |
-| Alola (Totem Trial) | Regeneration; at 4, the strongest becomes a Totem with an Attack Speed aura |
-| Galar (Power Spot) | HP and damage; at 4, the bulkiest grows giant for 8s |
-| Paldea (Terastal Treasure) | Crit, Terastallize after the first move; at 4, +₽1 per win |
+The region sets and the old ability styles (weather, Intimidator, Last Stand, Ironclad, Powerhouse and the like) are gone: they mostly repeated what types and classes already do. Weather still comes from abilities such as Drought and Drizzle.
 
 ### Regional forms
 
@@ -333,7 +344,7 @@ Alolan, Galarian, Hisuian and Paldean forms are lines of their own, with their o
 
 - **New lines:** Alolan Rattata, Sandshrew, Vulpix, Diglett, Meowth, Geodude and Grimer; Galarian Meowth (→ Perrserker), Ponyta, Slowpoke (→ Galarian Slowbro or Slowking), Farfetch'd (→ Sirfetch'd), Corsola (→ Cursola), Zigzagoon (→ Obstagoon), Darumaka, Yamask (→ Runerigus), Stunfisk and the three Galarian birds; Hisuian Growlithe, Voltorb, Qwilfish (→ Overqwil), Sneasel (→ Sneasler) and Zorua; White-Striped Basculin (→ Basculegion); the three Paldean Tauros breeds and Paldean Wooper (→ Clodsire).
 - **Branch evolutions** you choose when the Pokémon evolves: Alolan Raichu, Alolan Exeggutor, Alolan Marowak, Galarian Weezing, Galarian Mr. Mime (→ Mr. Rime), Hisuian Typhlosion, Samurott, Lilligant, Braviary, Goodra, Avalugg and Decidueye.
-- Alolan forms belong to the Gen VII pool, Galarian and Hisuian forms to Gen VIII, and Paldean forms to Gen IX (all of them in National Dex). Hisuian lines count as Sinnoh for the region sets.
+- Alolan forms belong to the Gen VII pool, Galarian and Hisuian forms to Gen VIII, and Paldean forms to Gen IX (all of them in National Dex). 
 
 ### Alternate forms, fusions and kinship sets
 
@@ -345,30 +356,28 @@ Alolan, Galarian, Hisuian and Paldean forms are lines of their own, with their o
 
 ### Trait sets
 
-Fourteen sets come from the Pokédex itself (body, weight, egg group and category), so they mix every type and generation. A line keeps its traits as it evolves (they come from the form it grows into), and each Pokémon has at most two.
+Thirteen traits come from the Pokédex itself (body, weight, egg group and category), so they mix every type and generation. A line keeps its trait as it evolves (it comes from the form it grows into). When a Pokémon fits several, it gets the rarest: kinship, then lineage, then Fox Spirits, Nursery, Mouse Brigade, Fae Folk, Titans, Kaiju, Showstoppers, Phantasms, Team Rocket, Living Stone, Deep Sea and Sky Squadron.
 
 | Set | Who | Breakpoints | Effect |
 |---|---|---|---|
-| Titans | lines that grow to 150 kg+ | 2 / 4 / 6 | +20/40/70% max HP; each stomps at the start, stunning adjacent enemies |
-| Pocket-Sized | lines that stay under 15 kg | 2 / 4 / 6 | Dodge; at 6, ducks out of the fight for 3s instead of fainting, back with 30% HP |
-| Sky Squadron | winged lines | 2 / 4 / 6 | Take off, then dive on the farthest enemy (damage at 4, stun at 6) |
-| Serpents | snake-bodied lines | 2 / 4 | Basic attacks build Coil; every 5th (3rd) constricts: held 1s and a burst of damage |
-| Kaiju | Monster egg group | 2 / 4 / 6 | Grow with every cast; at 6 the third cast makes them giant |
-| Phantasms | Amorphous egg group | 2 / 4 | Melt into a puddle instead of fainting, reform with 30/50% HP |
-| Living Stone | Mineral egg group | 2 / 4 / 6 | A stone shield (10/20/35% max HP) that rebuilds every 4s |
-| Showstoppers | Human-Like egg group | 2 / 4 / 6 | The top member takes the Spotlight (bonus damage and speed; its casts give the team PP); two at 6 |
-| Deep Sea | Water 2 / Water 3 egg groups | 2 / 4 / 6 | Bonus damage to enemies below half HP; at 6, finish off anything below 15% |
-| Fae Folk | Fairy egg group | 2 / 4 / 6 | Every 4s a random ally makes a Wish and heals 8/15/25% |
-| Mouse Brigade | mice and other rodents | 2 / 3 / 4 | Faster for every other rodent; at 4, knockouts find cheese (₽1) |
+| Titans | lines that grow to 150 kg+ | 2 / 4 | +25/60% max HP; each stomps at the start, stunning adjacent enemies (at 4 the stomp also deals 8% of the Titan's max HP) |
+| Sky Squadron | winged lines | 2 / 4 | Take off, then dive onto the farthest enemy and strike it; at 4 the dive stuns and they deal +20% damage |
+| Kaiju | Monster egg group | 2 / 4 | Grow with every cast; at 4 the third cast makes them giant |
+| Phantasms | Amorphous egg group | 2 / 4 | Melt into a puddle instead of fainting, reform with 35/60% HP; at 4 they dodge 25% once reformed |
+| Living Stone | Mineral egg group | 2 / 4 | A stone shield (12/30% max HP) that rebuilds every 4s; at 4, no crits while it holds |
+| Showstoppers | Human-Like egg group | 2 / 4 | The top member takes the Spotlight (bonus damage and speed; its casts give the team PP); two at 4 |
+| Deep Sea | Water 2 / Water 3 egg groups | 2 / 4 | Bonus damage to enemies below half HP; at 4, finish off anything below 15% |
+| Fae Folk | Fairy egg group | 2 / 4 | Every 4s a random ally makes a Wish and heals 10/22% |
+| Mouse Brigade | mice and other rodents | 2 / 4 | Faster for every other rodent; at 4, knockouts find cheese (₽1) |
 | Fox Spirits | the Fox Pokémon | 2 / 3 | Each conjures a decoy illusion that draws attacks |
 | Nursery | lines that hatch from a baby | 1 / 2 / 3 | Half damage next to an ally; survivors grow stronger over the run; cheer adjacent allies at 3 |
-| Team Rocket | Team Rocket's Pokémon | 2 / 4 / 6 | Knockouts can steal ₽1; at 6, fainting Rocket Pokémon blast off in an explosion |
+| Team Rocket | Team Rocket's Pokémon | 2 / 4 | Knockouts can steal ₽1; at 4, fainting Rocket Pokémon blast off in an explosion |
 
 In a single-generation run, every enemy (trainers, wild packs, alphas, guardians) is a Pokémon from that generation: guest lines never appear as enemies, and a line that includes older Pokémon (Pichu → Pikachu in Gen II) always fields its member from that generation.
 
-Enemies don't use trait sets (they keep their types, classes, styles and regions). Instead their HP climbs slightly over the run: +0.4% per floor, about +6% by the end of Act I and +18% by the end of Act III.
+Enemies don't use trait sets (they keep their types, classes and lineage sets). Instead their HP climbs slightly over the run: −3% at the start and +0.4% per floor, about +3% by the end of Act I and +15% by the end of Act III.
 
-Every pool can complete every trait set: if a generation has too few lines for a set's top breakpoint (plus one), guest lines from the nearest generations join its pool, and National Dex pools are topped up the same way. Heart, Crest and Crown augments exist for trait sets too.
+Every pool can complete every trait it has: if a generation has some but too few lines for a trait's top breakpoint, guest lines from the nearest generations join its pool, and National Dex pools are topped up the same way (a sampled member of a kinship group brings the rest of its group). Heart, Crest and Crown augments exist for trait sets too.
 
 ### Non-sprited Pokémon
 
@@ -419,7 +428,7 @@ Form-change Pokémon transform the way they do in the games:
 
 ### Generation gimmicks
 
-On floor 4 of each act you choose one key item. In later acts you can switch to one you haven't used, or keep your current one.
+On floor 4 of each act you unlock another key item, and **every gimmick you've unlocked keeps working**: Mega Stones still Mega Evolve after you add Tera, and so on. Mega Evolution has no cap; Z-Moves, Dynamax and Tera each power one Pokémon per battle (pick them in the Run info panel), and a Pokémon only uses one gimmick at a time.
 
 - **Mega Bracelet (Gen VI):** Mega Stones drop only for Pokémon you own (96 Megas, including Legends: Z-A). There's no cap: every Pokémon holding its stone Mega Evolves the moment the stone is dropped on it, and starts each battle in Mega form with its real Mega stats and ability. Toggle any Mega off or on from its unit menu.
 - **Z-Power Ring (Gen VII):** Z-Crystals let a Pokémon with a matching move type turn its first move each battle into a Z-Move.
@@ -452,9 +461,13 @@ Signature moves whose name matches a Pokémon Mystery Dungeon animation (Flameth
 
 Legendary Pokémon get dramatic effects that stay on the board and never cover the field or slow the game: a big charge-up behind them, a shockwave ring, their own stack of PMD impacts on every target, strikes from the sky for some, a lingering afterglow and a short screen shake (Settings › Display can turn the shake off). Each has its own look: Reshiram's Blue Flare burns blue, Zekrom's Bolt Strike calls down a triple blue lightning strike, Dialga's Roar of Time sends time-warp clouds, Giratina's Shadow Force bursts from the shadows, Arceus's Judgment rains light.
 
+### Audio
+
+All music and sound effects are synthesized live with the Web Audio API: original audio made for PokéRun, no files. Music is quiet ambient in a cosy dungeon-crawler spirit: a title theme (Morning Mist), three tracks per act that rotate as you climb (Verdant Path, Mossy Hollow and Sunbeam Glade in the forest; Ember Trail, Red Cliffs and Heat Haze in the canyon; Tidepool, Glimmering Depths and Moonlit Cove in the grotto), and a Guardian's Theme for boss floors. Tracks crossfade. Each is a key, a mode, a chord loop and a few soft instruments (pads, plucked or bell arpeggios, a recurring flute or ocarina motif, bass). Moves play a sound for their type (18 of them), and hits, crits, faints, buying, selling, rerolling, levelling, combining, evolving, chests and wins and losses have their own. Sound effects are rate-limited so big fights stay calm. Music and sound effects volumes are in Settings › Audio, and audio pauses when the tab is hidden.
+
 ### Settings
 
-Settings are split into sections like PokéRogue's: General (battle speed, damage numbers, shop and bag behaviour), Display (board auto-fit, zoom speed, move effects, light rays), Audio (no sound yet), Gamepad (cursor speed, stick dead zone, right-stick mode, button list), Controls (keyboard and mouse list) and Data (delete the saved run, forget Kit Dex discoveries, reset settings).
+Settings are split into sections like PokéRogue's: General (battle speed, damage numbers, shop and bag behaviour), Display (board auto-fit, zoom speed, move effects, light rays), Audio (music and sound effects volume), Gamepad (cursor speed, stick dead zone, right-stick mode, button list), Controls (keyboard and mouse list) and Data (delete the saved run, forget Kit Dex discoveries, reset settings).
 
 ### Saving
 
@@ -467,6 +480,7 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 | Input | Action |
 |---|---|
 | Left stick | Move the cursor (speed and dead zone in Settings › Gamepad) |
+| D-pad | Jump between targets; the cursor hides and the target is highlighted (a gold ring on the board) |
 | RT | Open the unit menu for the hovered Pokémon |
 | Right stick | Zoom (up/down) and pan (left/right) the board, or a fine cursor nudge if set in Settings |
 | D-pad | Snap to the next button, card, item, carousel Pokémon or board Pokémon |
@@ -505,6 +519,11 @@ js/fx.js            PMD particle player, beams, PMD chests
 js/fx_manifest.js   frame layout of every particle sheet
 js/carousel.js      carousel rounds
 js/ui.js            pause menu, settings, collapsible shop and bag
+js/market.js        the Market: bonds, shares, daycare and loans
+js/audio.js         synthesized music and sound effects (Web Audio)
+js/traits.js        trait sets in battle
+js/meter.js         battle meter
+js/fusion.js        fusions and Deoxys formes
 js/gamepad.js       controller support
 data/pokedex.json   species, types, base stats, evolutions (from PokéAPI)
 data/sprites.json   PMD animation metadata

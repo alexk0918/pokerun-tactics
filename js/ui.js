@@ -25,6 +25,7 @@ $('minicards').addEventListener('pointerleave',hideTip);
 function renderGimBtn(){const b=$('gimbtn'),L=gimList();if(!run||!L.length){b.hidden=true;return;}b.hidden=false;
   b.innerHTML=L.map(g=>`<img src="${iconOf(GIMMICKS[g].key)}" alt="">`).join('');b.title=`${L.map(g=>GIMMICKS[g].n).join(', ')}: choose who uses them (opens the menu)`;}
 $('gimbtn').onclick=()=>openPause();
+$('mktbtn').onclick=()=>showMarket();
 
 /* ---------- pause menu ---------- */
 function openPause(){if(!run||evoOpen)return;if(ov.innerHTML.trim())return toast('Finish this choice first.');
@@ -61,7 +62,9 @@ const SET_TABS=[
     {k:'fx',n:'Move effects',v:[2,1],l:['Full','Reduced'],d:'Reduced plays fewer particles at once and drops status sparkles.'},
     {k:'rays',n:'Light rays',v:[1,0],l:['On','Off']},
     {k:'shake',n:'Screen shake on legendary moves',v:[1,0],l:['On','Off']}]},
-  {id:'audio',n:'Audio',rows:[],note:'PokéRun has no music or sound effects yet. Volume settings will appear here when it does.'},
+  {id:'audio',n:'Audio',note:'All music and sound effects are synthesized live by the game (original, made for PokéRun).',rows:[
+    {k:'musVol',n:'Music',v:[0,.15,.3,.5,.7,1],l:['Off','15%','30%','50%','70%','100%'],on:()=>auVolumes()},
+    {k:'sfxVol',n:'Sound effects',v:[0,.15,.3,.6,.8,1],l:['Off','15%','30%','60%','80%','100%'],on:()=>{auVolumes();sfx('pick');}}]},
   {id:'gamepad',n:'Gamepad',rows:[
     {k:'padSens',n:'Cursor speed',v:[.5,.75,1,1.25,1.5,2],l:['50%','75%','100%','125%','150%','200%']},
     {k:'padDZ',n:'Stick dead zone',v:[.1,.18,.26],l:['Small','Normal','Large']},
@@ -90,7 +93,7 @@ function showSettings(from,tab){
   const sure=(id,fn)=>{const b=$(id);if(!b)return;b.onclick=()=>{if(b.dataset.sure){fn();showSettings();toast('Done.');}else{b.dataset.sure=1;b.querySelector('span').textContent='Press again to confirm';}};};
   sure('o-del',()=>clearSave());
   sure('o-dex',()=>{DEXSEEN.clear();try{localStorage.removeItem(DEXKEY);}catch(e){}});
-  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shake:1,unsprited:0},keep);saveOpts();speed=1;});
+  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shake:1,unsprited:0,musVol:.5,sfxVol:.6},keep);saveOpts();speed=1;});
   $('setclose').onclick=closeSettings;
   const f=ov.querySelector(`.stab[aria-selected="true"]`);if(f)f.focus();
 }
