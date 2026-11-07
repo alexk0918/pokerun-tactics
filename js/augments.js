@@ -223,4 +223,4 @@ function showAugment(){
   ov.querySelectorAll('[data-rr]').forEach(b=>b.onclick=()=>{const i=+b.dataset.rr;if(O.rr[i])return;const ex=new Set(O.ids);const a=rollAugCard(tier,ex,true);if(a){O.ids[i]=a.id;seenAug([a.id]);}O.rr[i]=1;showAugment();});
   $('augteam').onclick=()=>{hideTip();ov.innerHTML='';peekOn('Back to augments',showAugment);};
 }
-function afterAugment(){if(gimDue())return showGimmickChoice();if(invDue())return showInvest();banner(`Floor ${run.floor}`,trainerName(run.floor),1400);}
+function afterAugment(){if(gimDue())return showGimmickChoice();banner(`Floor ${run.floor}`,trainerName(run.floor),1400);}

@@ -11,7 +11,7 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 ## How a run works
 
-- Pick a region, then a strategy. Each strategy is a way of making or spending money, paired with a type, and it shapes your first shop. A strategy only appears in a mode with at least 3 lines of its type.
+- Pick a region, a starting strategy, then one investment strategy (see Investment strategies). Both last the whole run. Each starting strategy is a way of making or spending money, paired with a type, and it shapes your first shop. A strategy only appears in a mode with at least 3 lines of its type.
 
 | Strategy | Type | Style | Effect |
 |---|---|---|---|
@@ -44,7 +44,7 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 - Beating a guardian clears the act: your trainer heals to full HP, you can take a relic, and the next act starts with its own carousel. Each act unlocks another generation gimmick on floor 4.
 - Beat Act III's guardian to become Champion, then choose **Enter Endless mode** to keep going. Endless builds new acts forever (Thunder Plains, Haunted Ruins, Sky Pillar, Frozen Peak, Toxic Marsh, then around again), each one +12% stronger than the last on top of the floor curve, with a themed guardian at the end of each.
 - Floor 1 opens with a carousel: eight ₽1 Pokémon walk a ring, each holding an item component. Pick one and it joins your bench while its item goes to your bag. Floor 6 of every act and floor 1 of later acts bring more carousels with Pokémon your trainer level can roll, and from Act II they carry some finished items. Your field is hidden during a carousel so you can see the Pokémon walking the ring.
-- Augments come on floors 2 and 7 of every act (floor 2 in Endless), and investment strategies on floors 3 and 8 (floor 3 in Endless). See Augments and Investment strategies. The floor track marks augment floors with a diamond and investment floors with a coin.
+- Augments come on floors 2 and 7 of every act (floor 2 in Endless). See Augments. The floor track marks augment floors with a diamond.
 - The shop sells the first stage of each evolution line, priced ₽1–₽5 (₽5 is legendaries and mythicals). Three copies combine into the next star level and evolve; branching lines let you choose the evolution. National Dex runs draw a 100-line pool from all 541 so copies are findable.
 
 ### Routes
@@ -228,7 +228,7 @@ Form items (Red Orb, Griseous Core, Rusted Sword, masks…) sit in their own slo
 
 ### Economy
 
-- Income each floor: ₽9 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win. (Acts are 10 floors, so each floor pays more than it did when acts were 15.)
+- Income each floor: ₽10 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win. (Acts are 10 floors, so each floor pays more than it did when acts were 15.)
 - Trainer level (2–10) sets how many Pokémon you can field and the shop odds, structured like TFT. You gain 4 XP per floor and can buy 4 XP for ₽4. XP to the next level: 2, 4, 6, 12, 20, 28, 40, 48.
 - Shop odds use TFT's table, so a cost never appears before its level. The tab above the shop shows the current odds.
 
@@ -399,7 +399,7 @@ Every starter line (Gen I–IX, plus Hisuian Decidueye) grows with its **Friends
 
 ### Augments
 
-You pick one of three augments on floors 2 and 7 of every act (6 in a full run, plus one per endless act). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first. **Nothing you've been offered comes back later in the run** (augments or investments), so every pick shows you new options.
+You pick one of three augments on floors 2 and 7 of every act (6 in a full run, plus one per endless act). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first. **No augment you've been offered comes back later in the run**, so every pick shows you new options.
 
 There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / Crest / Crown augments for every type, class and trait. Many are more than stat boosts: Built Different (Pokémon outside any active set get stronger), Helping Hand and Lone Wolf (positioning), Warm-Up, Blitz and Ascension (timing), Spite, Final Gambit, Explosion and Rebirth (when your Pokémon faint), First Blood and Apex Predator (knockouts), Wonder Trade (your cheapest bench Pokémon is traded up every floor), Pandora's Items, Double Team, Golden Egg, Metronome, Mind Meld and Trick Room.
 
@@ -410,11 +410,17 @@ There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / C
 
 ### Investment strategies
 
-Your starting strategy is picked once, before the run. **Investment strategies** are offered during the run, like augments, on floors 3 and 8 of every act (floor 3 in Endless): pick one of three of the same tier, reroll a card once, and nothing repeats. They're mostly about money, in the spirit of Honkai: Star Rail's Currency Wars, and work with any team: interest, streaks, the shop, selling, XP, items, Trainer HP and payouts that take time to mature (Piggy Bank, Nest Egg, Futures Contract, Volatile Asset, Money Tree). Your investments and their progress (counters, pending payouts) show in the Run info panel.
+Right after your starting strategy, still before the run begins, you pick **one investment strategy** for the whole run: one of three random cards, each rerollable once (**Back to strategies** lets you change your starting strategy first). There are no tiers; all 91 are balanced to be worth about the same over a run, so the choice is about how you want to play. They're mostly about money, in the spirit of Honkai: Star Rail's Currency Wars: interest, streaks, the shop, selling, XP, items, Trainer HP and payouts that take time to mature. Your investment and its progress (counters, pending payouts) show in the Run info panel.
 
-- **Silver (31):** Savings Account, Allowance, Tip Jar, Consolation Prize, Coupon Book, Yard Sale, Study Bond, Piggy Bank, Early Bird, Night Owl, Reroll Rebate, Thrifty, Flat Rate, Supply Crate, Tuition, Referral Bonus, Health Policy, War Chest, Scrap Dealer, Small Change, Coin Flip, Loyalty Card, Travel Light, Dividends, Practice Rolls, Scholarship, Treasure Map, Streak Keeper, Flawless Bonus, Pathfinder, Pocket Money.
-- **Gold (30):** Compound Interest, Blue Chip, Venture Capital, Leverage, Bull Market, Bear Market, Hedge Fund, Insurance, Futures Contract, Short Selling, Royalties, Private Tutor, Lucky Roll, Appraiser, Stockpile, Commission, MVP Bonus, Trending, Collector's Edition, Crowdfunding, Trust Fund, Golden Goose, Trade-In, Emergency Reserves, Cashback, Bounty Board, Apprenticeship, Level Subsidy, Toll Road, Patience.
-- **Prismatic (30):** Gold Rush, Hypercompound, Jackpot, All In, Golden Parachute, Volatile Asset, Sponsorship Deal, Free Agency, Royal Treasury, Money Printer, Fast Track, High Roller, Nest Egg, Talent Scout, Midas Touch, Fire Sale, XP Exchange, Lucky Seven, Grand Heist, Angel Investor, Deflation, Money Tree, Booster Box, Last-Ditch Fund, Overflow, Shrine Offering, Merger, Wishing Star, Lottery Ticket, Patron of the Arts.
+- **Steady income:** Savings Account, Allowance, Tip Jar, Consolation Prize, Early Bird, Night Owl, Thrifty, Flat Rate, Small Change, Coin Flip, Travel Light, Stockpile, Gold Rush, Compound Interest, Hypercompound, Leverage, Golden Goose, Patron of the Arts, Overflow.
+- **Payouts that mature:** Piggy Bank, Venture Capital, Futures Contract, Trust Fund, Money Printer, Money Tree, Nest Egg, Volatile Asset, Lottery Ticket, Lucky Seven, All In, Loyalty Card, Patience.
+- **Streaks, wins and losses:** Streak Keeper, Bull Market, Bear Market, Hedge Fund, Sponsorship Deal, War Chest, Flawless Bonus, Toll Road, MVP Bonus, Commission, Bounty Board, Grand Heist.
+- **Trainer HP:** Health Policy, Insurance, Golden Parachute, Crowdfunding, Emergency Reserves, Last-Ditch Fund, High Roller.
+- **The shop:** Coupon Book, Free Agency, Deflation, Referral Bonus, Trending, Short Selling, Reroll Rebate, Lucky Roll, Jackpot, Cashback, Blue Chip, Collector's Edition.
+- **Selling:** Yard Sale, Fire Sale, Appraiser, Trade-In.
+- **Stars and Pokémon:** Dividends, Royalties, Midas Touch, Merger, Talent Scout, Wishing Star, Shrine Offering, Apprenticeship, Angel Investor.
+- **XP and levels:** Study Bond, Tuition, Level Subsidy, Fast Track, Private Tutor, Practice Rolls, Scholarship, Pocket Money, XP Exchange.
+- **Items, chests and paths:** Supply Crate, Booster Box, Royal Treasury, Scrap Dealer, Treasure Map, Pathfinder.
 
 ### Scouting
 

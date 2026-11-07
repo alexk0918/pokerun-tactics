@@ -443,7 +443,7 @@ function streakGold(){const s=Math.abs(run.streak);let g=s>=5?3:s>=4?2:s>=2?1:0;
 // (prev: settling the floor that just ended, rather than previewing the current one)
 function stratGold(prev){const s=run.strat.id,f=effFloor(run.floor)-(prev?1:0);return s==='wager'?2:s==='glacial'&&run.boughtF!==f?3:0;}
 // with 10-floor acts each floor pays more than it used to (₽5 → ₽9 base, 2 → 4 XP), so an act still adds up to about the same
-const BASE_INC=9,FLOOR_XP=4;
+const BASE_INC=10,FLOOR_XP=4;
 // perk: investment strategies and augments that pay (or take) money at each floor; prev = this is the real payout
 function incomePreview(prev){return{base:BASE_INC,interest:interestOf(),streak:streakGold(),extra:augIs('payday')?3:0,strat:stratGold(prev),perk:perkNum('inc',!!prev)};}
 // Dragon Tamer: ₽4 and ₽5 Pokémon roll at the next level's odds
@@ -451,7 +451,7 @@ function shopOdds(first){const o=LVODDS[run.level];if(run.strat.id!=='tamer'||fi
   const n=LVODDS[run.level+1],m=o.map((p,i)=>i<3?p:Math.max(p,n[i])),t=m.reduce((a,b)=>a+b,0);return m.map(p=>p/t);}
 function gainXP(n){if(run.level>=MAXLV)return;run.xp+=n;while(run.level<MAXLV&&run.xp>=XPNEXT[run.level]){run.xp-=XPNEXT[run.level];run.level++;perkRun('level',run.level);if(!SIM.on){sfx('level',200);}if(!SIM.on)toast(`Trainer level ${run.level}! You can field ${teamCap()} Pokémon.`);}if(run.level>=MAXLV)run.xp=0;}
 const xpCost=()=>run?Math.max(1,(run.strat.id==='overcharge'?3:4)+perkNum('xpc')):4;
-function buyXP(){if(mode!=='plan'||run.gold<xpCost()||run.level>=MAXLV)return false;perkRun('spent',xpCost());run.gold-=xpCost();gainXP(xpBuyAmount());renderUI();return true;}
+function buyXP(){if(mode!=='plan'||run.gold<xpCost()||run.level>=MAXLV)return false;perkRun('spent',xpCost(),'xp');run.gold-=xpCost();gainXP(xpBuyAmount());renderUI();return true;}
 
 /* ---------- shop ---------- */
 // highest cost a trainer level can roll (₽1 at level 2, ₽3 at 4, ₽4 at 5, ₽5 at 7)
@@ -478,7 +478,7 @@ function rollShop(first){
 // a locked shop keeps its offers through the next floors until you unlock it (TFT-style)
 function autoShop(first){if(!first&&run.shopLock&&run.shop&&run.shop.some(Boolean))return;rollShop(first);}
 function toggleLock(){if(!run)return;run.shopLock=!run.shopLock;if(!SIM.on)sfx('lock');if(!SIM.on)toast(run.shopLock?'Shop locked: it keeps these Pokémon next floor.':'Shop unlocked.');renderUI();}
-function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{const c=rerollCost();if(run.gold<c)return false;run.gold-=c;perkRun('spent',c);}rollShop(false);perkRun('reroll');if(!SIM.on)sfx('reroll');renderUI();return true;}
+function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{const c=rerollCost();if(run.gold<c)return false;run.gold-=c;perkRun('spent',c,'reroll');}rollShop(false);perkRun('reroll');if(!SIM.on)sfx('reroll');renderUI();return true;}
 function buy(i){
   const root=run.shop[i];if(!root||mode!=='plan')return false;const L=MODE.lines[root],price=priceOf(root);
   if(run.gold<price){if(!SIM.on)sfx('error',200);toast(`Not enough Pokédollars for ${D[root].n}.`);return false;}
@@ -487,7 +487,7 @@ function buy(i){
   if(slot<0&&copies<2){toast('Your bench is full. Release a Pokémon first.');return false;}
   run.buys=(run.buys||0)+1;run.boughtF=effFloor(run.floor);const free=(run.strat.id==='collector'&&run.buys%4===0)||perkAny('free',root);
   if(free&&!SIM.on)toast(`${D[root].n} is free!`);
-  const paid=free?0:price;run.gold-=paid;if(paid)perkRun('spent',paid);run.shop[i]=null;const u=mkUnit(root);if(!SIM.on){ensure(root);sfx('buy');}perkRun('buy',u);
+  const paid=free?0:price;run.gold-=paid;if(paid)perkRun('spent',paid,'buy');run.shop[i]=null;const u=mkUnit(root);if(!SIM.on){ensure(root);sfx('buy');}perkRun('buy',u);
   if(slot>=0)run.bench[slot]=u;else run.bench.push(u); // full bench: it waits in an overflow slot and combines straight away
   combine();benchFix();renderUI();return true;
 }
@@ -597,8 +597,7 @@ async function startFloor(){
   if(run.strat.id==='armory'&&run.armF!==effFloor(f)&&effFloor(f)%4===0){run.armF=effFloor(f);run.bag.push({k:pick(CORDER),mut:[]});if(!SIM.on)toast('Armory: a new item component.');}
   if(run.augFloor!==effFloor(f)){run.augFloor=effFloor(f);augOnFloor();}
   chest=null;
-  if(SIM.on&&invDue())botInv();
-  if(NONCOMBAT.has(nodeK(f))){autoShop(false);if(!SIM.on){await preload([...allOwned().map(u=>u.dex),KECLEON]);showGameUI(true);renderUI();if(invDue())return showInvest(()=>startNode());}return startNode();}
+  if(NONCOMBAT.has(nodeK(f))){autoShop(false);if(!SIM.on){await preload([...allOwned().map(u=>u.dex),KECLEON]);showGameUI(true);renderUI();}return startNode();}
   return setupCombatFloor(false);
 }
 async function setupCombatFloor(fromEvent){
@@ -610,7 +609,6 @@ async function setupCombatFloor(fromEvent){
   showGameUI(true);renderUI();
   if(augDue())showAugment();
   else if(gimDue())showGimmickChoice();
-  else if(invDue())showInvest();
   else{banner(`Floor ${f}`,trainerName(f),1400);if(run.lastIncome&&f>1&&!fromEvent){const i=run.lastIncome;toast(`+₽${i.total} income: ₽${i.base} base${i.interest?` + ₽${i.interest} interest`:''}${i.streak?` + ₽${i.streak} streak`:''}${i.extra?` + ₽${i.extra} Pay Day`:''}${i.strat?` + ₽${i.strat} ${run.strat.name}`:''}${i.perk?` ${i.perk>0?'+':'−'} ₽${Math.abs(i.perk)} investments`:''}`);}}
 }
 function autoFill(){
@@ -1438,11 +1436,11 @@ function renderUI(){
   $('floorlbl').textContent=`${actLabel()} · Floor ${f} / ${FLOORS}`;$('actname').textContent=actDef().name;$('modelbl').textContent=MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex';
   let tr='';for(let i=1;i<=FLOORS;i++){const k=floorKind(i),nd=run.nodes&&run.nodes[i];let cls='node';
     if(nd){cls+=' nd'+(nd.k==='shop'?' kec':'');}else if(isRouteFloor(i)&&i>=3)cls+=' unk';else{if(k==='elite')cls+=' elite';if(k==='boss')cls+=' boss';}
-    const augF=AUG_FLOORS(actOf()).includes(i);if(augF)cls+=' aug';if(INV_FLOORS(actOf()).includes(i))cls+=' inv';
+    const augF=AUG_FLOORS(actOf()).includes(i);if(augF)cls+=' aug';
     if(run.results[i])cls+=run.results[i]==='loss'?' lost':' done';if(i===f)cls+=' cur';
     const inner=nd?`<img src="${nodeIcon(nd.k)}" alt="">`:isRouteFloor(i)&&i>=3?'?':k==='wild'?`<svg viewBox="0 0 16 16"><path d="M2.5 13.5C2.5 6.5 7 2.5 13.5 2.5c0 6.5-4 11-11 11z" fill="#5fae45" stroke="#24303d" stroke-width="1.2"/></svg>`:k==='boss'?`<img src="${por(run.boss.dex)}" alt="">`:'';
     const ttl=nd?NODES[nd.k].n:isRouteFloor(i)&&i>=3?'Choose a path':k==='wild'?'Wild Pokémon':k==='boss'?'Boss: '+esc(D[run.boss.dex].n):k==='elite'?'Rival (relic and enhancer)':'Trainer';
-    tr+=`${i>1?'<span class="link"></span>':''}<span class="${cls}" title="Floor ${i}: ${ttl}${augF?' · Augment':''}${INV_FLOORS(actOf()).includes(i)?' · Investment strategy':''}">${inner}</span>`;}
+    tr+=`${i>1?'<span class="link"></span>':''}<span class="${cls}" title="Floor ${i}: ${ttl}${augF?' · Augment':''}">${inner}</span>`;}
   $('track').innerHTML=tr;
   const ct=countTraits(Object.values(run.board));
   const keys=Object.keys(ct).filter(k=>SETS[k]).sort((a,b)=>tierOf(b,ct[b])-tierOf(a,ct[a])||(ct[b]/SETS[b].bp[0])-(ct[a]/SETS[a].bp[0])||a.localeCompare(b));
@@ -1454,7 +1452,7 @@ function renderUI(){
   const s=run.strat,inc=incomePreview();
   let mh=`<div class="mod mini"><div class="k">Strategy</div><div class="v">${s.name}</div></div>`;
   for(const x of run.augs||[]){const a=AUGMAP[x.id];if(a)mh+=`<div class="mod mini ${x.tier}" title="${esc(a.d)}"><div class="k">${x.tier} augment</div><div class="v">${esc(a.name)}</div></div>`;}
-  for(const x of run.invs||[]){const a=INVMAP[x.id];if(!a)continue;let st='';try{st=a.show?a.show():'';}catch(e){}mh+=`<div class="mod mini ${x.tier}" title="${esc(a.d)}"><div class="k">${x.tier} investment</div><div class="v">${esc(a.name)}${st?` <span class="sc">· ${esc(st)}</span>`:''}</div></div>`;}
+  for(const x of run.invs||[]){const a=INVMAP[x.id];if(!a)continue;let st='';try{st=a.show?a.show():'';}catch(e){}mh+=`<div class="mod mini" title="${esc(a.d)}"><div class="k">Investment strategy</div><div class="v">${esc(a.name)}${st?` <span class="sc">· ${esc(st)}</span>`:''}</div></div>`;}
   for(const g of gimList()){const GM=GIMMICKS[g],mega=g==='mega',el=allOwned().filter(u=>gimEligible(u,g)&&(mega||!(gimOn('mega')&&!u.megaOff&&gimEligible(u,'mega'))));
     const tgt=mega?null:allOwned().find(u=>u.uid===gimT(g)&&gimEligible(u,g));const onField=tgt&&Object.values(run.board).includes(tgt);
     mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${(mega?!u.megaOff:u===tgt)?' on':''}" data-cap="${u.uid}" data-capg="${g}" aria-label="${mega?`Toggle Mega Evolution for ${esc(nameOf(u))}`:`Use ${esc(GM.n)} with ${esc(nameOf(u))}`}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${mega?'Every Pokémon holding its Mega Stone Mega Evolves. Click one (or right-click it on the board) to switch it on or off.':tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Feed a Pokémon Max Mushrooms, then pick it here.',tera:'Give a Tera Shard to a Pokémon.'}[g]}</p>`}</div>`;}
@@ -1624,11 +1622,11 @@ function showStrategy(){
   setWander(shuffle(MODE.roots.filter(r=>SM[r])).slice(0,10));
   // a grid of strategies (each one a way to make or spend money, tied to a type) and a detail panel for the selected one
   let sel=0;try{sel=Math.max(0,SL.findIndex(s=>s.id===localStorage.getItem('pokerun-strat')));}catch(e){}
-  ov.innerHTML=`<div class="scrim"></div><div class="screen stratscreen"><h1 class="h1">Choose your strategy</h1><p class="sub">${MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex: each run draws 100 evolution lines from all 541'}. Your strategy shapes your first shop and rewards one way of making and spending money for the whole run.</p>
+  ov.innerHTML=`<div class="scrim"></div><div class="screen stratscreen"><h1 class="h1">Choose your strategy</h1><p class="sub">${MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex: each run draws 100 evolution lines from all 541'}. Your strategy shapes your first shop and rewards one way of making and spending money for the whole run. Next you'll pick one investment strategy to go with it.</p>
   <div class="stratsel"><div class="sgrid">${SL.map((s,i)=>`<button class="spick" data-i="${i}" style="--tc:${TYPES[s.type]||'#888'}"><img src="${por(feats[i][0])}" alt=""><span><b>${s.name}</b><i>${s.type} · ${s.risk}</i></span></button>`).join('')}</div>
   <div class="sdetail win" id="sdetail"></div></div></div>
     <button class="btn back" id="back">Back</button>`;
-  const go=i=>{const s=SL[i];try{localStorage.setItem('pokerun-strat',s.id);}catch(e){}newRun(s,feats.flat());run.featured=feats[i];ov.innerHTML='';startFloor();};
+  const go=i=>{const s=SL[i];try{localStorage.setItem('pokerun-strat',s.id);}catch(e){}newRun(s,feats.flat());run.featured=feats[i];showInvest(()=>{ov.innerHTML='';startFloor();},showStrategy);};
   const show=i=>{sel=i;const s=SL[i];ov.querySelectorAll('.spick').forEach(b=>b.classList.toggle('on',+b.dataset.i===i));
     $('sdetail').innerHTML=`<div class="lbl">${s.risk}</div><h2>${s.name}</h2><div class="chips">${chip(s.type,TYPES[s.type])}</div>
       <div class="por3">${feats[i].map(d=>`<img src="${por(d)}" alt="${esc(D[d].n)}" title="${esc(D[d].n)}">`).join('')}</div>
@@ -1677,7 +1675,7 @@ function showGimmickChoice(){
   const opts=GIM_ORDER.filter(g=>!gimOn(g)),have=gimList();
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">${actLabel().toUpperCase()} · GENERATION GIMMICK</div><h1 class="h1">${have.length?'Unlock another key item':'Choose your key item'}</h1><p class="sub">${have.length?`Your ${have.map(g=>esc(GIMMICKS[g].n)).join(' and ')} keep${have.length>1?'':'s'} working. Add one more:`:'Each act unlocks one more generation gimmick, and they all keep working.'}</p>
     <div class="picks gims">${opts.map(g=>{const G=GIMMICKS[g];return`<button class="pick win item gim" data-g="${g}" style="--gc:${G.col}"><div class="icon"><img src="${iconOf(G.key)}" alt=""></div><span class="tier" style="background:${G.col}">${G.gen}</span><h2 style="font-size:24px">${G.n}</h2><div class="desc"><p>${G.d}</p><p class="sc">${G.start}</p></div></button>`;}).join('')}</div></div>`;
-  ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ov.innerHTML='';mode='plan';chooseGimmick(b.dataset.g);run.gimAct=actOf();const G=GIMMICKS[run.gimmick];toast(`You received the ${G.keyN}!`);if(invDue())return showInvest();banner(`Floor ${run.floor}`,trainerName(run.floor),1400);});
+  ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ov.innerHTML='';mode='plan';chooseGimmick(b.dataset.g);run.gimAct=actOf();const G=GIMMICKS[run.gimmick];toast(`You received the ${G.keyN}!`);banner(`Floor ${run.floor}`,trainerName(run.floor),1400);});
 }
 /* ---------- act transitions and Endless mode ---------- */
 function guardianDone(win){
