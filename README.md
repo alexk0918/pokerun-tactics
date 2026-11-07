@@ -29,7 +29,7 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 | Pickpocket | Dark | Combat gold | Knockouts have a 30% chance to steal ₽1 (₽3 a battle); Dark +10% crit |
 | Lucky Charm | Fairy | Loot | Every chest also holds ₽3; Fairy heals and shields 20% more |
 | Collector | Normal | Flexible | Every 4th Pokémon you buy is free; Normal +10% max HP |
-- A run has three acts of 15 floors each: wild Pokémon on floors 1–2, rivals on floors 5 and 10, a legendary guardian on floor 15, and a route choice for every other floor (see below). Your team, gold, items, relics and augments carry over between acts.
+- A run has three acts of **10 floors** each: wild Pokémon on floors 1–2, a rival on floor 5, a legendary guardian on floor 10, and a route choice for every other floor (see below). Enemies still follow the original difficulty curve, compressed: floors 1–4 play as they always did, and the act ramps up to the guardian. Your team, gold, items, relics and augments carry over between acts.
 
 ### Acts and Endless mode
 
@@ -41,10 +41,10 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 - About 70% of enemy Pokémon come from the act's theme types (drawn from every line in the mode, not just your shop pool), and trainers are themed too (Hikers and Firebreathers in the canyon, Swimmers and Hex Maniacs in the grotto). The guardian is a legendary of the act's theme when the mode has one, and never one you've already beaten.
 - Each act hits harder: more enemies per team, more 2★ and 3★ Pokémon, more items, enemies rolling up to ₽5 shops, and tougher guardians.
-- Beating a guardian clears the act: your trainer heals to full HP, you can take a relic, and the next act starts with its own carousel. Each act also lets you switch your generation gimmick on floor 4 (or keep the one you have).
+- Beating a guardian clears the act: your trainer heals to full HP, you can take a relic, and the next act starts with its own carousel. Each act unlocks another generation gimmick on floor 4.
 - Beat Act III's guardian to become Champion, then choose **Enter Endless mode** to keep going. Endless builds new acts forever (Thunder Plains, Haunted Ruins, Sky Pillar, Frozen Peak, Toxic Marsh, then around again), each one +12% stronger than the last on top of the floor curve, with a themed guardian at the end of each.
-- Floor 1 opens with a carousel: eight ₽1 Pokémon walk a ring, each holding an item component. Pick one and it joins your bench while its item goes to your bag. Floors 6 and 11 bring more carousels with Pokémon your trainer level can roll, and the floor-11 carousel carries some finished items.
-- Augments come on floors 2 and 10 of Acts I and II, and floor 2 of every later act (see Augments).
+- Floor 1 opens with a carousel: eight ₽1 Pokémon walk a ring, each holding an item component. Pick one and it joins your bench while its item goes to your bag. Floor 6 of every act and floor 1 of later acts bring more carousels with Pokémon your trainer level can roll, and from Act II they carry some finished items. Your field is hidden during a carousel so you can see the Pokémon walking the ring.
+- Augments come on floors 2 and 7 of every act (floor 2 in Endless), and investment strategies on floors 3 and 8 (floor 3 in Endless). See Augments and Investment strategies. The floor track marks augment floors with a diamond and investment floors with a coin.
 - The shop sells the first stage of each evolution line, priced ₽1–₽5 (₽5 is legendaries and mythicals). Three copies combine into the next star level and evolve; branching lines let you choose the evolution. National Dex runs draw a 100-line pool from all 541 so copies are findable.
 
 ### Routes
@@ -228,8 +228,8 @@ Form items (Red Orb, Griseous Core, Rusted Sword, masks…) sit in their own slo
 
 ### Economy
 
-- Income each floor: ₽5 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win.
-- Trainer level (2–10) sets how many Pokémon you can field and the shop odds, structured like TFT. You gain 2 XP per floor and can buy 4 XP for ₽4. XP to the next level is TFT's curve scaled to a 15-floor run: 2, 4, 6, 12, 20, 28, 40, 48.
+- Income each floor: ₽9 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win. (Acts are 10 floors, so each floor pays more than it did when acts were 15.)
+- Trainer level (2–10) sets how many Pokémon you can field and the shop odds, structured like TFT. You gain 4 XP per floor and can buy 4 XP for ₽4. XP to the next level: 2, 4, 6, 12, 20, 28, 40, 48.
 - Shop odds use TFT's table, so a cost never appears before its level. The tab above the shop shows the current odds.
 
 | Level | ₽1 | ₽2 | ₽3 | ₽4 | ₽5 |
@@ -248,18 +248,7 @@ Form items (Red Orb, Griseous Core, Rusted Sword, masks…) sit in their own slo
 - **Shop lock** (the padlock next to Reroll, or L): a locked shop keeps its offers through the next floors until you unlock it, like TFT.
 - Once you own a 3★ of a line it stops appearing in the shop and on the carousel (it can't go higher).
 - Buying the copy that completes a combine works even with a full bench.
-- Shortcuts: D rerolls, F buys XP, L locks the shop, M opens the Market, Space starts the battle or opens the chest.
-
-### The Market (investments)
-
-Open it from the **Market** button on the HUD (or M) while planning. These work with any team, and everything settles when your next floor's income arrives:
-
-| Investment | How it works | When it's good |
-|---|---|---|
-| League Bonds | Lock ₽5 / ₽10 / ₽20 away for 3 floors and get back +40% (up to 3 bonds) | Locked money earns no interest, but bonds have no cap, so they keep a rich trainer growing past the ₽5 interest cap |
-| Sponsor Shares | The price rises 12% after a win and falls 10% after a loss, plus some noise; every 4 shares pay ₽1 a floor (up to 12 shares) | Buy into a win streak, sell before it ends |
-| Daycare | Leave one 1★ or 2★ bench Pokémon: it frees the slot and gains a star (3 floors to 2★, 5 to 3★) for ₽1–₽3 a floor; it evolves when you pick it up | Growing a pricey unit you can't find copies of |
-| Goldenrod Loan | Borrow ₽10 or ₽20 now, pay back 130% over your next two floors (any shortfall costs Trainer HP) | A power spike: level up or roll for a key unit a floor early |
+- Shortcuts: D rerolls, F buys XP, L locks the shop, Space starts the battle or opens the chest.
 
 ### Items
 
@@ -294,7 +283,7 @@ Pokémon apply them through their kits, sets and abilities. Electric moves that 
 
 - Enhancers: Charcoal (Burn), Toxic Orb (Poison), Cell Battery (Paralysis), Never-Melt Ice (Chill and bonus damage to chilled enemies), Twisted Spoon (Confusion), Miracle Seed (Leech Seed), and Black Sludge (Poison).
 - Relics: Magmarizer (Burn jumps on a faint), Poison Barb (Poison never wears off), Electirizer (Paralysis slows 7% per stack), Snowball (Chill lowers defenses 6% per stack), Sticky Barb (+1 stack on everything) and Full Heal (defensive: half status damage, statuses fade twice as fast).
-- Augments: Static, Poison Point and Flame Body (Silver), Hex Maniac (+6% damage per different status on the target) and Outbreak (statuses spread when an enemy faints) (Gold), Plague Doctor (double stacks, +25% status damage) (Prismatic).
+- Status augments: Static, Poison Point and Flame Body (Silver), Hex Maniac (+6% damage per different status on the target) and Outbreak (statuses spread when an enemy faints) (Gold), Plague Doctor (double stacks, +25% status damage) (Prismatic).
 
 Weather now does what it does in the games, with PMD weather art on screen (rain streaks and splashes, falling hail and snow, blowing sand, heat shimmer and sun flares) and a banner explaining it:
 
@@ -410,17 +399,22 @@ Every starter line (Gen I–IX, plus Hisuian Decidueye) grows with its **Friends
 
 ### Augments
 
-You pick one of three augments on floors 2 and 10 of Acts I and II and on floor 2 of every later act (5 in a full run, plus one per endless act). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first.
+You pick one of three augments on floors 2 and 7 of every act (6 in a full run, plus one per endless act). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first. **Nothing you've been offered comes back later in the run** (augments or investments), so every pick shows you new options.
 
-There are 51 hand-made augments plus Heart / Crest / Crown augments for every type and class:
+There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / Crest / Crown augments for every type, class and trait. Many are more than stat boosts: Built Different (Pokémon outside any active set get stronger), Helping Hand and Lone Wolf (positioning), Warm-Up, Blitz and Ascension (timing), Spite, Final Gambit, Explosion and Rebirth (when your Pokémon faint), First Blood and Apex Predator (knockouts), Wonder Trade (your cheapest bench Pokémon is traded up every floor), Pandora's Items, Double Team, Golden Egg, Metronome, Mind Meld and Trick Room.
 
-- **Combat:** Tailwind, Oran Rations, Iron Defense, Focus Energy, Quick Start, Leftovers, Thick Fat, Intimidate (Silver); Endure, Swords Dance, Sitrus Stash, Drain Punch, Spellslinger, Thrill of the Hunt, Scary Face (Gold); Champion's Belt, Second Wind, Hyperdrive (Prismatic).
-- **Team building:** Front Line, Back Line (Silver); Daycare Egg, Big Game, Little Buddies, Training Grounds (Gold); Trainer's Resolve, Ace Trainer, Legendary Encounter, Harmony (Prismatic).
-- **Economy:** Berry Basket, Candy Jar, Bargain Bin (Silver); Rich Get Richer, Study Hall (Gold); Pay Day, Rare Candy Mountain, Golden Ticket (Prismatic).
-- **Items:** Component Pack, Pickup (Silver); Item Grab Bag, Cybernetic Implants (Gold); Item Rain (Prismatic).
-- **Status:** Static, Poison Point, Flame Body (Silver); Hex Maniac, Outbreak (Gold); Plague Doctor (Prismatic).
-- **Weather (Gold):** Drought, Drizzle, Sand Stream and Snow Warning start every battle in that weather and buff the matching types.
-- **Sets:** a *Heart* (Silver) counts as one extra of that type or class, a *Crest* (Gold) adds one and gives you a ₽2–3 Pokémon of it, and a *Crown* (Prismatic) adds two and gives you a 2★ ₽3–4 Pokémon. One of the three cards is often a set augment for a set you already play.
+- **Silver:** Static, Poison Point, Flame Body, Berry Basket, Tailwind, Oran Rations, Iron Defense, Focus Energy, Quick Start, Leftovers, Candy Jar, Component Pack, Front Line, Back Line, Bargain Bin, Pickup, Thick Fat, Intimidate, Regional Tour, Built Different, Cluttered Mind, Warm-Up, First Blood, Patient Study, Calculated Loss, Featherweights, Bodyguard, Sticky Web, Helping Hand, Lone Wolf, Spite, Coin Purse.
+- **Gold:** Hex Maniac, Outbreak, Daycare Egg, Endure, Swords Dance, Item Grab Bag, Rich Get Richer, Study Hall, Cybernetic Implants, Big Game, Little Buddies, Sitrus Stash, Drain Punch, Spellslinger, Training Grounds, Thrill of the Hunt, Scary Face, Drought, Drizzle, Sand Stream, Snow Warning, Form Change, Pack Leader, Blitz, Jeweled Lotus, Spoils of War, Combat Training, Flanking, Final Gambit, Belly Drum, Toxic Spikes, Mentorship, Storm Front.
+- **Prismatic:** Plague Doctor, Trainer's Resolve, Pay Day, Champion's Belt, Rare Candy Mountain, Ace Trainer, Second Wind, Item Rain, Legendary Encounter, Golden Ticket, Harmony, Hyperdrive, Fusion Reactor, Legendary Gathering, Ascension, Level Up!, Wonder Trade, Pandora's Items, Cosmic Power, Double Team, Golden Egg, Explosion, Rebirth, Superstars, Tiny Titans, Metronome, Apex Predator, Ultra Wormhole, Mind Meld, Trick Room, Echoed Voice.
+- **Sets:** a *Heart* (Silver) counts as one extra of that type, class or trait, a *Crest* (Gold) adds one and gives you a ₽2–3 Pokémon of it, and a *Crown* (Prismatic) adds two and gives you a 2★ ₽3–4 Pokémon. One of the three cards is often a set augment for a set you already play.
+
+### Investment strategies
+
+Your starting strategy is picked once, before the run. **Investment strategies** are offered during the run, like augments, on floors 3 and 8 of every act (floor 3 in Endless): pick one of three of the same tier, reroll a card once, and nothing repeats. They're mostly about money, in the spirit of Honkai: Star Rail's Currency Wars, and work with any team: interest, streaks, the shop, selling, XP, items, Trainer HP and payouts that take time to mature (Piggy Bank, Nest Egg, Futures Contract, Volatile Asset, Money Tree). Your investments and their progress (counters, pending payouts) show in the Run info panel.
+
+- **Silver (31):** Savings Account, Allowance, Tip Jar, Consolation Prize, Coupon Book, Yard Sale, Study Bond, Piggy Bank, Early Bird, Night Owl, Reroll Rebate, Thrifty, Flat Rate, Supply Crate, Tuition, Referral Bonus, Health Policy, War Chest, Scrap Dealer, Small Change, Coin Flip, Loyalty Card, Travel Light, Dividends, Practice Rolls, Scholarship, Treasure Map, Streak Keeper, Flawless Bonus, Pathfinder, Pocket Money.
+- **Gold (30):** Compound Interest, Blue Chip, Venture Capital, Leverage, Bull Market, Bear Market, Hedge Fund, Insurance, Futures Contract, Short Selling, Royalties, Private Tutor, Lucky Roll, Appraiser, Stockpile, Commission, MVP Bonus, Trending, Collector's Edition, Crowdfunding, Trust Fund, Golden Goose, Trade-In, Emergency Reserves, Cashback, Bounty Board, Apprenticeship, Level Subsidy, Toll Road, Patience.
+- **Prismatic (30):** Gold Rush, Hypercompound, Jackpot, All In, Golden Parachute, Volatile Asset, Sponsorship Deal, Free Agency, Royal Treasury, Money Printer, Fast Track, High Roller, Nest Egg, Talent Scout, Midas Touch, Fire Sale, XP Exchange, Lucky Seven, Grand Heist, Angel Investor, Deflation, Money Tree, Booster Box, Last-Ditch Fund, Overflow, Shrine Offering, Merger, Wishing Star, Lottery Ticket, Patron of the Arts.
 
 ### Scouting
 
@@ -480,7 +474,9 @@ Legendary Pokémon get dramatic effects that stay on the board and never cover t
 
 ### Audio
 
-**Music** comes from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, looping at the games' own loop points and crossfading between tracks: the Top Menu Theme on the title screen; Apple Woods, Treeshroud Forest and Sky Peak Forest in Act I; Mt. Bristle, Boulder Quarry and Dark Crater in Act II; Waterfall Cave, Brine Cave and Icicle Forest in Act III (the track changes every 5 floors); Boss Battle! for the first two guardians and Dialga's Fight to the Finish! for the last; Kecleon's Shop in Kecleon shops; a rotation (with Crystal Cave) in Endless mode; and the Exploration Team Theme when you win a run. The tracks are loudness-matched and quiet by default, like background ambience. **Sound effects** are Explorers of Sky's own: each move type plays one of two PMD move sounds (Flamethrower or Ember for Fire, Thunder Shock or Spark for Electric, and so on), plus PMD hit, critical, faint, money, menu, chest, level-up, evolution and mission clear/fail sounds. Hit sounds are rate-limited so big fights stay calm. Music and sound effects volumes are in Settings › Audio, and audio pauses when the tab is hidden.
+Settings › Audio has sliders for **Master**, **Music**, **Battle sounds** (moves, hits and knockouts) and **Interface sounds** (shop, menus, level-ups and fanfares).
+
+**Music** comes from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, looping at the games' own loop points and crossfading between tracks: the Top Menu Theme on the title screen; Apple Woods, Treeshroud Forest and Sky Peak Forest in Act I; Mt. Bristle, Boulder Quarry and Dark Crater in Act II; Waterfall Cave, Brine Cave and Icicle Forest in Act III (the track changes every 5 floors); Boss Battle! for the first two guardians and Dialga's Fight to the Finish! for the last; Kecleon's Shop in Kecleon shops; a rotation (with Crystal Cave) in Endless mode; and the Exploration Team Theme when you win a run. The tracks are loudness-matched and quiet by default, like background ambience. **Sound effects** are Explorers of Sky's own: each move type plays one of two PMD move sounds (Flamethrower or Ember for Fire, Thunder Shock or Spark for Electric, and so on), plus PMD hit, critical, faint, money, menu, chest, level-up, evolution and mission clear/fail sounds. Hit sounds are rate-limited so big fights stay calm. Audio pauses when the tab is hidden.
 
 ### Settings
 
@@ -536,11 +532,11 @@ js/fx.js            PMD particle player, beams, PMD chests
 js/fx_manifest.js   frame layout of every particle sheet
 js/carousel.js      carousel rounds
 js/ui.js            pause menu, settings, collapsible shop and bag
-js/market.js        the Market: bonds, shares, daycare and loans
 js/audio.js         music player (PMD tracks with loop points) and PMD sound effects
 assets/music/       PMD music tracks (MP3)
 assets/sfx/         PMD sound effects (MP3)
 js/traits.js        trait sets in battle
+js/invest.js        investment strategies and the hooks they share with augments
 js/meter.js         battle meter
 js/fusion.js        fusions and Deoxys formes
 js/gamepad.js       controller support

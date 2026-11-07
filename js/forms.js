@@ -145,7 +145,11 @@ function equipFormItem(bi,u){const it=run.bag[bi];
   run.bag.splice(bi,1);if(u.formItem)run.bag.push({k:'form:'+u.formItem,mut:[]});u.formItem=it.k.slice(5);
   if(!SIM.on)toast(`${nameOf(u)} is holding the ${formItemDef(it).n}. It doesn't use an item slot.`);renderUI();return true;}
 // older saves kept form items in the normal item slots
-function migrateFormItems(){if(!run)return;run.bag=run.bag.filter(i=>!(typeof i.k==='string'&&i.k.startsWith('gear:')&&!GEAR[i.k.slice(5)]));for(const u of allOwned())u.items=(u.items||[]).filter(i=>!(typeof i.k==='string'&&i.k.startsWith('gear:')&&!GEAR[i.k.slice(5)]));for(const u of allOwned()){const j=(u.items||[]).findIndex(isFormItem);if(j>=0&&!u.formItem){u.formItem=u.items[j].k.slice(5);u.items.splice(j,1);}}}
+function migrateFormItems(){if(!run)return;
+  // the Market was removed: anything still invested comes back (bonds and shares as Pokédollars, the daycare Pokémon to the bench)
+  if(run.inv){const I=run.inv;run.gold+=(I.bonds||[]).reduce((s,b)=>s+b.amt,0)+Math.floor((I.shares||0)*(I.price||0));
+    if(I.day&&I.day.u){const j=run.bench.indexOf(null);if(j>=0)run.bench[j]=I.day.u;else run.gold+=sellValue(I.day.u);}delete run.inv;}
+  if(run.floor>FLOORS)run.floor=FLOORS;run.bag=run.bag.filter(i=>!(typeof i.k==='string'&&i.k.startsWith('gear:')&&!GEAR[i.k.slice(5)]));for(const u of allOwned())u.items=(u.items||[]).filter(i=>!(typeof i.k==='string'&&i.k.startsWith('gear:')&&!GEAR[i.k.slice(5)]));for(const u of allOwned()){const j=(u.items||[]).findIndex(isFormItem);if(j>=0&&!u.formItem){u.formItem=u.items[j].k.slice(5);u.items.splice(j,1);}}}
 function gimDef(it){
   const p=it.k.split(':');
   if(p[1]==='stone'){const fids=Object.keys(FORMS).filter(f=>FORMS[f].item===p[2]);const f=FORMS[fids[0]];return{id:p[2],n:f?f.itemName:p[2],d:`Mega Stone. Lets ${fids.map(x=>D[FORMS[x].base].n).join(' / ')} Mega Evolve into ${fids.map(x=>D[x].n).join(' / ')}.`};}

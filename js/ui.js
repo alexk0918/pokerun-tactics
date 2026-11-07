@@ -25,7 +25,6 @@ $('minicards').addEventListener('pointerleave',hideTip);
 function renderGimBtn(){const b=$('gimbtn'),L=gimList();if(!run||!L.length){b.hidden=true;return;}b.hidden=false;
   b.innerHTML=L.map(g=>`<img src="${iconOf(GIMMICKS[g].key)}" alt="">`).join('');b.title=`${L.map(g=>GIMMICKS[g].n).join(', ')}: choose who uses them (opens the menu)`;}
 $('gimbtn').onclick=()=>openPause();
-$('mktbtn').onclick=()=>showMarket();
 
 /* ---------- pause menu ---------- */
 function openPause(){if(!run||evoOpen)return;if(ov.innerHTML.trim())return toast('Finish this choice first.');
@@ -63,8 +62,10 @@ const SET_TABS=[
     {k:'rays',n:'Light rays',v:[1,0],l:['On','Off']},
     {k:'shake',n:'Screen shake on legendary moves',v:[1,0],l:['On','Off']}]},
   {id:'audio',n:'Audio',note:'Music and sound effects are from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team (see Credits on the title screen).',rows:[
-    {k:'musVol',n:'Music',v:[0,.15,.3,.5,.7,1],l:['Off','15%','30%','50%','70%','100%'],on:()=>auVolumes()},
-    {k:'sfxVol',n:'Sound effects',v:[0,.15,.3,.6,.8,1],l:['Off','15%','30%','60%','80%','100%'],on:()=>{auVolumes();sfx('pick');}}]},
+    {k:'masterVol',n:'Master volume',slider:1,on:()=>auVolumes()},
+    {k:'musVol',n:'Music',slider:1,on:()=>auVolumes()},
+    {k:'sfxVol',n:'Battle sounds',d:'Moves, hits and knockouts',slider:1,on:()=>{auVolumes();sfx('hit',0);}},
+    {k:'uiVol',n:'Interface sounds',d:'Shop, menus, level-ups and fanfares',slider:1,on:()=>{auVolumes();sfx('select',0);}}]},
   {id:'gamepad',n:'Gamepad',rows:[
     {k:'padSens',n:'Cursor speed',v:[.5,.75,1,1.25,1.5,2],l:['50%','75%','100%','125%','150%','200%']},
     {k:'padDZ',n:'Stick dead zone',v:[.1,.18,.26],l:['Small','Normal','Large']},
@@ -77,8 +78,10 @@ let setTab='general',setFrom='title';
 function optIdx(r){const i=r.v.indexOf(OPTS[r.k]);return i<0?0:i;}
 function showSettings(from,tab){
   setFrom=from||setFrom;if(tab)setTab=tab;const T=SET_TABS.find(t=>t.id===setTab)||SET_TABS[0];
-  const rows=T.rows.map((r,i)=>{const k=optIdx(r);return`<div class="srow" data-r="${i}"><div><span>${r.n}</span>${r.d?`<small>${r.d}</small>`:''}</div>
-    <div class="sval"><button class="sarr" data-r="${i}" data-d="-1" aria-label="Previous value for ${esc(r.n)}">‹</button><b>${r.l[k]}</b><button class="sarr" data-r="${i}" data-d="1" aria-label="Next value for ${esc(r.n)}">›</button></div></div>`;}).join('');
+  // slider rows (volumes) hold a 0–1 value; the others step through a list of values
+  const pctOf=r=>Math.round((OPTS[r.k]??.5)*100)+'%';
+  const rows=T.rows.map((r,i)=>{const k=r.slider?0:optIdx(r);return`<div class="srow${r.slider?' slide':''}" data-r="${i}"><div><span>${r.n}</span>${r.d?`<small>${r.d}</small>`:''}</div>
+    <div class="sval"><button class="sarr" data-r="${i}" data-d="-1" aria-label="Lower ${esc(r.n)}">‹</button>${r.slider?`<input type="range" min="0" max="100" step="5" value="${Math.round((OPTS[r.k]??.5)*100)}" data-r="${i}" aria-label="${esc(r.n)}"><b>${pctOf(r)}</b>`:`<b>${r.l[k]}</b>`}<button class="sarr" data-r="${i}" data-d="1" aria-label="Raise ${esc(r.n)}">›</button></div></div>`;}).join('');
   const info=T.info?`<div class="sinfo">${T.info.map(([a,b])=>`<div><kbd>${a}</kbd><span>${b}</span></div>`).join('')}</div>`:'';
   const acts=T.acts?T.acts.filter(([id])=>id!=='o-del'||readSave()).map(([id,n])=>`<button class="mi opt danger" id="${id}"><span>${n}</span><b>›</b></button>`).join(''):'';
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="win setwin">
@@ -86,14 +89,17 @@ function showSettings(from,tab){
     <div class="sbody">${T.note?`<p class="snote">${T.note}</p>`:''}${rows}${acts}${info}</div>
     <div class="sfoot"><span class="lbl">‹ › or ← → change a value · settings save automatically</span><button class="btn" id="setclose">Back</button></div></div></div>`;
   ov.querySelectorAll('.stab').forEach(b=>b.onclick=()=>showSettings(null,b.dataset.t));
-  const bump=(i,d)=>{const r=T.rows[i];const k=(optIdx(r)+d+r.v.length)%r.v.length;OPTS[r.k]=r.v[k];saveOpts();if(r.on)r.on(r.v[k]);panelKey='';CAM.av=null;
+  const setSlide=(i,v)=>{const r=T.rows[i];OPTS[r.k]=Math.round(clamp(v,0,1)*20)/20;saveOpts();if(r.on)r.on(OPTS[r.k]);
+    const row=ov.querySelector(`.srow[data-r="${i}"]`);if(row){row.querySelector('b').textContent=pctOf(r);row.querySelector('input').value=Math.round(OPTS[r.k]*100);}};
+  const bump=(i,d)=>{const r=T.rows[i];if(r.slider)return setSlide(i,(OPTS[r.k]??.5)+d*.05);const k=(optIdx(r)+d+r.v.length)%r.v.length;OPTS[r.k]=r.v[k];saveOpts();if(r.on)r.on(r.v[k]);panelKey='';CAM.av=null;
     const row=ov.querySelector(`.srow[data-r="${i}"] b`);if(row)row.textContent=r.l[k];};
+  ov.querySelectorAll('.srow input[type=range]').forEach(inp=>{inp.oninput=()=>setSlide(+inp.dataset.r,inp.value/100);inp.onclick=e=>e.stopPropagation();});
   ov.querySelectorAll('.sarr').forEach(b=>b.onclick=e=>{e.stopPropagation();bump(+b.dataset.r,+b.dataset.d);});
-  ov.querySelectorAll('.srow').forEach(rw=>{rw.tabIndex=0;rw.onclick=()=>bump(+rw.dataset.r,1);rw.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();bump(+rw.dataset.r,-1);}if(e.key==='ArrowRight'||e.key==='Enter'){e.preventDefault();bump(+rw.dataset.r,1);}};});
+  ov.querySelectorAll('.srow').forEach(rw=>{rw.tabIndex=0;rw.onclick=()=>{if(!T.rows[+rw.dataset.r].slider)bump(+rw.dataset.r,1);};rw.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();bump(+rw.dataset.r,-1);}if(e.key==='ArrowRight'||e.key==='Enter'){e.preventDefault();bump(+rw.dataset.r,1);}};});
   const sure=(id,fn)=>{const b=$(id);if(!b)return;b.onclick=()=>{if(b.dataset.sure){fn();showSettings();toast('Done.');}else{b.dataset.sure=1;b.querySelector('span').textContent='Press again to confirm';}};};
   sure('o-del',()=>clearSave());
   sure('o-dex',()=>{DEXSEEN.clear();try{localStorage.removeItem(DEXKEY);}catch(e){}});
-  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shake:1,unsprited:0,musVol:.5,sfxVol:.6},keep);saveOpts();speed=1;});
+  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shake:1,unsprited:0,masterVol:.8,musVol:.5,sfxVol:.6,uiVol:.7},keep);auVolumes();saveOpts();speed=1;});
   $('setclose').onclick=closeSettings;
   const f=ov.querySelector(`.stab[aria-selected="true"]`);if(f)f.focus();
 }

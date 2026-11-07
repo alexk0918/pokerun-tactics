@@ -188,9 +188,11 @@ const BGPAL={
   marsh:{inner:['#5a7a3e','#64844a','#6e8e52','#78985c'],outer:['#2a3a26','#30422c','#384a32','#405238'],dirt:['#6a4a6e','#765478','#825e84'],tuft:['#4a6a34','#30422c'],
     can:['#1a2a18','#26402a','#34563a','#4a7048','#8aa860'],trunk:['#3a3024','#241c14'],flow:['#c070ff','#ffd84a','#8aff8a'],glow:'rgba(200,255,150,.06)',edge:'rgba(10,15,8,.6)',void:'#0e140c',leaf:['#a070d0','#8aa860','#c0e070']},
 };
-const FLOORS=15;
+// an act is 10 floors. Enemy strength still follows the original 15-floor curve, compressed: floor f of an act
+// fights like a later floor of the old curve (oldF / dFloor in game.js), so floor 10's guardian is as strong as it always was
+const FLOORS=10,FSC=1.5;
 const STARM=[1,1.8,3.24];
-const floorKind=f=>f<=3?'wild':(f===5||f===10)?'elite':f===15?'boss':'trainer';
+const floorKind=f=>f<=2?'wild':f===5?'elite':f===FLOORS?'boss':'trainer';
 // trainer level, structured like TFT: XP to go from level L to L+1 follows TFT's curve scaled to a 15-floor run
 // (TFT 2·6·10·20·36·48·76·84 → about 0.55×), +2 XP after every floor, and XP can be bought at ₽4 for 4 XP. Max level 10.
 const XPNEXT={2:2,3:4,4:6,5:12,6:20,7:28,8:40,9:48};
@@ -201,7 +203,7 @@ const LVODDS={2:[1,0,0,0,0],3:[.75,.25,0,0,0],4:[.55,.3,.15,0,0],5:[.45,.33,.2,.
 const ECOUNT={4:3,5:4,6:4,7:4,8:5,9:5,10:5,11:5,12:6,13:6,14:6,15:4};
 const ELEVEL=f=>clamp(Math.round(2+f*.38),3,8);
 // extra enemy power per act (on top of the floor curve) and guardian power per act
-const ACTSCALE=[1,1,1.12,1.12];
-const BOSSCALE=[1,1.45,2.2,2.4];
+const ACTSCALE=[1,1,1.06,1.1];
+const BOSSCALE=[1,1.15,1.85,2.2];
 const TRAINERS=['Youngster Ben','Lass Mira','Bug Catcher Rik','Picnicker Jo','Camper Theo','Hiker Bram','Beauty Celine','Ace Trainer Noor','Bird Keeper Paz','Fisher Wen','Ranger Ash','Twins Ada & Ida'];
 const RIVALS=['Rival Kade','Rival Sora'];

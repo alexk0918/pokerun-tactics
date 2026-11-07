@@ -1,14 +1,14 @@
 "use strict";
 /* PokéRun Tactics — carousel rounds (TFT's shared draft, single-player).
    Floor 1 opens with a carousel of ₽1 Pokémon each holding an item component, so every run starts
-   with a free unit and a free component. Floors 6 and 11 (the start of acts II and III) bring
-   another, with Pokémon your trainer level can roll; the floor-11 carousel carries some finished items.
-   Pick one: the Pokémon joins your bench and its item goes into your bag. */
-const CAROUSEL_FLOORS=[1,6,11];
+   with a free unit and a free component. Floor 6 of every act and floor 1 of later acts bring
+   another, with Pokémon your trainer level can roll; from Act II they carry some finished items.
+   Pick one: the Pokémon joins your bench and its item goes into your bag. Your field is hidden during the carousel. */
+const CAROUSEL_FLOORS=[1,6];
 let carHover=-1;
 const carDue=f=>CAROUSEL_FLOORS.includes(f)&&!(run.carDone||[]).includes(f);
 function genCarousel(f){
-  const n=8,opts=[],used=new Set(),F=effFloor(f),open=F===1;
+  const n=8,opts=[],used=new Set(),F=dFloor(f),open=effFloor(f)===1;
   const odds=open?LVODDS[2]:LVODDS[run.level];
   for(let i=0;i<n;i++){let root=null;
     for(let k=0;k<12&&!root;k++){const c=open?1:Math.max(F>=11?2:1,rollCostFor(odds));const mx=maxedRoots(),pool=MODE.byCost[c-1].filter(r=>!used.has(r)&&!mx.has(r));if(pool.length)root=pick(pool);}

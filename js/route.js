@@ -1,7 +1,7 @@
 /* PokéRun Tactics: route choices, floor types, events, Kecleon shops, enhancers and unit mutators */
 
 /* ================= Floor types ================= */
-const FIXED={1:'wild',2:'wild',5:'rival',10:'rival',15:'boss'};
+const FIXED={1:'wild',2:'wild',5:'rival',10:'boss'};
 const isRouteFloor=f=>f<=FLOORS&&!FIXED[f];
 const NODES={
   battle:{n:'Trainer Battle',icon:'poke-ball',tag:'Normal',col:'#e2433f',d:'A regular trainer battle.',r:'Chest'},
@@ -23,19 +23,18 @@ function nodeK(f){const n=run&&run.nodes&&run.nodes[f];if(n)return n.k;return FI
 const nodeIcon=k=>k==='shop'?por(KECLEON):iconOf(NODES[k].icon);
 
 function planAct(){
-  const a=pick([6,7,8,9]),b=pick([11,12,13,14]);
-  const c=pick([3,6,7,8,9,11,12,13,14].filter(x=>Math.abs(x-a)>1&&Math.abs(x-b)>1));
-  run.shopFloors=[a,b,c];run.nodes={};run.route=null;run.seenEv=[];
+  // two Kecleon shops show up on the route each act
+  run.shopFloors=[pick([3,6]),pick([7,8,9])];run.nodes={};run.route=null;run.seenEv=[];
 }
 function genRoute(f){
   if(!isRouteFloor(f))return null;
-  const combatOnly=f===GIMMICK_FLOOR;
+  const combatOnly=f===GIMMICK_FLOOR,g=oldF(f);
   const opts=[Math.random()<.85||combatOnly?'battle':pick(['event','endurance'])];
-  const hard=f===3?['challenge','challenge','endurance']:f<6?['challenge','challenge','endurance','timeattack']:['challenge','alpha','alpha','endurance','timeattack'];
+  const hard=g<=4?['challenge','challenge','endurance']:g<6?['challenge','challenge','endurance','timeattack']:['challenge','alpha','alpha','endurance','timeattack'];
   opts.push(pick(hard.filter(k=>!opts.includes(k))));
-  if(Math.random()<.45){const third=(combatOnly?['endurance','timeattack','challenge']:f>=6?['event','event','event','endurance','endurance','timeattack','timeattack','center']:f===3?['event','event','endurance']:['event','event','timeattack']).filter(k=>!opts.includes(k));if(third.length)opts.push(pick(third));}
+  if(Math.random()<.45){const third=(combatOnly?['endurance','timeattack','challenge']:g>=6?['event','event','event','endurance','endurance','timeattack','timeattack','center']:g<=4?['event','event','endurance']:['event','event','timeattack']).filter(k=>!opts.includes(k));if(third.length)opts.push(pick(third));}
   if(!combatOnly&&(run.shopFloors.includes(f)||(f>3&&Math.random()<.06))&&!opts.includes('shop')){if(opts.length<3)opts.push('shop');else opts[2]='shop';}
-  if(!combatOnly&&f>=6&&run.hp<run.maxHp*.35&&!opts.includes('center')&&Math.random()<.35){if(opts.length<3)opts.push('center');else if(opts[2]!=='shop')opts[2]='center';}
+  if(!combatOnly&&g>=6&&run.hp<run.maxHp*.35&&!opts.includes('center')&&Math.random()<.35){if(opts.length<3)opts.push('center');else if(opts[2]!=='shop')opts[2]='center';}
   const cen=opts.indexOf('center');
   if(cen>=0&&((run.centersOffered||0)>=2||run.lastCenterOffer===f-1)){opts.splice(cen,1);if(opts.length<2)opts.push(pick(['event','endurance','timeattack'].filter(k=>!opts.includes(k))));}
   if(opts.includes('center')){run.centersOffered=(run.centersOffered||0)+1;run.lastCenterOffer=f;}
@@ -63,7 +62,7 @@ function nodeModHtml(){
 function bigEnemy(f){const pool=foePool([...MODE.byCost[2],...MODE.byCost[3]]),tp=foePool([...MODE.byCostAll[2],...MODE.byCostAll[3]]).filter(r=>SM[finalOf(r)]&&inTheme(r));const root=pick(tp.length&&Math.random()<.7?tp:pool);const u=mkUnit(root,actOf()>=2?3:2);u.dex=finalOf(root);return genFoe(u);}
 function bigify(c){
   if(c.u.alpha){c.hp*=2.8;c.maxHp=c.hp;c.atk*=1.3;c.spa*=1.3;c.def+=10;c.res+=10;c.shield=c.maxHp*(c.fx.shieldP||0);c.scaleMul=1.4;c.alpha=1;}
-  if(c.u.tgt){c.hp*=2.4+effFloor(run.floor)*.05;c.maxHp=c.hp;c.atk*=.55;c.spa*=.55;c.shield=0;c.scaleMul=1.4;c.isTgt=1;}
+  if(c.u.tgt){c.hp*=2.4+dFloor(run.floor)*.05;c.maxHp=c.hp;c.atk*=.55;c.spa*=.55;c.shield=0;c.scaleMul=1.4;c.isTgt=1;}
   return c;
 }
 
@@ -77,7 +76,7 @@ function spawnWave(){
   if(mode!=='combat'||!battle||battle.node!=='endurance')return;
   battle.wave++;const f=run.floor,w=battle.wave;
   const n=Math.min(2+Math.ceil(w/2),5),room=Math.max(0,9-alive(1).length);
-  const F=effFloor(f),o=LVODDS[enemyLv(F)],mult=(1.02+(Math.min(F,60)-4)*.03)*(1+w*.1)*endlessMul()*(hasRelic('town-map')?.9:1);
+  const F=dFloor(f),o=LVODDS[enemyLv(F)],mult=(1.02+(Math.min(F,60)-4)*.03)*(1+w*.1)*endlessMul()*(hasRelic('town-map')?.9:1);
   for(let i=0;i<Math.min(n,room);i++){
     const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkFoe(root,x<clamp((F-15)*.04,0,.5)?3:x<clamp((F-4)*.05+w*.05,0,.85)?2:1);
     const pos=freeHex([0,1,2]);if(!pos)break;
@@ -138,7 +137,7 @@ function afterFloor(){
     showRoute();return'route';}
   ov.innerHTML='';return nextFloor();
 }
-function chooseRoute(i){const o=run.route&&run.route[i];if(!o)return;run.nodes[run.floor+1]=o;run.route=null;ov.innerHTML='';return nextFloor();}
+function chooseRoute(i){const o=run.route&&run.route[i];if(!o)return;run.nodes[run.floor+1]=o;perkRun('node',o.k);run.route=null;ov.innerHTML='';return nextFloor();}
 // non-combat floors
 function startNode(){
   const f=run.floor,k=nodeK(f);enemyPreview=[];run.results[f]=run.results[f]||null;

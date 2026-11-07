@@ -40,10 +40,10 @@ function auInit(){
 function auGraph(c){AU.ctx=c;
   const comp=c.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;comp.connect(c.destination);
   AU.out=c.createGain();AU.out.gain.value=1;AU.out.connect(comp);
-  AU.mus=c.createGain();AU.sfx=c.createGain();AU.mus.connect(AU.out);AU.sfx.connect(AU.out);
+  AU.mus=c.createGain();AU.sfx=c.createGain();AU.ui=c.createGain();AU.mus.connect(AU.out);AU.sfx.connect(AU.out);AU.ui.connect(AU.out);
 }
 function auVolumes(){if(!AU.ctx)return;const t=AU.ctx.currentTime;
-  AU.mus.gain.setTargetAtTime(OPTS.musVol??.5,t,.1);AU.sfx.gain.setTargetAtTime(OPTS.sfxVol??.6,t,.05);}
+  AU.out.gain.setTargetAtTime(OPTS.masterVol??.8,t,.05);AU.mus.gain.setTargetAtTime(OPTS.musVol??.5,t,.1);AU.sfx.gain.setTargetAtTime(OPTS.sfxVol??.6,t,.05);AU.ui.gain.setTargetAtTime(OPTS.uiVol??.7,t,.05);}
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,auInit,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!AU.ctx)return;if(document.hidden){AU.ctx.suspend();if(AU.cur)AU.cur.el.pause();}else{AU.ctx.resume();if(AU.cur)AU.cur.el.play().catch(()=>{});}});
 const auOK=()=>AU.ctx&&AU.ctx.state==='running'&&!SIM.on;
@@ -82,7 +82,9 @@ function sfxLoad(){if(!AU.ctx||AU.sfxLoading)return;AU.sfxLoading=1;
   for(const k of SFX_FILES)fetch(`assets/sfx/${k}.mp3`).then(r=>r.arrayBuffer()).then(b=>AU.ctx.decodeAudioData(b)).then(buf=>{SFXBUF[k]=buf;}).catch(()=>{});}
 // rate limit so a busy battle doesn't turn into noise
 function sfxGate(k,gap){const t=performance.now();if((AU.last[k]||0)>t-gap)return false;AU.burst=AU.burst.filter(x=>x>t-150);if(AU.burst.length>=6)return false;AU.last[k]=t;AU.burst.push(t);return true;}
-function playBuf(k,vol=1,rate=1){const b=SFXBUF[k];if(!b)return;const c=AU.ctx,s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;s.connect(g);g.connect(AU.sfx);s.start();}
-function sfx(k,gap=40){if(!auOK()||!(OPTS.sfxVol??.6)||!sfxGate(k,gap))return;playBuf(k,SFX_VOL[k]??.8,k==='hit'?.92+Math.random()*.16:1);}
+// battle sounds (moves, hits, knockouts) and interface sounds have their own volume
+const BATTLE_SFX=new Set(['hit','crit','miss','faint']);
+function playBuf(k,vol=1,rate=1){const b=SFXBUF[k];if(!b)return;const c=AU.ctx,s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;s.connect(g);g.connect(BATTLE_SFX.has(k)||SFXBUF[k]&&/^[A-Z]/.test(k)?AU.sfx:AU.ui);s.start();}
+function sfx(k,gap=40){if(!auOK()||!sfxGate(k,gap))return;playBuf(k,SFX_VOL[k]??.8,k==='hit'?.92+Math.random()*.16:1);}
 // each type has two PMD move sounds; one is picked at random
 function sfxMove(type){if(!auOK()||!(OPTS.sfxVol??.6))return;const t=SFXBUF[type]?type:'Normal';if(!sfxGate('mv:'+t,90))return;playBuf(Math.random()<.5?t:t+'2',.7);}
