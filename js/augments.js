@@ -20,40 +20,27 @@ const AUGDEF=[
   {id:'static',t:'silver',tag:'status',icon:'zap-plate',name:'Static',d:'Your team\'s basic attacks have a 30% chance to add 1 Paralysis.'},
   {id:'ppoint',t:'silver',tag:'status',icon:'poison-barb',name:'Poison Point',d:'Your team\'s basic attacks have a 30% chance to add 1 Poison.'},
   {id:'fbody',t:'silver',tag:'status',icon:'flame-orb',name:'Flame Body',d:'Your team\'s basic attacks have a 30% chance to add 1 Burn.'},
-  {id:'berry',t:'silver',tag:'econ',icon:'berry-pots',name:'Berry Basket',d:'Gain ₽10 right now.',gain(){run.gold+=10;}},
   {id:'tailwind',t:'silver',tag:'combat',icon:'quick-powder',name:'Tailwind',d:'Your team gains +10% Attack Speed.',e:{as:.1}},
   {id:'oran',t:'silver',tag:'combat',icon:'sitrus-berry',name:'Oran Rations',d:'Your team gains +150 max HP.',e:{hpF:150}},
-  {id:'irondef',t:'silver',tag:'combat',icon:'iron',name:'Iron Defense',d:'Your team gains +15 Defense and +15 Sp. Def.',e:{def:15,res:15}},
-  {id:'focusen',t:'silver',tag:'combat',icon:'dire-hit',name:'Focus Energy',d:'Your team gains +15% critical-hit chance.',e:{crit:.15}},
   {id:'quickstart',t:'silver',tag:'combat',icon:'quick-claw',name:'Quick Start',d:'Your Pokémon start every battle with +20 PP.',e:{mana:20}},
   {id:'leftovers',t:'silver',tag:'combat',icon:'leftovers',name:'Leftovers',d:'Your team restores 1% of its max HP every second.',e:{regen:.01}},
-  {id:'candy',t:'silver',tag:'econ',icon:'rare-candy',name:'Candy Jar',d:'Gain 6 XP now, and +1 XP at the start of every floor.',gain(){gainXP(6);},floor(){gainXP(1);}},
-  {id:'comppack',t:'silver',tag:'items',icon:'box-normal',name:'Component Pack',d:'Gain 2 random item components now.',gain(){gainItems(2,false);}},
   {id:'frontline',t:'silver',tag:'team',icon:'rusted-shield',name:'Front Line',d:'Your Pokémon in the two front rows gain +20% max HP.',ef:x=>x.row<=5?{hpP:.2}:null},
   {id:'backline',t:'silver',tag:'team',icon:'wide-lens',name:'Back Line',d:'Your Pokémon in the two back rows deal +15% damage.',ef:x=>x.row>=6?{dmg:.15}:null},
-  {id:'bargain',t:'silver',tag:'econ',icon:'premier-ball',name:'Bargain Bin',d:'Your first reroll on every floor is free.',floor(){run.freeRerolls=Math.max(run.freeRerolls||0,1);}},
   {id:'pickup',t:'silver',tag:'items',icon:'honey',name:'Pickup',d:'After every win, a 35% chance to find a random item component.',after(win){if(win&&Math.random()<.35){gainItems(1,false);return'Pickup found a component';}}},
   {id:'thickfat',t:'silver',tag:'combat',icon:'big-malasada',name:'Thick Fat',d:'Your team takes 10% less damage.',e:{dr:.1}},
-  {id:'intim',t:'silver',tag:'combat',icon:'razor-fang',name:'Intimidate',d:'Enemies start every battle with 10% less Attack and Sp. Atk.',x:{intim:.1}},
   /* ---------------- gold ---------------- */
   {id:'hexer',t:'gold',tag:'status',icon:'spell-tag',name:'Hex Maniac',d:'Your team deals +5% damage for each different status condition on the target (up to +30%).'},
   {id:'outbreak',t:'gold',tag:'status',icon:'toxic-orb',name:'Outbreak',d:'When an enemy with status conditions faints, half of each of its stacks spread to enemies within 2 hexes.'},
-  {id:'egg',t:'gold',tag:'team',icon:'mystery-egg',name:'Daycare Egg',d:'Gain a random 2★ Pokémon (₽1 to ₽3) on your bench.',gain(){gainUnit(pick(MODE.roots.filter(r=>MODE.lines[r].cost<=3&&MODE.byCost[MODE.lines[r].cost-1].includes(r))),2);}},
   {id:'endure',t:'gold',tag:'combat',icon:'focus-sash',name:'Endure',d:'Once per battle, each of your Pokémon survives a fainting blow with 1 HP.',e:{focus:1}},
   {id:'swords',t:'gold',tag:'combat',icon:'choice-band',name:'Swords Dance',d:'Your team deals +20% damage.',e:{dmg:.2}},
-  {id:'grabbag',t:'gold',tag:'items',icon:'box-silver',name:'Item Grab Bag',d:'Gain a random completed item and a random component now.',gain(){gainItems(1,true);gainItems(1,false);}},
   {id:'richer',t:'gold',tag:'econ',icon:'amulet-coin',name:'Rich Get Richer',d:'Gain ₽10 now, and your interest cap rises by ₽3.',gain(){run.gold+=10;}},
-  {id:'study',t:'gold',tag:'econ',icon:'exp-share',name:'Study Hall',d:'Buying XP gives 6 XP instead of 4.'},
   {id:'implants',t:'gold',tag:'items',icon:'metal-coat',name:'Cybernetic Implants',d:'Your Pokémon holding at least one item gain +200 max HP and +10% damage.',ef:x=>x.u.items.length?{hpF:200,dmg:.1}:null},
   {id:'biggame',t:'gold',tag:'team',icon:'master-ball',name:'Big Game',d:'Your ₽4 and ₽5 Pokémon gain +25% max HP and +20% damage.',ef:x=>x.cost>=4?{hpP:.25,dmg:.2}:null},
   {id:'littlebud',t:'gold',tag:'team',icon:'friend-ball',name:'Little Buddies',d:'Your ₽1 and ₽2 Pokémon gain +30% max HP and +25% Attack Speed.',ef:x=>x.cost<=2?{hpP:.3,as:.25}:null},
   {id:'sitrus',t:'gold',tag:'combat',icon:'sitrus-berry',name:'Sitrus Stash',d:'Each of your Pokémon heals 25% of its max HP the first time it drops below half.',e:{sitrus:.25}},
   {id:'drain',t:'gold',tag:'combat',icon:'shell-bell',name:'Drain Punch',d:'Your team heals for 15% of the damage it deals.',e:{ls:.15}},
   {id:'spell',t:'gold',tag:'combat',icon:'wise-glasses',name:'Spellslinger',d:'Your Pokémon\'s moves deal +20% damage.',e:{ab:.2}},
-  {id:'training',t:'gold',tag:'team',icon:'muscle-band',name:'Training Grounds',d:'After every battle, each Pokémon that fought gains +10 max HP and +1 Attack and Sp. Atk, permanently.',
-    after(win,fought){for(const u of fought){u.g=u.g||{};u.g.hp=(u.g.hp||0)+10;u.g.atk=(u.g.atk||0)+1;u.g.spa=(u.g.spa||0)+1;}}},
   {id:'thrill',t:'gold',tag:'combat',icon:'razor-claw',name:'Thrill of the Hunt',d:'When your Pokémon knock out an enemy, they heal 20% of their max HP.',e:{killHeal:.2}},
-  {id:'scaryface',t:'gold',tag:'combat',icon:'smoke-ball',name:'Scary Face',d:'Enemies have 10% less Attack Speed.',x:{enemyAS:.1}},
   {id:'drought',t:'gold',tag:'weather',icon:'flame-plate',name:'Drought',d:`Every battle starts in ${WEATHER_TXT.sun}. Your Fire Pokémon gain +15% Attack Speed.`,x:{weather:'sun'},ef:x=>x.types.includes('Fire')?{as:.15}:null},
   {id:'drizzle',t:'gold',tag:'weather',icon:'splash-plate',name:'Drizzle',d:`Every battle starts in ${WEATHER_TXT.rain}. Your Water Pokémon gain +10 PP at the start.`,x:{weather:'rain'},ef:x=>x.types.includes('Water')?{mana:10}:null},
   {id:'sandstream',t:'gold',tag:'weather',icon:'earth-plate',name:'Sand Stream',d:`Every battle starts in ${WEATHER_TXT.sand}. Your Rock, Ground and Steel Pokémon gain +20 Defense.`,x:{weather:'sand'},ef:x=>x.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')?{def:20}:null},
@@ -62,12 +49,9 @@ const AUGDEF=[
   {id:'plague2',t:'prismatic',tag:'status',icon:'toxic-plate',name:'Plague Doctor',d:'Status conditions your team applies add double the stacks, and your Burn, Poison and Leech Seed deal +25% damage.'},
   {id:'resolve',t:'prismatic',tag:'team',icon:'leaders-crest',name:"Trainer's Resolve",d:'+1 team size for the rest of the run.'},
   {id:'payday',t:'prismatic',tag:'econ',icon:'nugget',name:'Pay Day',d:'Gain an extra ₽3 at the start of every floor.'},
-  {id:'champion',t:'prismatic',tag:'combat',icon:'choice-specs',name:"Champion's Belt",d:'Your team deals +30% damage and gains +15% Attack Speed.',e:{dmg:.3,as:.15}},
   {id:'candymtn',t:'prismatic',tag:'econ',icon:'rare-candy',name:'Rare Candy Mountain',d:'Gain 30 XP now.',gain(){gainXP(30);}},
   {id:'ace',t:'prismatic',tag:'team',icon:'star-piece',name:'Ace Trainer',d:'Your strongest Pokémon on the field (highest cost and stars) gains +60% max HP, +40% damage and +25% Attack Speed.',ef:x=>x.u===x.ace?{hpP:.6,dmg:.4,as:.25}:null},
-  {id:'secondwind',t:'prismatic',tag:'combat',icon:'sacred-ash',name:'Second Wind',d:'Each of your Pokémon gets back up once per battle with 30% HP.',e:{revive:.3}},
   {id:'itemrain',t:'prismatic',tag:'items',icon:'box-gold',name:'Item Rain',d:'Gain 2 random completed items now.',gain(){gainItems(2,true);}},
-  {id:'legend',t:'prismatic',tag:'team',icon:'master-ball',name:'Legendary Encounter',d:'A random ₽5 Pokémon joins your bench now.',gain(){const p=MODE.byCost[4].length?MODE.byCost[4]:MODE.byCostAll[4];if(p.length)gainUnit(pick(p),1);}},
   {id:'goldtix',t:'prismatic',tag:'econ',icon:'gold-bottle-cap',name:'Golden Ticket',d:'Shop rerolls cost ₽1 instead of ₽2, and you get a free reroll every floor.',floor(){run.freeRerolls=Math.max(run.freeRerolls||0,1);}},
   {id:'harmony',t:'prismatic',tag:'team',icon:'soothe-bell',name:'Harmony',d:'Your team gains +4% damage and +4% max HP for every active set you have.',ef:x=>{const n=Object.keys(x.tr).filter(k=>SETS[k]&&tierOf(k,x.tr[k])).length;return{dmg:.04*n,hpP:.04*n};}},
   {id:'hyperdrive',t:'prismatic',tag:'combat',icon:'power-herb',name:'Hyperdrive',d:'Your Pokémon\'s moves cost 25% less PP and they start with +15 PP.',e:{ppCut:.25,mana:15}},
@@ -83,26 +67,18 @@ const AUGDEF=[
   {id:'builtdiff',t:'silver',tag:'team',icon:'everstone',name:'Built Different',d:'Your Pokémon that aren\'t part of any active set (types don\'t count) gain +300 max HP and +20% Attack Speed.',
     ef:x=>unitSets(x.u).some(k=>SETS[k]&&SETS[k].cat!=='type'&&tierOf(k,x.tr[k]||0))?null:{hpF:300,as:.2}},
   {id:'cluttered',t:'silver',tag:'econ',icon:'rare-candy',name:'Cluttered Mind',d:'If your bench is full at the start of a floor, gain 4 XP.',floor(){if(run.bench.every(Boolean)){gainXP(4);if(!SIM.on)toast('Cluttered Mind: +4 XP');}}},
-  {id:'warmup',t:'silver',tag:'combat',icon:'flame-orb',name:'Warm-Up',d:'After 8 seconds of battle, your team deals +25% damage for the rest of it.',start(mine){schedule(8,()=>{for(const c of mine)if(!c.dead)c.dmg+=.25;});}},
   {id:'firstblood',t:'silver',tag:'combat',icon:'razor-fang',name:'First Blood',d:'The first time your team knocks out an enemy each battle, every one of your Pokémon gains 25 PP.',
     kill(src){if(battle.fb)return;battle.fb=1;for(const c of alive(0))gainMana(c,25);}},
   {id:'patient',t:'silver',tag:'econ',icon:'wise-glasses',name:'Patient Study',d:'After a win, gain 2 XP. After a loss, gain 4.',after(win){gainXP(win?2:4);}},
   {id:'calcloss',t:'silver',tag:'econ',icon:'premier-ball',name:'Calculated Loss',d:'After a loss, gain ₽2 and a free reroll.',after(win){if(!win){run.gold+=2;run.freeRerolls=(run.freeRerolls||0)+1;return'Calculated Loss +₽2';}}},
-  {id:'feather',t:'silver',tag:'team',icon:'pretty-wing',name:'Featherweights',d:'Your ₽1 and ₽2 Pokémon gain +20% Attack Speed and dodge 12% of attacks.',ef:x=>x.cost<=2?{as:.2,dodge:.12}:null},
   {id:'bodyguard',t:'silver',tag:'team',icon:'rusted-shield',name:'Bodyguard',d:'Your frontmost Pokémon starts each battle with a shield of 40% of its max HP.',
     start(mine){const f=mine.slice().sort((a,b)=>a.r-b.r||b.maxHp-a.maxHp)[0];if(f)f.shield+=f.maxHp*.4;}},
-  {id:'stickyweb',t:'silver',tag:'combat',icon:'silver-powder',name:'Sticky Web',d:'Enemies have 20% less Attack Speed for the first 6 seconds of battle.',start(mine,foes){for(const o of foes)o.as*=.8;schedule(6,()=>{for(const o of foes)o.as/=.8;});}},
   {id:'helping',t:'silver',tag:'team',icon:'soothe-bell',name:'Helping Hand',d:'Each of your Pokémon gains +4% damage for every adjacent ally (up to +24%).',ef:x=>({dmg:.04*adjAllies(x)})},
   {id:'lonewolf',t:'silver',tag:'team',icon:'black-belt',name:'Lone Wolf',d:'Your Pokémon with no adjacent allies gain +30% damage and +15% Attack Speed.',ef:x=>adjAllies(x)?null:{dmg:.3,as:.15}},
   {id:'spite',t:'silver',tag:'combat',icon:'spell-tag',name:'Spite',d:'When one of your Pokémon faints, the enemy that knocked it out loses all its PP.',fall(tg,src){if(src&&src.team===1)src.mana=0;}},
-  {id:'piggyaug',t:'silver',tag:'econ',icon:'star-piece',name:'Coin Purse',d:'Gain ₽1 at the start of every floor. Every 5th floor it pays ₽6 instead.',floor(){const s=augS('piggyaug');s.n=(s.n||0)+1;run.gold+=s.n%5===0?6:1;}},
   /* ---------------- more gold ---------------- */
   {id:'blitz',t:'gold',tag:'combat',icon:'quick-powder',name:'Blitz',d:'For the first 6 seconds of battle, your team has +50% Attack Speed.',start(mine){for(const c of mine)c.as*=1.5;schedule(6,()=>{for(const c of mine)c.as/=1.5;});}},
   {id:'lotus',t:'gold',tag:'combat',icon:'scope-lens',name:'Jeweled Lotus',d:'Your Pokémon\'s moves can critically hit, and your team gains +15% crit chance.',e:{abCrit:1,crit:.15}},
-  {id:'spoils',t:'gold',tag:'items',icon:'honey',name:'Spoils of War',d:'Every enemy your team knocks out has a 15% chance to drop an item component (up to 2 a battle).',
-    kill(){if(Math.random()<.15&&(battle.spoils||0)<2&&run.bag.length<BAGMAX){battle.spoils=(battle.spoils||0)+1;run.bag.push(mkComp(randComp(),[]));}}},
-  {id:'combattrain',t:'gold',tag:'team',icon:'muscle-band',name:'Combat Training',d:'After every battle, your strongest Pokémon permanently gains +30 max HP and +3 Attack and Sp. Atk.',
-    after(){const u=augStrongest();if(u){u.g=u.g||{};u.g.hp=(u.g.hp||0)+30;u.g.atk=(u.g.atk||0)+3;u.g.spa=(u.g.spa||0)+3;}}},
   {id:'flank',t:'gold',tag:'team',icon:'wide-lens',name:'Flanking',d:'Your Pokémon in the leftmost or rightmost column gain +30% damage and +20% Attack Speed.',ef:x=>x.col===0||x.col===COLS-1?{dmg:.3,as:.2}:null},
   {id:'finalgambit',t:'gold',tag:'combat',icon:'focus-band',name:'Final Gambit',d:'When one of your Pokémon faints, every ally gains +10% damage and Attack Speed for the rest of the battle.',
     fall(tg){if(tg.team!==0)return;for(const c of alive(0)){c.dmg+=.1;c.as*=1.1;}}},
@@ -139,6 +115,40 @@ const AUGDEF=[
     start(mine,foes){const sl=mine.slice().sort((a,b)=>a.as-b.as).slice(0,Math.ceil(mine.length/2)),fa=foes.slice().sort((a,b)=>b.as-a.as).slice(0,Math.ceil(foes.length/2));
       for(const c of sl)c.as*=1.8;for(const o of fa)o.as*=.7;schedule(10,()=>{for(const c of sl)c.as/=1.8;for(const o of fa)o.as/=.7;});if(!SIM.on)texts.push({x:320,y:130,txt:'Trick Room!',col:'#d48bff',life:1.6,label:1});}},
   {id:'echo',t:'prismatic',tag:'combat',icon:'choice-specs',name:'Echoed Voice',d:'Your team\'s basic attacks have a 30% chance to strike twice.',e:{double:.3}},
+  /* ---------------- replacements: each one does a job nothing else does ---------------- */
+  {id:'suckerpunch',t:'silver',tag:'combat',icon:'black-glasses',name:'Sucker Punch',d:'Your team deals +25% damage to enemies below half HP.',e:{execute:.25}},
+  {id:'roughskin',t:'silver',tag:'combat',icon:'rocky-helmet',name:'Rough Skin',d:'Enemies that hit your Pokémon in melee take 4% of your Pokémon\'s max HP back.',e:{helmet:.04}},
+  {id:'innerfocus',t:'silver',tag:'combat',icon:'focus-band',name:'Inner Focus',d:'Your Pokémon can\'t be stunned, knocked back or pulled.',e:{stunImm:1}},
+  {id:'stealthrock',t:'silver',tag:'combat',icon:'hard-stone',name:'Stealth Rock',d:'Every enemy starts the battle having lost 10% of its max HP.',
+    start(mine,foes){for(const o of foes)hurt(o,o.maxHp*.1,null);if(!SIM.on)texts.push({x:320,y:110,txt:'Stealth Rock!',col:'#c9a46b',life:1.3,label:1});}},
+  {id:'guts',t:'silver',tag:'combat',icon:'flame-orb',name:'Guts',d:'Your Pokémon below a third of their HP deal +35% damage.',e:{pinch:.35}},
+  {id:'naturalcure',t:'silver',tag:'status',icon:'lum-berry',name:'Natural Cure',d:'Every 4 seconds, your Pokémon are cured of all status conditions.',
+    start(){const z=()=>{if(mode!=='combat'&&!SIM.on)return;for(const c of alive(0))cureStatus(c);schedule(4,z);};schedule(4,z);}},
+  {id:'giantkiller',t:'silver',tag:'combat',icon:'razor-claw',name:'Giant Killer',d:'Your team deals +30% damage to enemies with more than 1,500 max HP.',e:{giant:.3}},
+  {id:'longreach',t:'silver',tag:'team',icon:'wide-lens',name:'Long Reach',d:'Your ranged Pokémon gain +1 range and +10% damage.',ef:x=>unitStats(x.u.dex,x.cost,x.star).range>1?{range:1,dmg:.1}:null},
+  {id:'harvest',t:'silver',tag:'items',icon:'miracle-seed',name:'Harvest',d:'Your Pokémon holding no items gain +25% max HP and +15% damage.',ef:x=>x.u.items.length?null:{hpP:.25,dmg:.15}},
+  {id:'stamina',t:'silver',tag:'combat',icon:'iron',name:'Stamina',d:'Each time one of your Pokémon is hit, it gains +2 Defense (up to +40).',e:{stamina:8}},
+  {id:'lightscreen',t:'silver',tag:'combat',icon:'light-clay',name:'Light Screen',d:'Your team takes 20% less damage from enemy moves.',e:{cloak:.2}},
+  {id:'reinforce',t:'gold',tag:'team',icon:'friend-ball',name:'Reinforcements',d:'The first time one of your Pokémon faints each battle, your strongest bench Pokémon jumps in where it fell.',
+    fall(tg){if(tg.team!==0||tg.summon||battle.reinf)return;const b=run.bench.filter(Boolean).sort((p,q)=>lineOf(q).cost*Math.pow(3,q.star)-lineOf(p).cost*Math.pow(3,p.star))[0];if(!b)return;battle.reinf=1;const c0=tg.c,r0=tg.r;
+      schedule(.6,()=>{if((mode!=='combat'&&!SIM.on)||occupied(c0,r0))return;const c=makeCombatant(b,0,c0,r0,battle.trs[0],1);c.summon=1;units.push(c);if(!SIM.on){ensure(b.dex);burst(c.x,c.y-10,'#9fd4ff',18,1.2);texts.push({x:c.x,y:c.y-34,txt:'Reinforcements!',col:'#9fd4ff',life:1.2,label:1});}});}},
+  {id:'lockon',t:'gold',tag:'combat',icon:'scope-lens',name:'Lock-On',d:'At the start of each battle, the enemy with the highest Attack or Sp. Atk is locked on and takes 40% more damage.',
+    start(mine,foes){const t=foes.slice().sort((a,b)=>Math.max(b.atk,b.spa)-Math.max(a.atk,a.spa))[0];if(t){t.taken*=1.4;if(!SIM.on)texts.push({x:t.x,y:t.y-40,txt:'Locked on!',col:'#ff6b6b',life:1.6,label:1});}}},
+  {id:'chainlight',t:'gold',tag:'combat',icon:'zap-plate',name:'Chain Lightning',d:'Your Pokémon\'s moves arc to the 2 nearest other enemies for 30% of their damage.',e:{lightChain:.3}},
+  {id:'tagteam',t:'gold',tag:'team',icon:'soothe-bell',name:'Tag Team',d:'Your two strongest Pokémon gain +20% damage and Attack Speed. When one of them faints, the other heals to full.',
+    start(mine){const s=mine.filter(c=>!c.summon).sort((a,b)=>lineOf(b.u).cost*Math.pow(3,b.u.star)-lineOf(a.u).cost*Math.pow(3,a.u.star)).slice(0,2);if(s.length<2)return;for(const c of s){c.dmg+=.2;c.as*=1.2;c.tagMate=s.find(o=>o!==c);}},
+    fall(tg){const m=tg.team===0&&tg.tagMate;if(m&&!m.dead){heal(m,m.maxHp);if(!SIM.on)texts.push({x:m.x,y:m.y-34,txt:'Tag in!',col:'#7dff7a',life:1.2,label:1});}}},
+  {id:'hypnosis',t:'gold',tag:'combat',icon:'twisted-spoon',name:'Hypnosis',d:'Every 6 seconds, the enemy closest to using its move falls asleep for 2 seconds.',
+    start(){const z=()=>{if(mode!=='combat'&&!SIM.on)return;const t=alive(1).filter(o=>o.maxMana>0).sort((a,b)=>b.mana/b.maxMana-a.mana/a.maxMana)[0];if(t){stun(t,2);if(!SIM.on)texts.push({x:t.x,y:t.y-34,txt:'Zzz',col:'#c6b3ff',life:1.2,label:1});}schedule(6,z);};schedule(6,z);}},
+  {id:'outnumbered',t:'gold',tag:'team',icon:'black-belt',name:'Outnumbered',d:'For every enemy more than your team has, your Pokémon gain +8% damage and max HP (up to +40%).',
+    start(mine,foes){const n=Math.min(5,Math.max(0,foes.length-mine.length));if(!n)return;for(const c of mine){c.dmg+=.08*n;c.maxHp*=1+.08*n;c.hp*=1+.08*n;}}},
+  {id:'gravity',t:'gold',tag:'combat',icon:'iron-ball',name:'Gravity',d:'Enemy ranged Pokémon lose 1 range and 15% Attack Speed.',start(mine,foes){for(const o of foes)if(o.range>1){o.range--;o.as*=.85;}}},
+  {id:'copymachine',t:'prismatic',tag:'team',icon:'up-grade',name:'Copy Machine',d:'Whenever you make a 2★, a 1★ copy of it joins your bench.',
+    combine(u){if(u.star!==2)return;const i=run.bench.indexOf(null);if(i<0)return;run.bench[i]=mkUnit(u.root);if(!SIM.on){ensure(u.root);toast('Copy Machine: a fresh copy');}}},
+  {id:'grandprize',t:'prismatic',tag:'items',icon:'box-gold',name:'Grand Prize',d:'Every 3rd win in a row brings a random completed item.',
+    after(win){if(win&&run.streak>=0&&(run.streak+1)%3===0){gainItems(1,true);return'Grand Prize: a completed item';}}},
+  {id:'perish',t:'prismatic',tag:'combat',icon:'spell-tag',name:'Perish Song',d:'After 12 seconds of battle, every enemy still standing loses half its remaining HP.',
+    start(){schedule(12,()=>{if(mode!=='combat'&&!SIM.on)return;for(const o of alive(1))hurt(o,o.hp*.5,null);if(!SIM.on)texts.push({x:320,y:120,txt:'Perish Song!',col:'#b98bff',life:1.6,label:1});});}},
 ];
 // set augments for every type and class: Heart (+1), Crest (+1 and a Pokémon), Crown (+2 and a 2★ Pokémon)
 for(const k of Object.keys(SETS).filter(k=>SETS[k].cat==='type'||SETS[k].cat==='class'||(SETS[k].cat==='style'&&!SETS[k].kin))){
@@ -153,8 +163,8 @@ const AUGS={silver:AUGDEF.filter(a=>a.t==='silver'&&!a.set),gold:AUGDEF.filter(a
 
 /* ---------- state ---------- */
 const myAugs=()=>((run&&run.augs)||[]).map(x=>AUGMAP[x.id]).filter(Boolean);
-// augments and investment strategies share hooks (see invest.js)
-const perks=()=>myAugs().concat(typeof myInvs==='function'?myInvs():[]);
+// augments and general team strategies share hooks (see team.js)
+const perks=()=>myAugs().concat(typeof myInvs==='function'?myInvs():[]).concat(run&&run.strat&&run.strat.general?[run.strat]:[]);
 const augS=id=>{run.augSt=run.augSt||{};return run.augSt[id]=run.augSt[id]||{};};
 // how many of your Pokémon stand next to this one
 const adjAllies=x=>Object.keys(run.board).filter(k=>{const[c,r]=k.split(',').map(Number);return(c!==x.col||r!==x.row)&&hdist({c,r},{c:x.col,r:x.row})===1;}).length;
@@ -173,7 +183,7 @@ function augOnFloor(){perkRun('floor');}
 function augAfter(win,fought,lost){return perkRun('after',win,fought,lost).filter(m=>typeof m==='string');}
 const augInterestCap=()=>augIs('richer')?3:0;
 const rerollCost=()=>Math.max(0,(augIs('goldtix')?1:2)+perkNum('rr'));
-const xpBuyAmount=()=>(augIs('study')?6:4)+perkNum('xpp');
+const xpBuyAmount=()=>4+perkNum('xpp');
 
 /* ---------- choosing ---------- */
 function rollAugTier(){const n=(run.augs||[]).length,x=Math.random();

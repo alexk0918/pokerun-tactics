@@ -204,6 +204,6 @@ const ECOUNT={4:3,5:4,6:4,7:4,8:5,9:5,10:5,11:5,12:6,13:6,14:6,15:4};
 const ELEVEL=f=>clamp(Math.round(2+f*.38),3,8);
 // extra enemy power per act (on top of the floor curve) and guardian power per act
 const ACTSCALE=[1,1,1.06,1.1];
-const BOSSCALE=[1,1.15,1.85,2.2];
+const BOSSCALE=[1,1.05,1.85,2.2];
 const TRAINERS=['Youngster Ben','Lass Mira','Bug Catcher Rik','Picnicker Jo','Camper Theo','Hiker Bram','Beauty Celine','Ace Trainer Noor','Bird Keeper Paz','Fisher Wen','Ranger Ash','Twins Ada & Ida'];
 const RIVALS=['Rival Kade','Rival Sora'];

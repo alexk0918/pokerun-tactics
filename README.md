@@ -11,9 +11,11 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 ## How a run works
 
-- Pick a region, a starting strategy, then one investment strategy (see Investment strategies). Both last the whole run. Each starting strategy is a way of making or spending money, paired with a type, and it shapes your first shop. A strategy only appears in a mode with at least 3 lines of its type.
+- Press **Start run** and pick a region. The run then begins by offering **3 team strategies** (each card can be rerolled once). Take one and it's locked in for the whole run. Team strategies are like small augments: 14 are tied to a type (they also shape your first shop with three Pokémon of that type) and 34 are general helpers with no type (see Team strategies). A type strategy only appears in a mode with at least 3 lines of its type.
 
-| Strategy | Type | Style | Effect |
+**Type strategies:**
+
+| Team strategy | Type | Style | Effect |
 |---|---|---|---|
 | Ember Gambit | Fire | Aggressive | Fire +15% damage; win streaks pay double; losses cost 2 more Trainer HP |
 | Tidal Fortress | Water | Steady | 125 Trainer HP; your Pokémon take 10% less damage; Water starts with +10 PP |
@@ -228,7 +230,7 @@ Form items (Red Orb, Griseous Core, Rusted Sword, masks…) sit in their own slo
 
 ### Economy
 
-- Income each floor: ₽10 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win. (Acts are 10 floors, so each floor pays more than it did when acts were 15.)
+- Income each floor: ₽11 base, +₽1 per ₽10 saved (max ₽5), and win or loss streak gold. +₽1 per win. (Acts are 10 floors, so each floor pays more than it did when acts were 15.)
 - Trainer level (2–10) sets how many Pokémon you can field and the shop odds, structured like TFT. You gain 4 XP per floor and can buy 4 XP for ₽4. XP to the next level: 2, 4, 6, 12, 20, 28, 40, 48.
 - Shop odds use TFT's table, so a cost never appears before its level. The tab above the shop shows the current odds.
 
@@ -401,26 +403,25 @@ Every starter line (Gen I–IX, plus Hisuian Decidueye) grows with its **Friends
 
 You pick one of three augments on floors 2 and 7 of every act (6 in a full run, plus one per endless act). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first. **No augment you've been offered comes back later in the run**, so every pick shows you new options.
 
-There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / Crest / Crown augments for every type, class and trait. Many are more than stat boosts: Built Different (Pokémon outside any active set get stronger), Helping Hand and Lone Wolf (positioning), Warm-Up, Blitz and Ascension (timing), Spite, Final Gambit, Explosion and Rebirth (when your Pokémon faint), First Blood and Apex Predator (knockouts), Wonder Trade (your cheapest bench Pokémon is traded up every floor), Pandora's Items, Double Team, Golden Egg, Metronome, Mind Meld and Trick Room.
+There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / Crest / Crown augments for every type, class and trait. **Every augment has its own job**: no two do the same thing at different strengths, so no card is just a weaker copy of another. Many are more than stat boosts: Built Different (Pokémon outside any active set get stronger), Helping Hand and Lone Wolf (positioning), Blitz and Ascension (timing), Spite, Final Gambit, Explosion, Rebirth, Tag Team and Reinforcements (when your Pokémon faint), First Blood and Apex Predator (knockouts), Lock-On and Hypnosis (shutting down the enemy carry), Wonder Trade, Copy Machine, Pandora's Items, Double Team, Golden Egg, Metronome, Mind Meld, Trick Room and Perish Song.
 
-- **Silver:** Static, Poison Point, Flame Body, Berry Basket, Tailwind, Oran Rations, Iron Defense, Focus Energy, Quick Start, Leftovers, Candy Jar, Component Pack, Front Line, Back Line, Bargain Bin, Pickup, Thick Fat, Intimidate, Regional Tour, Built Different, Cluttered Mind, Warm-Up, First Blood, Patient Study, Calculated Loss, Featherweights, Bodyguard, Sticky Web, Helping Hand, Lone Wolf, Spite, Coin Purse.
-- **Gold:** Hex Maniac, Outbreak, Daycare Egg, Endure, Swords Dance, Item Grab Bag, Rich Get Richer, Study Hall, Cybernetic Implants, Big Game, Little Buddies, Sitrus Stash, Drain Punch, Spellslinger, Training Grounds, Thrill of the Hunt, Scary Face, Drought, Drizzle, Sand Stream, Snow Warning, Form Change, Pack Leader, Blitz, Jeweled Lotus, Spoils of War, Combat Training, Flanking, Final Gambit, Belly Drum, Toxic Spikes, Mentorship, Storm Front.
-- **Prismatic:** Plague Doctor, Trainer's Resolve, Pay Day, Champion's Belt, Rare Candy Mountain, Ace Trainer, Second Wind, Item Rain, Legendary Encounter, Golden Ticket, Harmony, Hyperdrive, Fusion Reactor, Legendary Gathering, Ascension, Level Up!, Wonder Trade, Pandora's Items, Cosmic Power, Double Team, Golden Egg, Explosion, Rebirth, Superstars, Tiny Titans, Metronome, Apex Predator, Ultra Wormhole, Mind Meld, Trick Room, Echoed Voice.
+- **Silver:** Static, Poison Point, Flame Body, Tailwind, Oran Rations, Quick Start, Leftovers, Front Line, Back Line, Pickup, Thick Fat, Regional Tour, Built Different, Cluttered Mind, First Blood, Patient Study, Calculated Loss, Bodyguard, Helping Hand, Lone Wolf, Spite, Sucker Punch, Rough Skin, Inner Focus, Stealth Rock, Guts, Natural Cure, Giant Killer, Long Reach, Harvest, Stamina, Light Screen.
+- **Gold:** Hex Maniac, Outbreak, Endure, Swords Dance, Rich Get Richer, Cybernetic Implants, Big Game, Little Buddies, Sitrus Stash, Drain Punch, Spellslinger, Thrill of the Hunt, Drought, Drizzle, Sand Stream, Snow Warning, Form Change, Pack Leader, Blitz, Jeweled Lotus, Flanking, Final Gambit, Belly Drum, Toxic Spikes, Mentorship, Storm Front, Reinforcements, Lock-On, Chain Lightning, Tag Team, Hypnosis, Outnumbered, Gravity.
+- **Prismatic:** Plague Doctor, Trainer's Resolve, Pay Day, Rare Candy Mountain, Ace Trainer, Item Rain, Golden Ticket, Harmony, Hyperdrive, Fusion Reactor, Legendary Gathering, Ascension, Level Up!, Wonder Trade, Pandora's Items, Cosmic Power, Double Team, Golden Egg, Explosion, Rebirth, Superstars, Tiny Titans, Metronome, Apex Predator, Ultra Wormhole, Mind Meld, Trick Room, Echoed Voice, Copy Machine, Grand Prize, Perish Song.
 - **Sets:** a *Heart* (Silver) counts as one extra of that type, class or trait, a *Crest* (Gold) adds one and gives you a ₽2–3 Pokémon of it, and a *Crown* (Prismatic) adds two and gives you a 2★ ₽3–4 Pokémon. One of the three cards is often a set augment for a set you already play.
 
-### Investment strategies
+### Team strategies
 
-Right after your starting strategy, still before the run begins, you pick **one investment strategy** for the whole run: one of three random cards, each rerollable once (**Back to strategies** lets you change your starting strategy first). There are no tiers; all 91 are balanced to be worth about the same over a run, so the choice is about how you want to play. They're mostly about money, in the spirit of Honkai: Star Rail's Currency Wars: interest, streaks, the shop, selling, XP, items, Trainer HP and payouts that take time to mature. Your investment and its progress (counters, pending payouts) show in the Run info panel.
+Every run opens with a choice of **3 team strategies**, drawn from all 48 (each card can be rerolled once). Once you take one, it's locked in for the whole run. The 14 type strategies are in the table at the top. The 34 general ones have no type and each does one job, like a small augment; none copies a type strategy's rule. Your team strategy and its progress (counters, pending payouts) show in the Run info panel.
 
-- **Steady income:** Savings Account, Allowance, Tip Jar, Consolation Prize, Early Bird, Night Owl, Thrifty, Flat Rate, Small Change, Coin Flip, Travel Light, Stockpile, Gold Rush, Compound Interest, Hypercompound, Leverage, Golden Goose, Patron of the Arts, Overflow.
-- **Payouts that mature:** Piggy Bank, Venture Capital, Futures Contract, Trust Fund, Money Printer, Money Tree, Nest Egg, Volatile Asset, Lottery Ticket, Lucky Seven, All In, Loyalty Card, Patience.
-- **Streaks, wins and losses:** Streak Keeper, Bull Market, Bear Market, Hedge Fund, Sponsorship Deal, War Chest, Flawless Bonus, Toll Road, MVP Bonus, Commission, Bounty Board, Grand Heist.
-- **Trainer HP:** Health Policy, Insurance, Golden Parachute, Crowdfunding, Emergency Reserves, Last-Ditch Fund, High Roller.
-- **The shop:** Coupon Book, Free Agency, Deflation, Referral Bonus, Trending, Short Selling, Reroll Rebate, Lucky Roll, Jackpot, Cashback, Blue Chip, Collector's Edition.
-- **Selling:** Yard Sale, Fire Sale, Appraiser, Trade-In.
-- **Stars and Pokémon:** Dividends, Royalties, Midas Touch, Merger, Talent Scout, Wishing Star, Shrine Offering, Apprenticeship, Angel Investor.
-- **XP and levels:** Study Bond, Tuition, Level Subsidy, Fast Track, Private Tutor, Practice Rolls, Scholarship, Pocket Money, XP Exchange.
-- **Items, chests and paths:** Supply Crate, Booster Box, Royal Treasury, Scrap Dealer, Treasure Map, Pathfinder.
+- **Economy:** Thrifty (when you're broke), Travel Light (empty bench), Stockpile (full bench), Gold Rush (flat income, pricier rerolls), Patron of the Arts (double interest and streaks, less base), Hoarder (bag items count toward interest).
+- **Payouts:** Trust Fund, Money Printer, Nest Egg, Volatile Asset, Lucky Seven, All In, Loyalty Card (don't sell).
+- **Battle:** War Chest (rivals and guardians), High Stakes (bet on rivals and guardians), Flawless Bonus, MVP Bonus (one big carry).
+- **Safety:** Insurance, Golden Parachute, Crowdfunding, High Roller.
+- **Shop:** Trending, Jackpot, Blue Chip, Fire Sale, Trade-In.
+- **Team:** Shrine Offering, Apprenticeship, Angel Investor.
+- **XP:** Practice Rolls, Scholarship, XP Exchange.
+- **Items:** Scrap Dealer, Pathfinder.
 
 ### Scouting
 
@@ -462,7 +463,7 @@ Built to stay readable on small handheld screens such as the AYN Thor:
 
 - Pokémon and items can be moved with two taps or clicks: one to pick up, one to place. Tapping the shop while carrying a Pokémon releases it, and Esc or B puts it back. Dragging still works.
 - A slim top bar holds trainer HP, the route tracker, level, Pokédollars, battle speed and the Menu button.
-- The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (strategy, augment, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
+- The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (team strategy, augments, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
 - The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
 - The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan by dragging empty ground (any mouse button, in planning and in battle) or with the right stick.
 - **Battle meter:** a panel on the right during battles (and showing the last battle while you plan). Tabs for Damage, Healing and Damage taken list each Pokémon's total with a bar and its per-second rate below, plus a team total. Switch between your team and the enemies; collapse it with its header.
@@ -542,7 +543,7 @@ js/audio.js         music player (PMD tracks with loop points) and PMD sound eff
 assets/music/       PMD music tracks (MP3)
 assets/sfx/         PMD sound effects (MP3)
 js/traits.js        trait sets in battle
-js/invest.js        investment strategies and the hooks they share with augments
+js/team.js          team strategies and the perk hooks they share with augments
 js/meter.js         battle meter
 js/fusion.js        fusions and Deoxys formes
 js/gamepad.js       controller support

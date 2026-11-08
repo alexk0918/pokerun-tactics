@@ -642,18 +642,6 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 
 
 /* strategy select */
-.stratscreen{max-width:1100px;width:94%;}
-.stratsel{display:flex;gap:16px;width:100%;align-items:stretch;}
-.sgrid{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;align-content:start;}
-.spick{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;background:var(--panel,#f4f1e6);border:3px solid var(--ink);border-left:8px solid var(--tc);border-radius:8px;cursor:pointer;text-align:left;font-family:var(--display);color:var(--ink);min-height:48px;}
-.spick img{width:40px;height:40px;image-rendering:pixelated;flex:none;}
-.spick span{display:flex;flex-direction:column;min-width:0;}.spick b{font-size:17px;line-height:1.1;}.spick i{font-style:normal;font-family:var(--label);font-size:13px;color:var(--muted);text-transform:uppercase;}
-.spick:hover,.spick.on,.spick.padhover{background:#fff8d6;outline:3px solid var(--gold);}
-.sdetail{width:330px;flex:none;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:left;font-family:var(--display);font-size:16px;}
-.sdetail h2{margin:0;font-size:26px;line-height:1;}.sdetail .por3{display:flex;gap:6px;}.sdetail .por3 img{width:56px;height:56px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;background:#e8efe2;}
-.sdetail ul{margin:0;padding-left:18px;line-height:1.45;}.sdetail .guide{font-family:var(--label);color:var(--muted);text-transform:uppercase;border-top:2px dashed #c5d1d9;padding-top:8px;}
-.sdetail .btn.go{margin-top:auto;}
-@media (max-width:820px){.stratsel{flex-direction:column;}.sdetail{width:auto;}}
 
 .srow.slide .sval{gap:8px;}.srow.slide input[type=range]{width:180px;accent-color:var(--gold);cursor:pointer;}
 .srow.slide .sval b{min-width:44px;text-align:right;}
@@ -661,6 +649,10 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 /* investment floors on the floor track: a gold coin under the node */
 .node.inv::before{content:"";position:absolute;bottom:-12px;left:50%;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b0,#e2b13c 60%,#a87a1c);border:1.5px solid #24303d;}
 @media (max-width:900px){.node.inv::before{bottom:-9px;width:7px;height:7px;margin-left:-3.5px;}}
+.tscard .augpick{justify-content:flex-start;}
+.tscard .augic.por{background:var(--paper);}.tscard .augic.por img{width:46px;height:46px;image-rendering:pixelated;}
+.tspts{margin:0;padding-left:18px;text-align:left;font-size:15px;line-height:1.35;}
+.tsfeat{display:flex;align-items:center;gap:4px;margin-top:auto;}.tsfeat .lbl{font-size:12px;margin-right:4px;}.tsfeat img{width:32px;height:32px;image-rendering:pixelated;}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -716,9 +708,9 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
   <div id="overlay"><div class="screen"><div class="loading" id="loadmsg">Loading Pokédex…</div></div></div>
 </div></div>
 
-<script src="js/data.js?v=20"></script>
+<script src="js/data.js?v=21"></script>
 <script src="js/sets.js?v=22"></script>
-<script src="js/game.js?v=55"></script>
+<script src="js/game.js?v=58"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=7"></script>
@@ -740,10 +732,10 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 <script src="js/kits_alt.js?v=3"></script>
 <script src="js/fusion.js?v=1"></script>
 <script src="js/traits.js?v=2"></script>
-<script src="js/invest.js?v=2"></script>
+<script src="js/team.js?v=2"></script>
 <script src="js/audio.js?v=4"></script>
 <script src="js/kitdex.js?v=4"></script>
-<script src="js/augments.js?v=7"></script>
+<script src="js/augments.js?v=9"></script>
 <script src="js/ui.js?v=16"></script>
 <script src="js/meter.js?v=1"></script>
 <script src="js/gamepad.js?v=18"></script>
