@@ -1,13 +1,8 @@
 "use strict";
-/* PokéRun Tactics — team strategies and the perk hooks they share with augments.
-   When a run starts you're offered 3 team strategies (one reroll per card) and lock one in for the whole run. The 14 type
-   strategies live in data.js; the general ones (money, battle, safety, shop, XP and item helpers, like small augments) are
-   built from INVDEF below. INVDEF also keeps every older card so saves from before the change still load.
-
-   Hooks (shared with augments, see perks()): gain() on pick · floor() each floor · inc(pay) extra floor income ·
-   after(win,fought) after a battle · buy(u) · sell(u) · reroll() · level(lv) · combine(u) · act() a new act ·
-   chest() · start(mine,foes) · kill(src,tg) · fall(tg) · numbers: cap, pad, per, imin, streak, rr, xpc, xpp,
-   sell(u), price(root), hpLoss · free(root) · show() a short status for the run panel. */
+/* PokéRun Tactics — investment environments and the perk hooks they share with augments.
+   When a run starts you're offered 3 investment environments (one reroll per card) and lock one in for the whole run.
+   The 14 type environments live in data.js; the rule-changing ones are ENVS below. INVDEF keeps the older money
+   cards so saves from before the change still load. */
 
 const S=id=>{run.invS=run.invS||{};return run.invS[id]=run.invS[id]||{};};
 const onField=()=>Object.values(run.board);
@@ -116,8 +111,7 @@ const invIs=id=>!!(run&&run.invs&&run.invs.some(x=>x.id===id));
 const interestPad=()=>perkNum('pad');
 const interestPer=()=>Math.min(run.strat.id==='verdant'?8:10,...perks().filter(p=>p.per).map(p=>p.per));
 
-/* ---------- team strategies: the 14 type strategies (data.js) plus the general ones below ---------- */
-// general team strategies: no type, one job each (the money cards that don't copy a type strategy's rule)
+/* ---------- older saves: the general team strategies (no longer offered) ---------- */
 const GENERAL={thrifty:'Economy',travellight:'Economy',stockpile:'Economy',goldrush:'Economy',patron:'Economy',hoarder:'Economy',
   trustfund:'Payout',printer:'Payout',nestegg:'Payout',volatile:'Payout',lucky7:'Payout',allin:'Payout',loyalty:'Payout',
   warchest:'Battle',stakes:'Battle',flawless:'Battle',mvp:'Battle',
@@ -128,14 +122,52 @@ const GENERAL={thrifty:'Economy',travellight:'Economy',stockpile:'Economy',goldr
   scrap:'Items',pathfinder:'Items'};
 const GEN_STRATS=Object.entries(GENERAL).map(([id,risk])=>{const a=INVMAP[id];return Object.assign(Object.create(a),{type:null,risk,pts:[a.d],general:1});});
 const TEAMSTRATS=STRATS.concat(GEN_STRATS);
-const teamStrat=id=>TEAMSTRATS.find(s=>s.id===id);
+/* ---------- investment environments ----------
+   One is locked in when the run starts (3 offered, one reroll per card). An environment sets the conditions of the
+   whole run (what you start with, how the shop or the carousel behaves, how many augments you get, a milestone
+   prize) rather than being a perk like an augment. The 14 type environments (Ember Gambit, Tidal Fortress…) are in
+   data.js; the rule-changing ones are below. Inspired by Honkai: Star Rail's Currency Wars investment environments. */
+const ENVS=[
+  {id:'sunken',icon:'deep-sea-scale',name:'The Sunken Trove',risk:'Milestone',pts:['The first time you win 5 battles in a row, you gain a random Prismatic augment.'],
+    after(win){const s=S('sunken');if(s.done||!win||run.streak+1<5)return;const p=augPool('prismatic',new Set());if(!p.length)return;const a=pick(p);s.done=1;
+      run.augs.push({id:a.id,tier:'prismatic'});if(a.gain)a.gain.call(a);combine();return`The Sunken Trove: ${a.name}!`;},show:()=>S('sunken').done?'claimed':'win 5 in a row'},
+  {id:'budget',icon:'big-pearl',name:'Excess Budget',risk:'Carousel',pts:['Carousel Pokémon carry two items instead of one.']},
+  {id:'destiny',icon:'mystery-egg',name:'Gift of Destiny',risk:'Milestone',pts:['Start with a sealed Gift that opens after 8 floors and holds a ₽5 Pokémon at 2★ and a completed item.','Every win where none of your Pokémon faint opens it a floor sooner.'],
+    gain(){S('destiny').n=8;},
+    after(win,fought,lost){const s=S('destiny');if(win&&!lost&&s.n>1)s.n--;},
+    floor(){const s=S('destiny');if(!s.n)return;s.n--;if(s.n<=0){s.n=0;s.done=1;gainUnit(randRoot(5),2);gainItems(1,true);say('Gift of Destiny opened: a ₽5 Pokémon at 2★ and a completed item!');}},
+    show:()=>S('destiny').done?'opened':`opens in ${S('destiny').n} floor(s)`},
+  {id:'cache',icon:'box-gold',name:'Supply Cache',risk:'Starting package',pts:['Start with 2 random completed items.'],gain(){gainItems(2,true);}},
+  {id:'headstart',icon:'rare-candy',name:'Head Start',risk:'Starting package',pts:['Start at trainer level 4 instead of 2.'],gain(){run.level=4;run.xp=0;}},
+  {id:'goldenage',icon:'relic-crown',name:'Golden Age',risk:'Augments',pts:['Augments are never offered at Silver: you always get Gold or Prismatic.']},
+  {id:'augfund',icon:'star-piece',name:'Augment Fund',risk:'Augments',pts:['You get an extra augment on floor 5 of every act, before the rival.']},
+  {id:'dice',icon:'lucky-punch',name:'Loaded Dice',risk:'Shop',pts:['Every shop includes at least one Pokémon you already own (when your level can roll its cost).'],
+    shop(){const own=[...new Set(allOwned().filter(u=>u.star<3).map(u=>u.root))].filter(r=>lineOf({root:r,dex:r}).cost<=maxCostAt(run.level)&&MODE.lines[r]);
+      if(!own.length||run.shop.some(r=>own.includes(r)))return;run.shop[Math.floor(Math.random()*run.shop.length)]=pick(own);}},
+  {id:'deepbench',icon:'box-normal',name:'Deep Bench',risk:'Rule change',pts:['Your bench has 11 slots instead of 9.']},
+  {id:'clone',icon:'up-grade',name:'Cloning Lab',risk:'Rule change',pts:['₽1 and ₽2 Pokémon need only 2 copies to reach 2★ (3★ still needs three 2★).']},
+];
+for(const e of ENVS){e.env=1;e.type=null;e.general=1;}
+// Index Fund: a random class or style set; its Pokémon show up more and you start with two of them
+function indexFund(k){const S0=SETS[k];if(!S0)return null;
+  const ok=r=>lineSets(r).includes(k);
+  return{id:'index:'+k,icon:'leaders-crest',name:`${k} Index Fund`,risk:'Index fund',env:1,general:1,type:null,setKey:k,
+    pts:[`Start with two ₽1–2 ${k} Pokémon.`,`${k} Pokémon appear more often in the shop.`],
+    gain(){const c=shuffle(MODE.byCost[0].concat(MODE.byCost[1]).filter(ok));for(const r of c.slice(0,2))gainUnit(r,1);},
+    shop(){run.shop=run.shop.map(r=>{if(!r||ok(r)||Math.random()>.3)return r;const c=MODE.lines[r].cost,p=shopPool(c).filter(ok);return p.length?pick(p):r;});}};}
+function indexFundKeys(){return Object.keys(SETS).filter(k=>['class','style'].includes(SETS[k].cat)&&!SETS[k].kin&&MODE.byCost[0].concat(MODE.byCost[1],MODE.byCost[2]).filter(r=>lineSets(r).includes(k)).length>=5);}
+const benchSize=()=>run&&run.strat&&run.strat.id==='deepbench'?11:9;
+const copiesNeeded=u=>run&&run.strat&&run.strat.id==='clone'&&u.star===1&&lineOf(u).cost<=2?2:3;
+const teamStrat=id=>typeof id==='string'&&id.startsWith('index:')?indexFund(id.slice(6)):ENVS.find(s=>s.id===id)||TEAMSTRATS.find(s=>s.id===id);
+
 // a type strategy only appears if this mode has at least 3 lines of its type (Gen I has too few Dragons and Ghosts)
 function teamStratPool(){const typeLines=t=>MODE.roots.filter(r=>MODE.lines[r].mem.some(d=>D[d].t.includes(t))).length;
-  return TEAMSTRATS.filter(s=>s.general||s.si!=null||typeLines(s.type)>=3);}
-// Start run → region → the run begins and offers 3 team strategies (one reroll per card). Once taken it's locked in.
+  const ks=indexFundKeys(),idx=ks.length?[indexFund(pick(ks))]:[];
+  return STRATS.filter(s=>s.si!=null||typeLines(s.type)>=3).concat(ENVS,idx);}
+// Start run → region → the run begins and offers 3 investment environments (one reroll per card). Once taken it's locked in.
 function beginRun(){
   const SL=teamStratPool(),feats={};for(const s of SL)if(!s.general)feats[s.id]=featured(s);
-  newRun(null,Object.values(feats).flat());
+  newRun(null,Object.values(feats).flat());achRunStart();
   const ids=shuffle(SL.map(s=>s.id)).slice(0,3);
   showTeamStrat({SL,feats,ids,rr:[0,0,0]});
 }
@@ -146,10 +178,10 @@ function showTeamStrat(O){
       <span class="augtag t-econ"${s.type?` style="background:${TYPES[s.type]}"`:''}>${s.type?`${s.type} · `:''}${s.risk}</span><h2>${esc(s.name)}</h2>
       <ul class="tspts">${s.pts.map(p=>`<li>${p}</li>`).join('')}</ul>${s.general?'':`<div class="tsfeat"><span class="lbl">First shop</span>${O.feats[id].map(d=>`<img src="${por(d)}" alt="${esc(D[d].n)}" title="${esc(D[d].n)}">`).join('')}</div>`}</button>
       <button class="btn sm augrr" data-rr="${i}" ${O.rr[i]?'disabled':''}>${O.rr[i]?'Rerolled':'Reroll'}</button></div>`;};
-  ov.innerHTML=`<div class="scrim"></div><div class="screen augscreen"><h1 class="h1">Choose a team strategy</h1>
-    <p class="sub">${MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex'}. Your team strategy helps you for the whole run. Once you take it, it's locked in. Each card can be rerolled once.</p>
+  ov.innerHTML=`<div class="scrim"></div><div class="screen augscreen"><h1 class="h1">Choose an investment environment</h1>
+    <p class="sub">${MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex'}. Your environment sets the conditions for the whole run. Once you take it, it's locked in. Each card can be rerolled once.</p>
     <div class="augrow">${O.ids.map(card).join('')}</div></div>`;
-  ov.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const s=teamStrat(O.ids[+b.dataset.pick]);ov.innerHTML='';applyStrat(s,O.feats[s.id]);startFloor();toast(`Team strategy: ${s.name}`);});
+  ov.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const s=teamStrat(O.ids[+b.dataset.pick]);ov.innerHTML='';applyStrat(s,O.feats[s.id]);achEnv(s);startFloor();toast(`Investment environment: ${s.name}`);});
   ov.querySelectorAll('[data-rr]').forEach(b=>b.onclick=()=>{const i=+b.dataset.rr;if(O.rr[i])return;const p=O.SL.filter(s=>!O.ids.includes(s.id));if(p.length)O.ids[i]=pick(p).id;O.rr[i]=1;showTeamStrat(O);});
 }
 

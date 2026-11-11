@@ -11,11 +11,11 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 
 ## How a run works
 
-- Press **Start run** and pick a region. The run then begins by offering **3 team strategies** (each card can be rerolled once). Take one and it's locked in for the whole run. Team strategies are like small augments: 14 are tied to a type (they also shape your first shop with three Pokémon of that type) and 34 are general helpers with no type (see Team strategies). A type strategy only appears in a mode with at least 3 lines of its type.
+- Press **Start run** and pick a region. The run then begins by offering **3 investment environments** (each card can be rerolled once). Take one and it's locked in for the whole run: it sets the conditions of the run, in the spirit of Honkai: Star Rail's Currency Wars. 14 are tied to a type (they also put three Pokémon of that type in your first shop), the rest change the rules (see Investment environments). A type environment only appears in a mode with at least 3 lines of its type.
 
-**Type strategies:**
+**Type environments:**
 
-| Team strategy | Type | Style | Effect |
+| Environment | Type | Style | Effect |
 |---|---|---|---|
 | Ember Gambit | Fire | Aggressive | Fire +15% damage; win streaks pay double; losses cost 2 more Trainer HP |
 | Tidal Fortress | Water | Steady | 125 Trainer HP; your Pokémon take 10% less damage; Water starts with +10 PP |
@@ -410,18 +410,26 @@ There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / C
 - **Prismatic:** Plague Doctor, Trainer's Resolve, Pay Day, Rare Candy Mountain, Ace Trainer, Item Rain, Golden Ticket, Harmony, Hyperdrive, Fusion Reactor, Legendary Gathering, Ascension, Level Up!, Wonder Trade, Pandora's Items, Cosmic Power, Double Team, Golden Egg, Explosion, Rebirth, Superstars, Tiny Titans, Metronome, Apex Predator, Ultra Wormhole, Mind Meld, Trick Room, Echoed Voice, Copy Machine, Grand Prize, Perish Song.
 - **Sets:** a *Heart* (Silver) counts as one extra of that type, class or trait, a *Crest* (Gold) adds one and gives you a ₽2–3 Pokémon of it, and a *Crown* (Prismatic) adds two and gives you a 2★ ₽3–4 Pokémon. One of the three cards is often a set augment for a set you already play.
 
-### Team strategies
+### Investment environments
 
-Every run opens with a choice of **3 team strategies**, drawn from all 48 (each card can be rerolled once). Once you take one, it's locked in for the whole run. The 14 type strategies are in the table at the top. The 34 general ones have no type and each does one job, like a small augment; none copies a type strategy's rule. Your team strategy and its progress (counters, pending payouts) show in the Run info panel.
+Every run opens with a choice of **3 investment environments** (each card can be rerolled once). Once you take one, it's locked in for the whole run. Augments are the perks you collect along the way; an environment sets the conditions of the whole run: what you start with, how the shop or carousel behaves, how many augments you get, or a prize for reaching a milestone. Your environment and its progress show in the Run info panel.
 
-- **Economy:** Thrifty (when you're broke), Travel Light (empty bench), Stockpile (full bench), Gold Rush (flat income, pricier rerolls), Patron of the Arts (double interest and streaks, less base), Hoarder (bag items count toward interest).
-- **Payouts:** Trust Fund, Money Printer, Nest Egg, Volatile Asset, Lucky Seven, All In, Loyalty Card (don't sell).
-- **Battle:** War Chest (rivals and guardians), High Stakes (bet on rivals and guardians), Flawless Bonus, MVP Bonus (one big carry).
-- **Safety:** Insurance, Golden Parachute, Crowdfunding, High Roller.
-- **Shop:** Trending, Jackpot, Blue Chip, Fire Sale, Trade-In.
-- **Team:** Shrine Offering, Apprenticeship, Angel Investor.
-- **XP:** Practice Rolls, Scholarship, XP Exchange.
-- **Items:** Scrap Dealer, Pathfinder.
+- **Type environments (14):** the table at the top (Ember Gambit, Tidal Fortress, Verdant Investment…).
+- **Index Fund:** a random class or style set (for example *Vanguard Index Fund*). Start with two ₽1–2 Pokémon of that set, and its Pokémon show up more often in the shop.
+- **The Sunken Trove:** the first time you win 5 battles in a row, gain a random Prismatic augment.
+- **Gift of Destiny:** a sealed Gift that opens after 8 floors with a ₽5 Pokémon at 2★ and a completed item. Every win with no faints opens it a floor sooner.
+- **Excess Budget:** carousel Pokémon carry two items instead of one.
+- **Supply Cache:** start with 2 completed items.
+- **Head Start:** start at trainer level 4.
+- **Golden Age:** augments are never offered at Silver.
+- **Augment Fund:** an extra augment on floor 5 of every act.
+- **Loaded Dice:** every shop includes at least one Pokémon you already own.
+- **Deep Bench:** 11 bench slots instead of 9.
+- **Cloning Lab:** ₽1 and ₽2 Pokémon need only 2 copies to reach 2★.
+
+### Achievements
+
+73 achievements, saved in your browser across runs. One earned during a fight pops up when the fight ends; one earned anywhere else pops up straight away. **Achievements** on the title screen lists them all, with progress bars for the ones that count up across runs (battles won, knockouts, Pokémon bought, rerolls, chests, Pokémon Centers, Mystery paths, Kecleon Shops, evolution lines owned, runs started, regions and environments tried). The rest cover battles (Clean Sweep, Lone Wolf, Knockout Artist, Lightning Round…), acts and wins (Perfect Act, Comeback Kid, Untouchable, Champion…), your team (Three Stars, Triple Crown, Living Legend, Set Master, Rainbow Team…) and moments like fusing two Pokémon or taking a 2★ from a carousel. Simulated runs never earn achievements.
 
 ### Scouting
 
@@ -463,7 +471,7 @@ Built to stay readable on small handheld screens such as the AYN Thor:
 
 - Pokémon and items can be moved with two taps or clicks: one to pick up, one to place. Tapping the shop while carrying a Pokémon releases it, and Esc or B puts it back. Dragging still works.
 - A slim top bar holds trainer HP, the route tracker, level, Pokédollars, battle speed and the Menu button.
-- The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (team strategy, augments, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
+- The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (investment environment, augments, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
 - The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
 - The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan by dragging empty ground (any mouse button, in planning and in battle) or with the right stick.
 - **Battle meter:** a panel on the right during battles (and showing the last battle while you plan). Tabs for Damage, Healing and Damage taken list each Pokémon's total with a bar and its per-second rate below, plus a team total. Switch between your team and the enemies; collapse it with its header.
@@ -543,7 +551,8 @@ js/audio.js         music player (PMD tracks with loop points) and PMD sound eff
 assets/music/       PMD music tracks (MP3)
 assets/sfx/         PMD sound effects (MP3)
 js/traits.js        trait sets in battle
-js/team.js          team strategies and the perk hooks they share with augments
+js/team.js          investment environments and the perk hooks they share with augments
+js/achievements.js  achievements: the list, pop-ups and the Achievements screen
 js/meter.js         battle meter
 js/fusion.js        fusions and Deoxys formes
 js/gamepad.js       controller support

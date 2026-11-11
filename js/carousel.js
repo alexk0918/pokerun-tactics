@@ -16,7 +16,9 @@ function genCarousel(f){
     // later acts: more finished items and more 2-star Pokémon on the carousel
     const item=F>=11&&i%(F>=30?2:3)===0?{k:randCraft(),mut:[]}:mkComp(randComp(),[]);
     const u=mkEnemy(root,F>=11&&Math.random()<(F>=30?.6:F>=16?.45:.35)?2:1);u.items=[item];
-    opts.push({u,item,ph:i/n*Math.PI*2});}
+    // Excess Budget: every carousel Pokémon carries a second item
+    const item2=run.strat.id==='budget'?mkComp(randComp(),[]):null;if(item2)u.items.push(item2);
+    opts.push({u,item,item2,ph:i/n*Math.PI*2});}
   return{f,opts,t:0,picked:-1};
 }
 function startCarousel(){
@@ -37,14 +39,14 @@ function carAt(x,y){if(!run.car)return-1;let best=-1,bd=1e9;run.car.opts.forEach
 function carouselHover(p,e){const i=carAt(p.x,p.y);carHover=i;cv.style.cursor=i>=0?'pointer':'default';
   if(i>=0){const o=run.car.opts[i];showTip(o.u,e,{});}else hideTip();}
 function carouselClick(p){const i=carAt(p.x,p.y);if(i<0)return;carTake(i);}
-function carTake(i){const C=run.car;if(!C||C.picked>=0)return;const o=C.opts[i];C.picked=i;C.pickT=C.t;
+function carTake(i){const C=run.car;if(!C||C.picked>=0)return;const o=C.opts[i];C.picked=i;C.pickT=C.t;if(o.u.star>=2)achUnlock('luckyspin');
   o.u.items=[];const slot=run.bench.indexOf(null);
   if(slot>=0){run.bench[slot]=o.u;if(!SIM.on)ensure(o.u.dex);}else{run.gold+=MODE.lines[o.u.root].cost*o.u.star;if(!SIM.on)toast('Your bench is full, so you took its value in Pokédollars.');}
-  if(run.bag.length<BAGMAX)run.bag.push(o.item);
+  for(const it of[o.item,o.item2])if(it&&run.bag.length<BAGMAX)run.bag.push(it);
   run.carDone=[...(run.carDone||[]),C.f];
   if(SIM.on){run.car=null;return;}
   hideTip();carHover=-1;dexLearnOwned();
   if(o.pos)pfx('Circle_Yellow_Out',o.pos.x,o.pos.y-2,{sc:.6,sy:.55,force:1}),pfx('Moonlight_Sparkles',o.pos.x,o.pos.y-16,{force:1});
-  toast(`${D[o.u.dex].n} joined your bench with ${itemName(o.item)}.`);
+  toast(`${D[o.u.dex].n} joined your bench with ${itemName(o.item)}${o.item2?` and ${itemName(o.item2)}`:''}.`);
   setTimeout(()=>{run.car=null;mode='plan';startFloor();},900);
 }

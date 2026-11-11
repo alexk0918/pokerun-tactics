@@ -151,8 +151,11 @@ addEventListener('resize',fit);fit();
 const R=17,HW=Math.sqrt(3)*R,SQ=0.78,RS=1.5*R*SQ,COLS=7,ROWS=8;
 const BX=320-(COLS*HW+HW/2)/2+HW/2, BY=56;
 const hexXY=(c,r)=>({x:BX+c*HW+(r&1?HW/2:0),y:BY+r*RS});
-const BENCH_Y=246, BENCH_N=9, BENCH_DX=29;
-const benchXY=i=>({x:320+(i-(BENCH_N-1)/2)*BENCH_DX,y:BENCH_Y});
+const BENCH_Y=246, BENCH_DX=29;let BENCH_N=9;
+// bench stumps: 9 are baked into the map; Deep Bench's extra slots are drawn live each frame
+function drawStump(g,p){g.fillStyle='#00000035';g.beginPath();g.ellipse(p.x,p.y+3,12,4.5,0,0,7);g.fill();
+  g.fillStyle='#7a5532';g.beginPath();g.ellipse(p.x,p.y+1,11,4.5,0,0,7);g.fill();g.fillStyle='#b98a55';g.beginPath();g.ellipse(p.x,p.y,10,3.6,0,0,7);g.fill();g.strokeStyle='#8f6638';g.beginPath();g.ellipse(p.x,p.y,6,2,0,0,7);g.stroke();}
+const benchXY=i=>({x:320+(i<9?i-4:i===9?-5:5)*BENCH_DX,y:BENCH_Y});
 const cube=(c,r)=>{const x=c-(r-(r&1))/2;return[x,-x-r,r];};
 const hdist=(a,b)=>{const p=cube(a.c,a.r),q=cube(b.c,b.r);return Math.max(Math.abs(p[0]-q[0]),Math.abs(p[1]-q[1]),Math.abs(p[2]-q[2]));};
 function nbrs(c,r){const d=(r&1)?[[1,0],[-1,0],[1,-1],[0,-1],[1,1],[0,1]]:[[1,0],[-1,0],[0,-1],[-1,-1],[0,1],[-1,1]];
@@ -250,8 +253,7 @@ function renderForest(bg){
     const s=rnd(3,6);px(x-s,y-s+2,s*2,s,'#8a9196');px(x-s+1,y-s+1,s*2-2,1,'#b5bcbf');px(x-s+1,y+1,s*2-2,1,'#5d6468');}
   for(let r=0;r<ROWS;r++)for(let col=0;col<COLS;col++){const p=hexXY(col,r);hexPath(g,p.x,p.y,R-1.2,SQ);g.fillStyle=r>=4?'rgba(255,255,230,.16)':'rgba(255,255,255,.08)';g.fill();
     g.lineWidth=1;g.strokeStyle='rgba(34,66,24,.45)';g.stroke();hexPath(g,p.x,p.y-1,R-3,SQ);g.strokeStyle='rgba(255,255,255,.10)';g.stroke();}
-  for(let i=0;i<BENCH_N;i++){const p=benchXY(i);g.fillStyle='#00000035';g.beginPath();g.ellipse(p.x,p.y+3,12,4.5,0,0,7);g.fill();
-    g.fillStyle='#7a5532';g.beginPath();g.ellipse(p.x,p.y+1,11,4.5,0,0,7);g.fill();g.fillStyle='#b98a55';g.beginPath();g.ellipse(p.x,p.y,10,3.6,0,0,7);g.fill();g.strokeStyle='#8f6638';g.beginPath();g.ellipse(p.x,p.y,6,2,0,0,7);g.stroke();}
+  for(let i=0;i<9;i++)drawStump(g,benchXY(i));
   const trees=[];
   for(let i=0;i<16000&&trees.length<900;i++){const x=rnd(-MX-10,W+MX+10),y=rnd(-MY-10,H+MY+20);const d=Math.hypot((x-CX)/RX,(y-CY)/RY);if(d<1.04)continue;
     const s=rnd(13,23)+(d>1.3?3:0);if(trees.some(t=>Math.hypot(t.x-x,(t.y-y)*1.4)<(t.s+s)*.62))continue;trees.push({x,y,s});}
@@ -316,16 +318,16 @@ function samplePool(keep=[]){if(MODE.gen)return;MODE.byCost=MODE.byCostAll.map((
     if(!rs.some(r=>inPool.has(r)))continue;const top=(SETS[k].bp0||SETS[k].bp).slice(-1)[0];let have=rs.filter(r=>inPool.has(r)).length;
     for(const r of shuffle(rs))if(have<top&&!inPool.has(r)){MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}}
 function newRun(strat,keep=[]){
-  samplePool(keep);
+  samplePool(keep);BENCH_N=9;
   run={strat:{id:'none',name:'',type:null,pts:[]},hp:100,maxHp:100,gold:5,level:2,xp:0,floor:1,streak:0,augs:[],augsAt:[],
     act:0,bossHist:[],board:{},bench:Array(BENCH_N).fill(null),shop:[],results:[],wins:0,boss:null,featured:[],
     bag:[],relics:[],freeRerolls:0,lastIncome:null,stats:{dmg:{}}};
   run.unspr=MODE.unspr?1:0;run.boss=pickBoss();planAct();
   if(strat)applyStrat(strat);
 }
-// lock in the team strategy (once, at the start of the run)
+// lock in the investment environment (once, at the start of the run)
 function applyStrat(s,feat){
-  run.strat=s;const hp0=s.id==='tidal'?125:s.id==='wager'?75:100;run.hp=run.maxHp=hp0;
+  run.strat=s;BENCH_N=benchSize();while(run.bench.length<BENCH_N)run.bench.push(null);const hp0=s.id==='tidal'?125:s.id==='wager'?75:100;run.hp=run.maxHp=hp0;
   run.featured=feat||(s.general?[]:featured(s));
   if(s.id==='armory')for(let i=0;i<2;i++)run.bag.push({k:pick(CORDER),mut:[]});
   if(s.gain)s.gain.call(s);
@@ -450,7 +452,7 @@ function streakGold(){const s=Math.abs(run.streak);let g=s>=5?3:s>=4?2:s>=2?1:0;
 function stratGold(prev){const s=run.strat.id,f=effFloor(run.floor)-(prev?1:0);return s==='wager'?2:s==='glacial'&&run.boughtF!==f?3:0;}
 // with 10-floor acts each floor pays more than it used to (₽5 → ₽9 base, 2 → 4 XP), so an act still adds up to about the same
 const BASE_INC=11,FLOOR_XP=4;
-// perk: team strategies and augments that pay (or take) money at each floor; prev = this is the real payout
+// perk: environments and augments that pay (or take) money at each floor; prev = this is the real payout
 function incomePreview(prev){return{base:BASE_INC,interest:interestOf(),streak:streakGold(),extra:augIs('payday')?3:0,strat:stratGold(prev),perk:perkNum('inc',!!prev)};}
 // Dragon Tamer: ₽4 and ₽5 Pokémon roll at the next level's odds
 function shopOdds(first){const o=LVODDS[run.level];if(run.strat.id!=='tamer'||first||run.level>=MAXLV)return o;
@@ -479,19 +481,20 @@ function rollShop(first){
     run.shop.push(r||pick(shopPool(cost)));}
   if(first&&run.featured[0])run.shop[0]=run.featured[0];
   if(sc.focus.length)run.pity=hit?0:(run.pity||0)+1;
+  if(!first||!run.featured[0])perkRun('shop');
   if(!SIM.on)preload(run.shop,2000);
 }
 // a locked shop keeps its offers through the next floors until you unlock it (TFT-style)
 function autoShop(first){if(!first&&run.shopLock&&run.shop&&run.shop.some(Boolean))return;rollShop(first);}
 function toggleLock(){if(!run)return;run.shopLock=!run.shopLock;if(!SIM.on)sfx('lock');if(!SIM.on)toast(run.shopLock?'Shop locked: it keeps these Pokémon next floor.':'Shop unlocked.');renderUI();}
-function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{const c=rerollCost();if(run.gold<c)return false;run.gold-=c;perkRun('spent',c,'reroll');}rollShop(false);perkRun('reroll');if(!SIM.on)sfx('reroll');renderUI();return true;}
+function reroll(){if(mode!=='plan')return false;if(run.freeRerolls>0)run.freeRerolls--;else{const c=rerollCost();if(run.gold<c)return false;run.gold-=c;perkRun('spent',c,'reroll');}rollShop(false);perkRun('reroll');achAdd('rolls');if(run.achR)run.achR.actRolls++;if(!SIM.on)sfx('reroll');renderUI();return true;}
 function buy(i){
   const root=run.shop[i];if(!root||mode!=='plan')return false;const L=MODE.lines[root],price=priceOf(root);
   if(run.gold<price){if(!SIM.on)sfx('error',200);toast(`Not enough Pokédollars for ${D[root].n}.`);return false;}
   const copies=allOwned().filter(u=>u.dex===root&&u.star===1).length;
   const slot=run.bench.indexOf(null);
-  if(slot<0&&copies<2){toast('Your bench is full. Release a Pokémon first.');return false;}
-  run.buys=(run.buys||0)+1;run.boughtF=effFloor(run.floor);const free=(run.strat.id==='collector'&&run.buys%4===0)||perkAny('free',root);
+  if(slot<0&&copies<copiesNeeded({root,dex:root,star:1})-1){toast('Your bench is full. Release a Pokémon first.');return false;}
+  run.buys=(run.buys||0)+1;achAdd('buys');run.boughtF=effFloor(run.floor);const free=(run.strat.id==='collector'&&run.buys%4===0)||perkAny('free',root);
   if(free&&!SIM.on)toast(`${D[root].n} is free!`);
   const paid=free?0:price;run.gold-=paid;if(paid)perkRun('spent',paid,'buy');run.shop[i]=null;const u=mkUnit(root);if(!SIM.on){ensure(root);sfx('buy');}perkRun('buy',u);
   if(slot>=0)run.bench[slot]=u;else run.bench.push(u); // full bench: it waits in an overflow slot and combines straight away
@@ -499,7 +502,7 @@ function buy(i){
 }
 // put anything left in the overflow slot back into a free slot (sold if there's truly no room)
 function benchFix(){while(run.bench.length>BENCH_N){const x=run.bench.pop();if(!x)continue;const j=run.bench.indexOf(null);if(j>=0)run.bench[j]=x;else{run.gold+=sellValue(x);for(const it of x.items)run.bag.push(it);}}}
-function addCopy(root){const slot=run.bench.indexOf(null);if(slot<0&&allOwned().filter(u=>u.dex===root&&u.star===1).length<2)return false;const u=mkUnit(root);if(slot>=0)run.bench[slot]=u;else run.bench.push(u);if(!SIM.on)ensure(root);combine();benchFix();return true;}
+function addCopy(root){const slot=run.bench.indexOf(null);if(slot<0&&allOwned().filter(u=>u.dex===root&&u.star===1).length<copiesNeeded({root,dex:root,star:1})-1)return false;const u=mkUnit(root);if(slot>=0)run.bench[slot]=u;else run.bench.push(u);if(!SIM.on)ensure(root);combine();benchFix();return true;}
 function locate(u){for(const[k,v]of Object.entries(run.board))if(v===u){const[c,r]=k.split(',').map(Number);return{kind:'board',c,r,...hexXY(c,r)};}
   const i=run.bench.indexOf(u);if(i>=0)return{kind:'bench',i,...benchXY(i)};return null;}
 function removeUnit(u){for(const k in run.board)if(run.board[k]===u)delete run.board[k];const i=run.bench.indexOf(u);if(i>=0)run.bench[i]=null;}
@@ -507,10 +510,10 @@ function combine(){
   let changed=true;
   while(changed){changed=false;const groups={};
     for(const u of allOwned()){if(u.star>=3)continue;const k=u.dex+':'+u.star;(groups[k]=groups[k]||[]).push(u);}
-    for(const k in groups){const list=groups[k];if(list.length<3)continue;
+    for(const k in groups){const list=groups[k],need=copiesNeeded(list[0]);if(list.length<need)continue;
       const ordered=list.sort((a,b)=>(locate(a).kind==='board'?0:1)-(locate(b).kind==='board'?0:1)||b.items.length-a.items.length);
       const keep=ordered[0];
-      for(const o of[ordered[1],ordered[2]]){removeUnit(o);if(o.fuse){if(!keep.fuse)keep.fuse=o.fuse;else returnPartner(o.fuse.p);}if(o.forme&&!keep.forme)keep.forme=o.forme;for(const g of['stone','crystal','shard','formItem'])if(o[g]){if(!keep[g])keep[g]=o[g];else run.bag.push({k:g==='formItem'?'form:'+o[g]:`g:${{stone:'stone',crystal:'z',shard:'shard'}[g]}:${o[g]}`,mut:[]});}if(o.formeAsked)keep.formeAsked=1;
+      for(const o of ordered.slice(1,need)){removeUnit(o);if(o.fuse){if(!keep.fuse)keep.fuse=o.fuse;else returnPartner(o.fuse.p);}if(o.forme&&!keep.forme)keep.forme=o.forme;for(const g of['stone','crystal','shard','formItem'])if(o[g]){if(!keep[g])keep[g]=o[g];else run.bag.push({k:g==='formItem'?'form:'+o[g]:`g:${{stone:'stone',crystal:'z',shard:'shard'}[g]}:${o[g]}`,mut:[]});}if(o.formeAsked)keep.formeAsked=1;
         for(const it of o.items)if(keep.items.length<3)equipRaw(it,keep);else run.bag.push(it);
         for(const s in o.g)keep.g[s]=(keep.g[s]||0)+o.g[s];keep.gs+=o.gs;if(o.mut&&!keep.mut)keep.mut=o.mut;keep.mgs=Math.max(keep.mgs||0,o.mgs||0);}
       keep.star++;perkRun('combine',keep);if(run.strat.id==='swarm'){const g=keep.star===2?1:keep.star===3?4:0;run.gold+=g;if(g&&!SIM.on)toast(`Swarm Tactics: +₽${g}`);}
@@ -521,11 +524,11 @@ function combine(){
 function evolveStep(u){
   const before=nameOf(u),ks=MODE.kids(u.dex);if(ks.length&&!SIM.on)sfx('evolve',500);
   if(ks.length===1){u.dex=ks[0];if(!SIM.on){ensure(u.dex);toast(`${before} evolved into ${nameOf(u)}!`);}}
-  else if(ks.length>1){if(SIM.on){u.dex=pick(ks);return;}evoQueue.push({u,ks,before});ks.forEach(ensure);if(!evoOpen)showEvoChoice();}
+  else if(ks.length>1){if(SIM.on){u.dex=pick(ks);return;}achUnlock('branch');evoQueue.push({u,ks,before});ks.forEach(ensure);if(!evoOpen)showEvoChoice();}
   else if(!SIM.on)toast(`${before} is now ${u.star}★!`);
 }
 function sellValue(u){return lineOf(u).cost*Math.pow(3,u.star-1)-(u.star>1?1:0);}
-function sell(u){if(!SIM.on)sfx('sell');run.gold+=Math.max(0,sellValue(u)+perkNum('sell',u));perkRun('sold',u);if(u.fuse){returnPartner(u.fuse.p);u.fuse=null;}removeUnit(u);for(const it of u.items)run.bag.push(it);
+function sell(u){if(!SIM.on)sfx('sell');if(u.star>=3)achUnlock('sell3');run.gold+=Math.max(0,sellValue(u)+perkNum('sell',u));perkRun('sold',u);if(u.fuse){returnPartner(u.fuse.p);u.fuse=null;}removeUnit(u);for(const it of u.items)run.bag.push(it);
   // held gimmick and form items go back to the bag too
   if(u.stone)run.bag.push({k:'g:stone:'+u.stone,mut:[]});if(u.crystal)run.bag.push({k:'g:z:'+u.crystal,mut:[]});if(u.shard)run.bag.push({k:'g:shard:'+u.shard,mut:[]});if(u.formItem)run.bag.push({k:'form:'+u.formItem,mut:[]});if(u.items.length&&!SIM.on)toast(`${nameOf(u)}'s items went back to your bag.`);renderUI();}
 
@@ -615,7 +618,7 @@ async function setupCombatFloor(fromEvent){
   showGameUI(true);renderUI();
   if(augDue())showAugment();
   else if(gimDue())showGimmickChoice();
-  else{banner(`Floor ${f}`,trainerName(f),1400);if(run.lastIncome&&f>1&&!fromEvent){const i=run.lastIncome;toast(`+₽${i.total} income: ₽${i.base} base${i.interest?` + ₽${i.interest} interest`:''}${i.streak?` + ₽${i.streak} streak`:''}${i.extra?` + ₽${i.extra} Pay Day`:''}${i.strat?` + ₽${i.strat} ${run.strat.name}`:''}${i.perk?` ${i.perk>0?'+':'−'} ₽${Math.abs(i.perk)} strategy and augments`:''}`);}}
+  else{banner(`Floor ${f}`,trainerName(f),1400);if(run.lastIncome&&f>1&&!fromEvent){const i=run.lastIncome;toast(`+₽${i.total} income: ₽${i.base} base${i.interest?` + ₽${i.interest} interest`:''}${i.streak?` + ₽${i.streak} streak`:''}${i.extra?` + ₽${i.extra} Pay Day`:''}${i.strat?` + ₽${i.strat} ${run.strat.name}`:''}${i.perk?` ${i.perk>0?'+':'−'} ₽${Math.abs(i.perk)} environment and augments`:''}`);}}
 }
 function autoFill(){
   const cap=teamCap();
@@ -1030,6 +1033,7 @@ function endCombat(win){
   else{run.streak=Math.min(-1,run.streak-1);const surv=alive(1).reduce((s,u)=>s+u.u.star,0);let dmg=3+Math.round(surv*1.5)+Math.floor(oldF(f)/3)+actOf()*2+(kind==='boss'?8:0)+(kind==='elite'?3:0);if(run.strat.id==='ember')dmg+=2;dmg=Math.max(1,Math.round((dmg+RR.dmgAdd+perkNum('hpLoss'))*RR.dmgMul));if(perkAny('shield'))dmg=0;
     run.hp=Math.max(0,run.hp-dmg);run.results[f]='loss';run.lastRes='loss';if(!SIM.on)sfx('lose');msg=`Trainer takes ${dmg} damage`;}
   run.gold+=gold;if(augMsgs.length)msg+=' · '+augMsgs.join(' · ');
+  achBattle(win,kind);
   if(SIM.on){afterResult(win);return;}
   banner(win?'Victory!':'Defeat',RR.label?RR.label+' · '+msg:msg,1600);
   if(grew.length)setTimeout(()=>toast(`Grew stronger: ${grew.join(', ')}`),900);
@@ -1158,6 +1162,7 @@ function draw(t){
   const list=[];
   if(mode==='title'||mode==='modes'||mode==='strategy'||mode==='dex')for(const w of wander)list.push({dex:w.dex,anim:w.anim,t:w.t,dir:w.dir,x:w.x,y:w.y,shadow:1});
   if(run&&['plan','augment','combat','result','loot','route','event','kshop','reward','carousel'].includes(mode)){
+    for(let i=9;i<BENCH_N;i++)drawStump(ctx,benchXY(i));
     if(drag||itemDrag){for(let r=4;r<ROWS;r++)for(let c=0;c<COLS;c++){const p=hexXY(c,r);hexPath(ctx,p.x,p.y,R-2,SQ);const ov=drag&&drag.over;const hov=ov&&ov.kind==='board'&&ov.c===c&&ov.r===r;ctx.fillStyle=hov?'rgba(255,230,120,.45)':'rgba(255,255,255,.12)';ctx.fill();}
       if(drag&&drag.over&&drag.over.kind==='board')drawRange(drag.u,drag.over,t);
       if(drag&&drag.over&&drag.over.kind==='bench'){const p=benchXY(drag.over.i);ctx.fillStyle='rgba(255,230,120,.5)';ctx.beginPath();ctx.ellipse(p.x,p.y,12,5,0,0,7);ctx.fill();}}
@@ -1432,7 +1437,7 @@ function hideTip(){$('tip').style.display='none';}
 let toastT=0;function toast(m){if(SIM.on)return;const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2600);}
 function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="banner win">${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</div>`;setTimeout(()=>{if(h.firstChild&&h.firstChild.textContent.startsWith(title))h.innerHTML='';},ms);}
 function showGameUI(on){['hud','traits','shop','bag','meter'].forEach(id=>$(id).hidden=!on);if(!on)closePause();}
-function renderUI(){
+function renderUI(){achState();
   if(run&&mode==='plan')grantGear();
   dexLearnOwned();
   if(!run||SIM.on)return;saveRun();const f=run.floor;
@@ -1456,14 +1461,14 @@ function renderUI(){
   $('traits').innerHTML=keys.length?shown.map(tr1).join('')+(keys.length>MAXT?`<div class="more" data-more="1">+${keys.length-MAXT} more sets</div>`:'')
     :`<div class="hint">Place Pokémon on the field to activate sets: types, classes and traits.</div>`;
   const s=run.strat,inc=incomePreview();
-  let st0='';try{st0=s.show?s.show():'';}catch(e){}let mh=`<div class="mod mini" title="${esc(s.pts.join(' '))}"><div class="k">Team strategy</div><div class="v">${esc(s.name)}${st0?` <span class="sc">· ${esc(st0)}</span>`:''}</div></div>`;
+  let st0='';try{st0=s.show?s.show():'';}catch(e){}let mh=`<div class="mod mini" title="${esc(s.pts.join(' '))}"><div class="k">Investment environment</div><div class="v">${esc(s.name)}${st0?` <span class="sc">· ${esc(st0)}</span>`:''}</div></div>`;
   for(const x of run.augs||[]){const a=AUGMAP[x.id];if(a)mh+=`<div class="mod mini ${x.tier}" title="${esc(a.d)}"><div class="k">${x.tier} augment</div><div class="v">${esc(a.name)}</div></div>`;}
   for(const x of run.invs||[]){const a=INVMAP[x.id];if(!a)continue;let st='';try{st=a.show?a.show():'';}catch(e){}mh+=`<div class="mod mini" title="${esc(a.d)}"><div class="k">Bonus from an older save</div><div class="v">${esc(a.name)}${st?` <span class="sc">· ${esc(st)}</span>`:''}</div></div>`;}
   for(const g of gimList()){const GM=GIMMICKS[g],mega=g==='mega',el=allOwned().filter(u=>gimEligible(u,g)&&(mega||!(gimOn('mega')&&!u.megaOff&&gimEligible(u,'mega'))));
     const tgt=mega?null:allOwned().find(u=>u.uid===gimT(g)&&gimEligible(u,g));const onField=tgt&&Object.values(run.board).includes(tgt);
     mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${(mega?!u.megaOff:u===tgt)?' on':''}" data-cap="${u.uid}" data-capg="${g}" aria-label="${mega?`Toggle Mega Evolution for ${esc(nameOf(u))}`:`Use ${esc(GM.n)} with ${esc(nameOf(u))}`}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${mega?'Every Pokémon holding its Mega Stone Mega Evolves. Click one (or right-click it on the board) to switch it on or off.':tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Feed a Pokémon Max Mushrooms, then pick it here.',tera:'Give a Tera Shard to a Pokémon.'}[g]}</p>`}</div>`;}
   if(run.relics.length)mh+=`<div class="mod"><div class="k">Relics</div><div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" data-relic="${r}">`).join('')}</div></div>`;
-  mh+=`<div class="mod mini"><div class="k">Next floor income</div><div class="v inc">₽${Math.max(0,inc.base+inc.interest+inc.streak+inc.extra+inc.strat+inc.perk)}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}${inc.strat?` · ₽${inc.strat} ${run.strat.name}`:''}${inc.perk?` · ${inc.perk>0?'':'−'}₽${Math.abs(inc.perk)} strategy and augments`:''}</p></div>`;
+  mh+=`<div class="mod mini"><div class="k">Next floor income</div><div class="v inc">₽${Math.max(0,inc.base+inc.interest+inc.streak+inc.extra+inc.strat+inc.perk)}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}${inc.strat?` · ₽${inc.strat} ${run.strat.name}`:''}${inc.perk?` · ${inc.perk>0?'':'−'}₽${Math.abs(inc.perk)} environment and augments`:''}</p></div>`;
   {const sc=scoutState();
     if(sc.focus.length)mh+=`<div class="mod scout"><div class="k">Scouting</div><div class="v">${sc.focus.join(' · ')}</div><p>Each shop slot has a ${pct(sc.p)} chance to show these sets. Rises after shops that miss.</p></div>`;
     else if(sc.top)mh+=`<div class="mod"><div class="k">Scouting</div><div class="v">${sc.top.k}: ${Math.min(sc.top.lines,SCOUT.minLines)}/${SCOUT.minLines} lines · ₽${Math.min(sc.top.gold,SCOUT.minGold)}/${SCOUT.minGold}</div><p>${run.floor<SCOUT.minFloor?`Unlocks on floor ${SCOUT.minFloor}. `:''}Invest in a set and the shop starts favoring it.</p></div>`;}
@@ -1539,7 +1544,7 @@ function clearSave(){try{localStorage.removeItem(SAVEKEY);}catch(e){}}
 async function continueRun(){
   const d=readSave();if(!d)return showTitle();
   MODE=buildMode(d.mode,d.run.unspr!==undefined?d.run.unspr:1);if(d.pool)MODE.byCost=d.pool;
-  run=d.run;run.strat=teamStrat(run.strat)||STRATS[0];migratePerks(run);
+  run=d.run;run.strat=teamStrat(run.strat)||STRATS[0];migratePerks(run);BENCH_N=benchSize();while(run.bench.length<BENCH_N)run.bench.push(null);
   if(!run.augs){run.augs=run.aug?[{id:run.aug,tier:run.augTier||'gold'}]:[];run.augsAt=run.aug?[2]:[];}delete run.aug;migrateFormItems();
   enemyPreview=d.enemy||[];uidc=d.uidc||1000;ov.innerHTML='';
   await preload([...enemyPreview.map(e=>e.u.dex),...allOwned().map(u=>shownDex(u)),run.boss.dex,...run.shop.filter(Boolean)]);
@@ -1574,6 +1579,7 @@ function showTitle(){music('menu');
       ${d?'<button class="mi" id="m-continue">Continue</button>':''}
       <button class="mi" id="m-new">New game</button>
       <button class="mi" id="m-dex">Kit Dex</button>
+      <button class="mi" id="m-ach">Achievements</button>
       <button class="mi" id="m-options">Options</button>
       <button class="mi" id="m-credits">Credits</button>
     </nav>${sum}</div>
@@ -1581,7 +1587,7 @@ function showTitle(){music('menu');
     <div class="credit">Sprites and portraits: <a href="https://sprites.pmdcollab.org/" target="_blank" rel="noopener">PMD SpriteCollab</a> contributors. Pokédex data and item sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>. Font: Pokémon Emerald glyphs via <a href="https://github.com/pret/pokeemerald" target="_blank" rel="noopener">pret/pokeemerald</a>. Fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company.</div>`;
   if(d)$('m-continue').onclick=continueRun;
   $('m-new').onclick=()=>{if(readSave())return confirmNew();showModes();};
-  $('m-options').onclick=showOptions;$('m-dex').onclick=()=>showKitDex('title');$('m-credits').onclick=showCredits;
+  $('m-options').onclick=showOptions;$('m-ach').onclick=()=>showAchievements();$('m-dex').onclick=()=>showKitDex('title');$('m-credits').onclick=showCredits;
   (d?$('m-continue'):$('m-new')).focus();
 }
 function confirmNew(){
@@ -1625,7 +1631,7 @@ function itemCard(it,i,cls=''){const t=isRelicId(it)?'relic':itemTier(it);
   const tl=t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(GIMMICKS[gimOfItem(it)]||{n:'Gimmick'}).n:t==='formi'?'Form item':'Relic';
   return`<button class="pick win item p-${t==='common'?'common':t} ${cls}" data-i="${i}"><div class="icon"><img src="${iconOf(id)}" alt=""></div><span class="tier ${t==='common'?'common':t}">${tl}</span><h2 style="font-size:20px">${esc(name)}</h2><div class="desc">${body}</div></button>`;}
 const isRelicId=x=>typeof x==='string'&&RELICS[x];
-function openChest(){if(!SIM.on){sfx('chest',300);setTimeout(()=>sfx('treasure',600),250);}
+function openChest(){achAdd('chests');if(!SIM.on){sfx('chest',300);setTimeout(()=>sfx('treasure',600),250);}
   if(mode!=='loot'||!run.loot||(chest&&chest.open))return;
   if(run.strat.id==='charm'){run.gold+=3;if(!SIM.on)toast('Lucky Charm: +₽3');}
   perkRun('chest');
@@ -1663,6 +1669,7 @@ function showGimmickChoice(){
 /* ---------- act transitions and Endless mode ---------- */
 function guardianDone(win){
   if(!win)return SIM.on?(mode='over'):showEnd(false);
+  achAct(actOf());
   const a=actOf();
   if(a<ACTS.length-1||run.endless){if(SIM.on){const rc=shuffle(Object.keys(RELICS).filter(r=>!run.relics.includes(r)))[0];if(rc)run.relics.push(rc);return startNextAct();}return showActClear();}
   return SIM.on?(mode='over'):showEnd(true);
@@ -1702,7 +1709,7 @@ function showEvoChoice(){
   ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{hideTip();job.u.dex=+b.dataset.k;ensure(job.u.dex);ov.innerHTML='';evoOpen=false;
     toast(`${job.before} evolved into ${D[job.u.dex].n}!`);combine();renderUI();if(evoQueue.length)showEvoChoice();});
 }
-function showEnd(won){music(won?'theme':'menu');
+function showEnd(won){music(won?'theme':'menu');achCheck('end',{won});
   mode='over';showGameUI(false);setBest(MODE.id,run.wins);chest=null;clearSave();
   const team=Object.values(run.board).concat(run.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,7);
   const where=MODE.gen?MODE.region:'National Dex';
@@ -1710,7 +1717,7 @@ function showEnd(won){music(won?'theme':'menu');
     <h1 class="h1">${won?`${where}: Champion!`:'Your run has ended'}</h1>
     <p class="sub">${won?`${esc(D[run.boss.dex].n)} steps aside. All three acts are cleared. Keep going in Endless mode, where every new act hits harder than the last.`:`Your team fell on Floor ${run.floor} of the ${esc(actDef().name)} (${actLabel()}${run.endless?`, ${actOf()-ACTS.length+1} endless act${actOf()-ACTS.length?'s':''} deep`:''}).`}</p>
     <div class="win" style="padding:14px 20px;display:flex;flex-direction:column;gap:12px;align-items:center">
-      <div class="endstat"><div><span class="lbl">Floors won</span><b>${run.wins}</b></div><div><span class="lbl">Trainer level</span><b>${run.level}</b></div><div><span class="lbl">Team strategy</span><b style="font-size:20px">${run.strat.name}</b></div>${(run.augs||[]).length?`<div><span class="lbl">Augments</span><b style="font-size:16px">${run.augs.map(x=>esc((AUGMAP[x.id]||{}).name||x.id)).join(', ')}</b></div>`:''}</div>
+      <div class="endstat"><div><span class="lbl">Floors won</span><b>${run.wins}</b></div><div><span class="lbl">Trainer level</span><b>${run.level}</b></div><div><span class="lbl">Environment</span><b style="font-size:20px">${run.strat.name}</b></div>${(run.augs||[]).length?`<div><span class="lbl">Augments</span><b style="font-size:16px">${run.augs.map(x=>esc((AUGMAP[x.id]||{}).name||x.id)).join(', ')}</b></div>`:''}</div>
       <div style="display:flex;gap:6px">${team.map(u=>`<img src="${por(u.dex)}" alt="${esc(nameOf(u))}" title="${esc(nameOf(u))} ${'★'.repeat(u.star)}" style="width:56px;height:56px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px">`).join('')}</div>
       ${run.relics.length?`<div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" title="${esc(RELICS[r].n)}">`).join('')}</div>`:''}
     </div>

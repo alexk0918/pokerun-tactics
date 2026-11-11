@@ -137,7 +137,7 @@ function afterFloor(){
     showRoute();return'route';}
   ov.innerHTML='';return nextFloor();
 }
-function chooseRoute(i){const o=run.route&&run.route[i];if(!o)return;run.nodes[run.floor+1]=o;perkRun('node',o.k);run.route=null;ov.innerHTML='';return nextFloor();}
+function chooseRoute(i){const o=run.route&&run.route[i];if(!o)return;run.nodes[run.floor+1]=o;perkRun('node',o.k);achAdd(o.k);run.route=null;ov.innerHTML='';return nextFloor();}
 // non-combat floors
 function startNode(){
   const f=run.floor,k=nodeK(f);enemyPreview=[];run.results[f]=run.results[f]||null;

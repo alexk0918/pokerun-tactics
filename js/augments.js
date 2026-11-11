@@ -5,7 +5,7 @@
    All three choices share a tier (silver, gold or prismatic); each card can be rerolled once, and one card is
    often a set augment (Heart / Crest / Crown) for a set you already play. Augments last the rest of the run. */
 
-const AUG_FLOORS=a=>a<3?[2,7]:[2];
+const AUG_FLOORS=a=>{const f=a<3?[2,7]:[2];return run&&run.strat&&run.strat.id==='augfund'?[2,5,...f.slice(1)]:f;};
 const AUGTAG={combat:'Combat',econ:'Economy',status:'Status',items:'Items',team:'Team',set:'Set',weather:'Weather'};
 const WEATHER_TXT={sun:'harsh sunlight (Fire moves +20%, Water moves −15%)',rain:'rain (Water moves +20%, Fire moves −15%)',
   sand:'a sandstorm (everything but Rock, Ground and Steel loses 1% max HP per second)',snow:'snow (your Ice Pokémon get +20 Def and Sp. Def, enemies lose 10% Attack Speed, everything but Ice loses 1% max HP per second)'};
@@ -163,7 +163,7 @@ const AUGS={silver:AUGDEF.filter(a=>a.t==='silver'&&!a.set),gold:AUGDEF.filter(a
 
 /* ---------- state ---------- */
 const myAugs=()=>((run&&run.augs)||[]).map(x=>AUGMAP[x.id]).filter(Boolean);
-// augments and general team strategies share hooks (see team.js)
+// augments and investment environments share hooks (see team.js)
 const perks=()=>myAugs().concat(typeof myInvs==='function'?myInvs():[]).concat(run&&run.strat&&run.strat.general?[run.strat]:[]);
 const augS=id=>{run.augSt=run.augSt||{};return run.augSt[id]=run.augSt[id]||{};};
 // how many of your Pokémon stand next to this one
@@ -186,7 +186,8 @@ const rerollCost=()=>Math.max(0,(augIs('goldtix')?1:2)+perkNum('rr'));
 const xpBuyAmount=()=>4+perkNum('xpp');
 
 /* ---------- choosing ---------- */
-function rollAugTier(){const n=(run.augs||[]).length,x=Math.random();
+function rollAugTier(){const t=rollAugTier0();return t==='silver'&&run.strat&&run.strat.id==='goldenage'?'gold':t;}
+function rollAugTier0(){const n=(run.augs||[]).length,x=Math.random();
   if(actOf()>=ACTS.length)return x<.4?'gold':'prismatic';
   if(n===0)return x<.3?'silver':x<.8?'gold':'prismatic';
   return x<.15?'silver':x<.65?'gold':'prismatic';}

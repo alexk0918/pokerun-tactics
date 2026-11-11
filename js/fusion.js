@@ -21,7 +21,7 @@ function fusionOptions(u){
 function returnPartner(p){if(!p)return;const slot=run.bench.indexOf(null);
   if(slot>=0){run.bench[slot]=p;if(!SIM.on)toast(`${nameOf(p)} returned to your bench.`);}
   else{run.gold+=sellValue(p);for(const it of p.items||[])run.bag.push(it);if(!SIM.on)toast(`No bench space, so ${nameOf(p)} was released for ₽${sellValue(p)}.`);}}
-function fuse(u,o){
+function fuse(u,o){achUnlock('fusion');
   if(!o.partner||mode!=='plan')return;removeUnit(o.partner);u.fuse={fid:o.fid,p:o.partner};
   if(SIM.on)return;ensure(o.fid);fusionScene(u.dex,o.partner.dex,o.fid,`${FUSE_ITEM[baseOf(u.dex)]||'Fusion'}`);renderUI();
 }
