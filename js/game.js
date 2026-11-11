@@ -1567,7 +1567,7 @@ function bestOf(id){try{return localStorage.getItem('pokerun.best.'+id);}catch(e
 function setBest(id,v){try{const b=+(localStorage.getItem('pokerun.best.'+id)||0);if(v>b)localStorage.setItem('pokerun.best.'+id,v);}catch(e){}}
 function setWander(dexes){wander=dexes.map((d,i)=>({dex:d,x:200+(i%5)*60+rnd(-10,10),y:110+Math.floor(i/5)*70+rnd(-10,10),dir:0,anim:'Idle',t:rnd(0,2),wait:rnd(0,2)}));preload(dexes);}
 function showTitle(){music('menu');
-  mode='title';showGameUI(false);run=null;MODE=null;chest=null;setScenery('forest');speed=OPTS.speed;$('speed').setAttribute('aria-pressed',speed===2);
+  mode='title';showGameUI(false);run=null;MODE=null;BENCH_N=9;chest=null;setScenery('forest');speed=OPTS.speed;$('speed').setAttribute('aria-pressed',speed===2);
   if(!wander.length||wander.length<14)setWander(shuffle(ROOTS.filter(r=>SM[r])).slice(0,16));
   const d=readSave();
   const sum=d?(()=>{const r=d.run,team=Object.values(r.board).concat(r.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,6);
