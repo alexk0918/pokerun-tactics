@@ -74,7 +74,7 @@ function musicForRun(){if(!run)return'menu';const a=actOf();
 
 /* ---------- sound effects: PMD samples in assets/sfx, decoded once and played from memory ---------- */
 const SFX_FILES=['Normal','Normal2','Fire','Fire2','Water','Water2','Grass','Grass2','Electric','Electric2','Ice','Ice2','Fighting','Fighting2','Poison','Poison2','Ground','Ground2','Flying','Flying2','Psychic','Psychic2','Bug','Bug2','Rock','Rock2','Ghost','Ghost2','Dragon','Dragon2','Dark','Dark2','Steel','Steel2','Fairy','Fairy2',
-  'hit','crit','miss','faint','buy','sell','reroll','level','star','evolve','win','lose','chest','treasure','pick','lock','coin','error','select'];
+  'hit','crit','miss','faint','buy','sell','reroll','level','star','evolve','win','lose','chest','treasure','pick','lock','coin','error','select','achieve'];
 // how loud each one sits in the mix (hits are frequent, so they're quiet)
 const SFX_VOL={hit:.35,crit:.55,miss:.4,faint:.6,select:.5,lock:.6,coin:.6,buy:.7,sell:.6,reroll:.6};
 const SFXBUF={};

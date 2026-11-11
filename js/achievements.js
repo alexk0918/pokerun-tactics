@@ -55,13 +55,13 @@ const ACHS=[
   {id:'patience',ev:'act',icon:'iron',name:'Patience Pays',d:'Clear an act without rerolling the shop.',t:()=>achR().actRolls===0},
   {id:'untouch',ev:'act',icon:'protective-pads',name:'Untouchable',d:'Win a run without ever dropping below 50 Trainer HP.',t:x=>x.a===2&&achR().minHp>=50},
   {id:'endless',ev:'act',icon:'comet-shard',name:'Into the Unknown',d:'Clear an act of Endless.',t:x=>x.a>=ACTS.length},
-  {id:'indexwin',ev:'act',icon:'leaders-crest',name:'Index Investor',d:'Win a run with an Index Fund.',t:x=>x.a===2&&String(run.strat.id).startsWith('index:')},
-  {id:'envwins',ev:'act',icon:'relic-crown',name:'Market Mover',d:'Win runs with 5 different investment environments.',t:()=>achSetN('envWins')>=5,p:()=>[achSetN('envWins'),5]},
+  {id:'indexwin',ev:'act',icon:'leaders-crest',name:'Guild Member',d:'Win a run with a Guild expedition.',t:x=>x.a===2&&String(run.strat.id).startsWith('index:')},
+  {id:'envwins',ev:'act',icon:'relic-crown',name:'Seasoned Explorer',d:'Win runs with 5 different expeditions.',t:()=>achSetN('envWins')>=5,p:()=>[achSetN('envWins'),5]},
   {id:'firstloss',ev:'end',icon:'escape-rope',name:'Learning Experience',d:'Lose a run. It happens to the best of us.',t:x=>!x.won},
   {id:'runs10',ev:'start',icon:'acro-bike',name:'Regular',d:'Start 10 runs.',t:()=>achN('runs')>=10,p:()=>[achN('runs'),10]},
   {id:'runs50',ev:'start',icon:'mach-bike',name:'Lifer',d:'Start 50 runs.',t:()=>achN('runs')>=50,p:()=>[achN('runs'),50]},
   {id:'worldtour',ev:'start',icon:'air-balloon',name:'World Tour',d:'Start runs in 5 different regions (National Dex counts).',t:()=>achSetN('modes')>=5,p:()=>[achSetN('modes'),5]},
-  {id:'diversified',ev:'start',icon:'amulet-coin',name:'Diversified',d:'Pick 10 different investment environments.',t:()=>achSetN('envs')>=10,p:()=>[achSetN('envs'),10]},
+  {id:'diversified',ev:'start',icon:'amulet-coin',name:'Well Travelled',d:'Pick 10 different expeditions.',t:()=>achSetN('envs')>=10,p:()=>[achSetN('envs'),10]},
   /* your team (checked whenever you're not fighting) */
   {id:'star2',ev:'state',icon:'star-piece',name:'Evolution Begins',d:'Make your first 2★ Pokémon.',t:()=>allOwned().some(u=>u.star>=2)},
   {id:'star3',ev:'state',icon:'rare-candy',name:'Three Stars',d:'Make a 3★ Pokémon.',t:()=>allOwned().some(u=>u.star>=3)},
@@ -103,8 +103,8 @@ const ACHMAP=Object.fromEntries(ACHS.map(a=>[a.id,a]));
 
 /* ---------- earning ---------- */
 let achQueue=[];
-function achUnlock(id){if(!achOn()||ACHV.got[id]||!ACHMAP[id])return;ACHV.got[id]=Date.now();achSave();
-  if(typeof mode!=='undefined'&&mode==='combat')achQueue.push(ACHMAP[id]);else achPop(ACHMAP[id]);}
+function achUnlock(id){if(!achOn()||ACHV.got[id]||!ACHMAP[id])return;ACHV.got[id]=Date.now();achSave();const R=typeof metaAchReward==='function'?metaAchReward(id):null;
+  const a={...ACHMAP[id],rew:R};if(typeof mode!=='undefined'&&mode==='combat')achQueue.push(a);else achPop(a);}
 function achFlush(){const q=achQueue;achQueue=[];q.forEach((a,i)=>setTimeout(()=>achPop(a),300+i*900));}
 function achCheck(ev,x={}){if(!achOn()||!run)return;for(const a of ACHS){if(a.ev!==ev||ACHV.got[a.id]||!a.t)continue;let ok=false;try{ok=a.t(x);}catch(e){}if(ok)achUnlock(a.id);}}
 // called after every UI refresh outside a fight
@@ -122,18 +122,20 @@ function achRunStart(){if(!achOn())return;achAdd('runs');achSetAdd('modes',MODE.
 function achEnv(s){if(!achOn())return;achSetAdd('envs',String(s.id).startsWith('index:')?'index':s.id);run.achR={minHp:run.hp,actMin:run.hp,actRolls:0};achCheck('start');}
 
 /* ---------- the pop-up and the screen ---------- */
-function achPop(a){
+function achPop(a){popCard({icon:a.icon,k:'Achievement unlocked',title:a.name,text:a.d,rew:a.rew&&typeof rewardText==='function'?rewardText(a.rew):''});}
+// the corner pop-up used by achievements, unlocks, shinies and level ups (with PMD's "item obtained" fanfare)
+function popCard({icon,img,k,title,text,rew}){
   let host=$('achhost');if(!host){host=document.createElement('div');host.id='achhost';document.body.appendChild(host);}
   const el=document.createElement('div');el.className='achpop';el.setAttribute('role','status');
-  el.innerHTML=`<img src="${iconOf(a.icon)}" alt=""><div><div class="k">Achievement unlocked</div><b>${esc(a.name)}</b><p>${esc(a.d)}</p></div>`;
-  host.appendChild(el);if(typeof sfx==='function')sfx('treasure',300);
+  el.innerHTML=`<img src="${img||iconOf(icon)}" alt=""><div><div class="k">${esc(k)}</div><b>${esc(title)}</b><p>${esc(text)}</p>${rew?`<p class="rew">Reward: ${esc(rew)}</p>`:''}</div>`;
+  host.appendChild(el);if(typeof sfx==='function')sfx('achieve',300);
   requestAnimationFrame(()=>el.classList.add('in'));
-  setTimeout(()=>{el.classList.remove('in');setTimeout(()=>el.remove(),400);},4200);
+  setTimeout(()=>{el.classList.remove('in');setTimeout(()=>el.remove(),400);},rew?5200:4200);
 }
 function showAchievements(back){
   const n=ACHS.filter(a=>ACHV.got[a.id]).length;
   const row=a=>{const got=ACHV.got[a.id],p=!got&&a.p?a.p():null;
-    return`<div class="achrow${got?' got':''}"><img src="${iconOf(a.icon)}" alt=""><div><b>${esc(a.name)}</b><p>${esc(a.d)}</p>${p?`<div class="achbar"><span style="width:${Math.min(100,100*p[0]/p[1])}%"></span></div><small>${Math.min(p[0],p[1]).toLocaleString()} / ${p[1].toLocaleString()}</small>`:''}${got?`<small>Unlocked ${new Date(got).toLocaleDateString()}</small>`:''}</div></div>`;};
+    return`<div class="achrow${got?' got':''}"><img src="${iconOf(a.icon)}" alt=""><div><b>${esc(a.name)}</b><p>${esc(a.d)}</p>${p?`<div class="achbar"><span style="width:${Math.min(100,100*p[0]/p[1])}%"></span></div><small>${Math.min(p[0],p[1]).toLocaleString()} / ${p[1].toLocaleString()}</small>`:''}${got?`<small>Unlocked ${new Date(got).toLocaleDateString()}</small>`:''}${typeof rewardText==='function'?`<small class="rew">Reward: ${esc(rewardText(achReward(a.id)))}</small>`:''}</div></div>`;};
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Achievements</h1><p class="sub">${n} of ${ACHS.length} unlocked</p>
     <div class="win dialog wide achlist">${ACHS.slice().sort((a,b)=>(ACHV.got[b.id]?1:0)-(ACHV.got[a.id]?1:0)).map(row).join('')}</div>
     <button class="btn" id="back">Back</button></div>`;

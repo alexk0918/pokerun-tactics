@@ -8,7 +8,7 @@ const CAROUSEL_FLOORS=[1,6];
 let carHover=-1;
 const carDue=f=>CAROUSEL_FLOORS.includes(f)&&!(run.carDone||[]).includes(f);
 function genCarousel(f){
-  const n=8,opts=[],used=new Set(),F=dFloor(f),open=effFloor(f)===1;
+  const n=run&&run.asc>=8?6:8,opts=[],used=new Set(),F=dFloor(f),open=effFloor(f)===1;
   const odds=open?LVODDS[2]:LVODDS[run.level];
   for(let i=0;i<n;i++){let root=null;
     for(let k=0;k<12&&!root;k++){const c=open?1:Math.max(F>=11?2:1,rollCostFor(odds));const mx=maxedRoots(),pool=MODE.byCost[c-1].filter(r=>!used.has(r)&&!mx.has(r));if(pool.length)root=pick(pool);}
@@ -41,7 +41,7 @@ function carouselHover(p,e){const i=carAt(p.x,p.y);carHover=i;cv.style.cursor=i>
 function carouselClick(p){const i=carAt(p.x,p.y);if(i<0)return;carTake(i);}
 function carTake(i){const C=run.car;if(!C||C.picked>=0)return;const o=C.opts[i];C.picked=i;C.pickT=C.t;if(o.u.star>=2)achUnlock('luckyspin');
   o.u.items=[];const slot=run.bench.indexOf(null);
-  if(slot>=0){run.bench[slot]=o.u;if(!SIM.on)ensure(o.u.dex);}else{run.gold+=MODE.lines[o.u.root].cost*o.u.star;if(!SIM.on)toast('Your bench is full, so you took its value in Pokédollars.');}
+  if(slot>=0){run.bench[slot]=metaJoin(o.u);if(!SIM.on)ensure(o.u.dex);}else{run.gold+=MODE.lines[o.u.root].cost*o.u.star;if(!SIM.on)toast('Your bench is full, so you took its value in Pokédollars.');}
   for(const it of[o.item,o.item2])if(it&&run.bag.length<BAGMAX)run.bag.push(it);
   run.carDone=[...(run.carDone||[]),C.f];
   if(SIM.on){run.car=null;return;}

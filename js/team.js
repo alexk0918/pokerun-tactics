@@ -1,7 +1,7 @@
 "use strict";
-/* PokéRun Tactics — investment environments and the perk hooks they share with augments.
-   When a run starts you're offered 3 investment environments (one reroll per card) and lock one in for the whole run.
-   The 14 type environments live in data.js; the rule-changing ones are ENVS below. INVDEF keeps the older money
+/* PokéRun Tactics — expeditions and the perk hooks they share with augments.
+   When a run starts you're offered 3 expeditions (one reroll per card) and lock one in for the whole run.
+   The 14 type expeditions live in data.js; the rule-changing ones are ENVS below. INVDEF keeps the older money
    cards so saves from before the change still load. */
 
 const S=id=>{run.invS=run.invS||{};return run.invS[id]=run.invS[id]||{};};
@@ -122,10 +122,10 @@ const GENERAL={thrifty:'Economy',travellight:'Economy',stockpile:'Economy',goldr
   scrap:'Items',pathfinder:'Items'};
 const GEN_STRATS=Object.entries(GENERAL).map(([id,risk])=>{const a=INVMAP[id];return Object.assign(Object.create(a),{type:null,risk,pts:[a.d],general:1});});
 const TEAMSTRATS=STRATS.concat(GEN_STRATS);
-/* ---------- investment environments ----------
-   One is locked in when the run starts (3 offered, one reroll per card). An environment sets the conditions of the
+/* ---------- expeditions (the run's investment environment, in Currency Wars terms) ----------
+   One is locked in when the run starts (3 offered, one reroll per card). An expedition sets the conditions of the
    whole run (what you start with, how the shop or the carousel behaves, how many augments you get, a milestone
-   prize) rather than being a perk like an augment. The 14 type environments (Ember Gambit, Tidal Fortress…) are in
+   prize) rather than being a perk like an augment. The 14 type expeditions (Ember Gambit, Tidal Fortress…) are in
    data.js; the rule-changing ones are below. Inspired by Honkai: Star Rail's Currency Wars investment environments. */
 const ENVS=[
   {id:'sunken',icon:'deep-sea-scale',name:'The Sunken Trove',risk:'Milestone',pts:['The first time you win 5 battles in a row, you gain a random Prismatic augment.'],
@@ -148,10 +148,10 @@ const ENVS=[
   {id:'clone',icon:'up-grade',name:'Cloning Lab',risk:'Rule change',pts:['₽1 and ₽2 Pokémon need only 2 copies to reach 2★ (3★ still needs three 2★).']},
 ];
 for(const e of ENVS){e.env=1;e.type=null;e.general=1;}
-// Index Fund: a random class or style set; its Pokémon show up more and you start with two of them
+// Guild: a random class or style set; its Pokémon show up more and you start with two of them
 function indexFund(k){const S0=SETS[k];if(!S0)return null;
   const ok=r=>lineSets(r).includes(k);
-  return{id:'index:'+k,icon:'leaders-crest',name:`${k} Index Fund`,risk:'Index fund',env:1,general:1,type:null,setKey:k,
+  return{id:'index:'+k,icon:'leaders-crest',name:`${k} Guild`,risk:'Guild',env:1,general:1,type:null,setKey:k,
     pts:[`Start with two ₽1–2 ${k} Pokémon.`,`${k} Pokémon appear more often in the shop.`],
     gain(){const c=shuffle(MODE.byCost[0].concat(MODE.byCost[1]).filter(ok));for(const r of c.slice(0,2))gainUnit(r,1);},
     shop(){run.shop=run.shop.map(r=>{if(!r||ok(r)||Math.random()>.3)return r;const c=MODE.lines[r].cost,p=shopPool(c).filter(ok);return p.length?pick(p):r;});}};}
@@ -160,14 +160,15 @@ const benchSize=()=>run&&run.strat&&run.strat.id==='deepbench'?11:9;
 const copiesNeeded=u=>run&&run.strat&&run.strat.id==='clone'&&u.star===1&&lineOf(u).cost<=2?2:3;
 const teamStrat=id=>typeof id==='string'&&id.startsWith('index:')?indexFund(id.slice(6)):ENVS.find(s=>s.id===id)||TEAMSTRATS.find(s=>s.id===id);
 
-// a type strategy only appears if this mode has at least 3 lines of its type (Gen I has too few Dragons and Ghosts)
+// a type expedition only appears if this mode has at least 3 lines of its type (Gen I has too few Dragons and Ghosts)
 function teamStratPool(){const typeLines=t=>MODE.roots.filter(r=>MODE.lines[r].mem.some(d=>D[d].t.includes(t))).length;
   const ks=indexFundKeys(),idx=ks.length?[indexFund(pick(ks))]:[];
   return STRATS.filter(s=>s.si!=null||typeLines(s.type)>=3).concat(ENVS,idx);}
-// Start run → region → the run begins and offers 3 investment environments (one reroll per card). Once taken it's locked in.
-function beginRun(){
+// Start run → region → the run begins and offers 3 expeditions (one reroll per card). Once taken it's locked in.
+function beginRun(partner){
   const SL=teamStratPool(),feats={};for(const s of SL)if(!s.general)feats[s.id]=featured(s);
-  newRun(null,Object.values(feats).flat());achRunStart();
+  newRun(null,Object.values(feats).flat().concat(partner?[partner]:[]));run.asc=Math.min(META.asc.sel,META.asc.max);achRunStart();
+  if(partner&&MODE.lines[partner]){run.partner=partner;run.bench[0]=metaJoin(mkUnit(partner));}
   const ids=shuffle(SL.map(s=>s.id)).slice(0,3);
   showTeamStrat({SL,feats,ids,rr:[0,0,0]});
 }
@@ -178,10 +179,10 @@ function showTeamStrat(O){
       <span class="augtag t-econ"${s.type?` style="background:${TYPES[s.type]}"`:''}>${s.type?`${s.type} · `:''}${s.risk}</span><h2>${esc(s.name)}</h2>
       <ul class="tspts">${s.pts.map(p=>`<li>${p}</li>`).join('')}</ul>${s.general?'':`<div class="tsfeat"><span class="lbl">First shop</span>${O.feats[id].map(d=>`<img src="${por(d)}" alt="${esc(D[d].n)}" title="${esc(D[d].n)}">`).join('')}</div>`}</button>
       <button class="btn sm augrr" data-rr="${i}" ${O.rr[i]?'disabled':''}>${O.rr[i]?'Rerolled':'Reroll'}</button></div>`;};
-  ov.innerHTML=`<div class="scrim"></div><div class="screen augscreen"><h1 class="h1">Choose an investment environment</h1>
-    <p class="sub">${MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex'}. Your environment sets the conditions for the whole run. Once you take it, it's locked in. Each card can be rerolled once.</p>
+  ov.innerHTML=`<div class="scrim"></div><div class="screen augscreen"><h1 class="h1">Choose an expedition</h1>
+    <p class="sub">${MODE.gen?`${MODE.label} · ${MODE.region}`:'National Dex'}. Your expedition sets the conditions for the whole run. Once you take it, it's locked in. Each card can be rerolled once.</p>
     <div class="augrow">${O.ids.map(card).join('')}</div></div>`;
-  ov.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const s=teamStrat(O.ids[+b.dataset.pick]);ov.innerHTML='';applyStrat(s,O.feats[s.id]);achEnv(s);startFloor();toast(`Investment environment: ${s.name}`);});
+  ov.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const s=teamStrat(O.ids[+b.dataset.pick]);ov.innerHTML='';applyStrat(s,O.feats[s.id]);achEnv(s);startFloor();toast(`Expedition: ${s.name}`);});
   ov.querySelectorAll('[data-rr]').forEach(b=>b.onclick=()=>{const i=+b.dataset.rr;if(O.rr[i])return;const p=O.SL.filter(s=>!O.ids.includes(s.id));if(p.length)O.ids[i]=pick(p).id;O.rr[i]=1;showTeamStrat(O);});
 }
 

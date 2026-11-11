@@ -7,15 +7,15 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 ## Modes
 
 - **Gen I–IX:** each region uses the Pokémon introduced in that generation, plus older relatives that gained new evolutions there (Gen II includes Pichu → Pikachu → Raichu, Gen IV includes Eevee's eight evolutions).
-- **National Dex:** all 1,025 Pokémon across 541 evolution lines, with region bonuses on top of type bonuses.
+- **National Dex:** every generation, with region bonuses on top of type bonuses. It only uses the evolution lines you've **unlocked** (you start with every Gen I–II line plus all the starters) and lets you pick a **roster** from them (see Progression).
 
 ## How a run works
 
-- Press **Start run** and pick a region. The run then begins by offering **3 investment environments** (each card can be rerolled once). Take one and it's locked in for the whole run: it sets the conditions of the run, in the spirit of Honkai: Star Rail's Currency Wars. 14 are tied to a type (they also put three Pokémon of that type in your first shop), the rest change the rules (see Investment environments). A type environment only appears in a mode with at least 3 lines of its type.
+- Press **Start run** and pick a region. The run then begins by offering **3 expeditions** (each card can be rerolled once). Take one and it's locked in for the whole run: it sets the conditions of the run, in the spirit of Honkai: Star Rail's Currency Wars investment environments. 14 are tied to a type (they also put three Pokémon of that type in your first shop), the rest change the rules (see Expeditions). A type expedition only appears in a mode with at least 3 lines of its type.
 
-**Type environments:**
+**Type expeditions:**
 
-| Environment | Type | Style | Effect |
+| Expedition | Type | Style | Effect |
 |---|---|---|---|
 | Ember Gambit | Fire | Aggressive | Fire +15% damage; win streaks pay double; losses cost 2 more Trainer HP |
 | Tidal Fortress | Water | Steady | 125 Trainer HP; your Pokémon take 10% less damage; Water starts with +10 PP |
@@ -410,12 +410,12 @@ There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / C
 - **Prismatic:** Plague Doctor, Trainer's Resolve, Pay Day, Rare Candy Mountain, Ace Trainer, Item Rain, Golden Ticket, Harmony, Hyperdrive, Fusion Reactor, Legendary Gathering, Ascension, Level Up!, Wonder Trade, Pandora's Items, Cosmic Power, Double Team, Golden Egg, Explosion, Rebirth, Superstars, Tiny Titans, Metronome, Apex Predator, Ultra Wormhole, Mind Meld, Trick Room, Echoed Voice, Copy Machine, Grand Prize, Perish Song.
 - **Sets:** a *Heart* (Silver) counts as one extra of that type, class or trait, a *Crest* (Gold) adds one and gives you a ₽2–3 Pokémon of it, and a *Crown* (Prismatic) adds two and gives you a 2★ ₽3–4 Pokémon. One of the three cards is often a set augment for a set you already play.
 
-### Investment environments
+### Expeditions
 
-Every run opens with a choice of **3 investment environments** (each card can be rerolled once). Once you take one, it's locked in for the whole run. Augments are the perks you collect along the way; an environment sets the conditions of the whole run: what you start with, how the shop or carousel behaves, how many augments you get, or a prize for reaching a milestone. Your environment and its progress show in the Run info panel.
+Every run opens with a choice of **3 expeditions** (each card can be rerolled once). Once you take one, it's locked in for the whole run. Augments are the perks you collect along the way; an expedition sets the conditions of the whole run: what you start with, how the shop or carousel behaves, how many augments you get, or a prize for reaching a milestone. Your expedition and its progress show in the Run info panel.
 
-- **Type environments (14):** the table at the top (Ember Gambit, Tidal Fortress, Verdant Investment…).
-- **Index Fund:** a random class or style set (for example *Vanguard Index Fund*). Start with two ₽1–2 Pokémon of that set, and its Pokémon show up more often in the shop.
+- **Type expeditions (14):** the table at the top (Ember Gambit, Tidal Fortress, Verdant Investment…).
+- **Guild:** a random class or style set (for example *Vanguard Guild*). Start with two ₽1–2 Pokémon of that set, and its Pokémon show up more often in the shop.
 - **The Sunken Trove:** the first time you win 5 battles in a row, gain a random Prismatic augment.
 - **Gift of Destiny:** a sealed Gift that opens after 8 floors with a ₽5 Pokémon at 2★ and a completed item. Every win with no faints opens it a floor sooner.
 - **Excess Budget:** carousel Pokémon carry two items instead of one.
@@ -427,9 +427,24 @@ Every run opens with a choice of **3 investment environments** (each card can be
 - **Deep Bench:** 11 bench slots instead of 9.
 - **Cloning Lab:** ₽1 and ₽2 Pokémon need only 2 copies to reach 2★.
 
+### Progression
+
+Everything here is saved in your browser across runs (simulated runs never touch it). Title screen: **Pokémon**, **Hatchery**, **Profile**, **Achievements**.
+
+- **Unlocking Pokémon:** National Dex runs only use lines you've unlocked. You start with every Gen I–II line plus all 27 starters. Reaching **2★** with a line in any run (any mode) unlocks it for good, and eggs unlock more. Regional modes always use their full roster.
+- **National Dex roster:** after choosing National Dex, pick **All unlocked lines** or one of up to 3 saved rosters. The roster editor lists your unlocked lines by cost; each cost needs a minimum (₽1: 10, ₽2: 10, ₽3: 8, ₽4: 6, ₽5: 4) so the shop always has something to show. Each run still draws a random pool from the roster.
+- **Candy:** every line that fights in a battle you win earns 1 candy (a 3★ earns 5). In **Pokémon** (your collection), spend candy on a line's **shiny colours** (30) and **Training I / II** (20 / 50: +5% / +10% max HP and damage in every run).
+- **Shinies:** every Pokémon with a sprite has a shiny version: the official PMD SpriteCollab shiny where one exists, otherwise a version recoloured from that Pokémon's official shiny palette. Unlock a line's shiny with candy, from an egg, or by luck: 1 in 200 Pokémon you get is shiny, which unlocks it for good. Shiny Pokémon sparkle on the board, and you can switch any line back to normal colours.
+- **Eggs:** spend an **egg voucher** in the Hatchery. Common (60%, a ₽1–2 line), Rare (28%, ₽3), Epic (10%, ₽4), Legendary (2%, ₽5); every 10th egg without an Epic or better is guaranteed one. A new line unlocks; one you already have gives 10 candy. 1 in 16 eggs is shiny. Vouchers come from achievements, act clears (1), winning a run (2, plus 1 per 5 ascension levels) and trainer levels (1 each).
+- **Starting partner:** after picking a region, choose a ₽1–3 line from your collection (one that region has) to start the run with on your bench, or no partner. Your last choice is remembered per region.
+- **Ascension:** winning a run unlocks the next of **20 ascension levels**, chosen on the region screen. Each adds a modifier on top of the ones below: stronger enemies (4% rising to 20%), stronger rivals and guardians, less starting Trainer HP (90, 80, 70), lower income and interest cap, smaller carousels, enemies with extra PP or faster attacks, pricier XP, less streak gold, harsher losses. Higher ascensions give more XP and vouchers.
+- **Trainer profile:** your trainer level (XP from battles, act clears and wins; each level gives a voucher), favourite Pokémon (the line that has won you the most battles), stats, your last 30 runs with their teams, a **title** and your **bench style**.
+- **Cosmetics:** bench styles (tree stumps, stepping stones, leaf pads, cushions, Poké Ball pads, crystals, golden pedestals, seashells, lily pads, clouds) and titles, earned from trainer levels and achievements.
+- **Achievement rewards:** every achievement gives egg vouchers (1 for most, up to 10), and some give a title or a bench style. The reward shows on the pop-up and in the Achievements list.
+
 ### Achievements
 
-73 achievements, saved in your browser across runs. One earned during a fight pops up when the fight ends; one earned anywhere else pops up straight away. **Achievements** on the title screen lists them all, with progress bars for the ones that count up across runs (battles won, knockouts, Pokémon bought, rerolls, chests, Pokémon Centers, Mystery paths, Kecleon Shops, evolution lines owned, runs started, regions and environments tried). The rest cover battles (Clean Sweep, Lone Wolf, Knockout Artist, Lightning Round…), acts and wins (Perfect Act, Comeback Kid, Untouchable, Champion…), your team (Three Stars, Triple Crown, Living Legend, Set Master, Rainbow Team…) and moments like fusing two Pokémon or taking a 2★ from a carousel. Simulated runs never earn achievements.
+73 achievements, saved in your browser across runs. One earned during a fight pops up (with PMD's item-obtained fanfare) when the fight ends; one earned anywhere else pops up straight away. Each one gives a reward (see Progression). **Achievements** on the title screen lists them all, with progress bars for the ones that count up across runs (battles won, knockouts, Pokémon bought, rerolls, chests, Pokémon Centers, Mystery paths, Kecleon Shops, evolution lines owned, runs started, regions and expeditions tried). The rest cover battles (Clean Sweep, Lone Wolf, Knockout Artist, Lightning Round…), acts and wins (Perfect Act, Comeback Kid, Untouchable, Champion…), your team (Three Stars, Triple Crown, Living Legend, Set Master, Rainbow Team…) and moments like fusing two Pokémon or taking a 2★ from a carousel. Simulated runs never earn achievements.
 
 ### Scouting
 
@@ -471,7 +486,7 @@ Built to stay readable on small handheld screens such as the AYN Thor:
 
 - Pokémon and items can be moved with two taps or clicks: one to pick up, one to place. Tapping the shop while carrying a Pokémon releases it, and Esc or B puts it back. Dragging still works.
 - A slim top bar holds trainer HP, the route tracker, level, Pokédollars, battle speed and the Menu button.
-- The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (investment environment, augments, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
+- The Menu (Esc, Select on a controller, or the Menu button) pauses the game. It holds run info (expedition, augments, gimmick target, relics, income, scouting, next opponent), the Kit Dex, Settings and Quit to title.
 - The shop hides behind its tab (Tab, LB). Hidden, it leaves one slim row with the buttons and small portraits of the offers. The bag folds up the same way (B key). Both tuck themselves away during battles unless you turn that off.
 - The board zooms to fill whatever space the HUD leaves, so it gets bigger with the shop hidden and in battle. Zoom further with the mouse wheel, + and −, or the right stick. Pan by dragging empty ground (any mouse button, in planning and in battle) or with the right stick.
 - **Battle meter:** a panel on the right during battles (and showing the last battle while you plan). Tabs for Damage, Healing and Damage taken list each Pokémon's total with a bar and its per-second rate below, plus a team total. Switch between your team and the enemies; collapse it with its header.
@@ -499,7 +514,7 @@ Settings are split into sections like PokéRogue's: General (battle speed, damag
 
 ### Saving
 
-Runs save automatically in your browser. Continue from the main menu.
+Runs save automatically in your browser. Continue from the main menu. Progression (unlocks, candy, eggs, profile) and achievements are saved separately and are never lost when a run ends.
 
 ## Controller
 
@@ -548,11 +563,13 @@ js/fx_manifest.js   frame layout of every particle sheet
 js/carousel.js      carousel rounds
 js/ui.js            pause menu, settings, collapsible shop and bag
 js/audio.js         music player (PMD tracks with loop points) and PMD sound effects
+assets/NNNN/shiny/  shiny sprite sheets and portrait for each Pokémon
 assets/music/       PMD music tracks (MP3)
 assets/sfx/         PMD sound effects (MP3)
 js/traits.js        trait sets in battle
-js/team.js          investment environments and the perk hooks they share with augments
+js/team.js          expeditions and the perk hooks they share with augments
 js/achievements.js  achievements: the list, pop-ups and the Achievements screen
+js/meta.js          progression: unlocks, roster, candy, shinies, eggs, ascension, partner, profile, bench styles
 js/meter.js         battle meter
 js/fusion.js        fusions and Deoxys formes
 js/gamepad.js       controller support
@@ -570,6 +587,6 @@ Run locally with any static server, for example `python3 -m http.server`, then o
 
 ## Credits
 
-Sprites and portraits are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Move effects, beams and treasure boxes are Pokémon Mystery Dungeon assets (Spike Chunsoft) collected by [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). Music is from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, composed by Arata Iiyoshi, Hideki Sakamoto, Keisuke Ito, Ken-ichi Saito and Yoshihiro Maeda (© Nintendo / Spike Chunsoft / The Pokémon Company); the rips and loop points are by ShinxHijinx / PersimBand and the [Explorers of Sky Origins](https://github.com/Minemaker0430/ExplorersOfSkyOrigins) project. Sound effects are from Explorers of Sky, as collected by [PMD Origins](https://github.com/audinowho/DumpAsset). The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
+Sprites and portraits, including shiny sprites, are from the [PMD SpriteCollab](https://sprites.pmdcollab.org/) project and belong to their individual artists ([credits](https://github.com/PMDCollab/SpriteCollab)). Shinies SpriteCollab doesn't have yet are recoloured from those sprites using each Pokémon's official shiny palette, taken from [PokéAPI](https://github.com/PokeAPI/sprites)'s sprites. Move effects, beams and treasure boxes are Pokémon Mystery Dungeon assets (Spike Chunsoft) collected by [PMDCollab RawAsset](https://github.com/PMDCollab/RawAsset). Pokédex data and item sprites come from [PokéAPI](https://pokeapi.co/). Music is from Pokémon Mystery Dungeon: Explorers of Sky and Rescue Team, composed by Arata Iiyoshi, Hideki Sakamoto, Keisuke Ito, Ken-ichi Saito and Yoshihiro Maeda (© Nintendo / Spike Chunsoft / The Pokémon Company); the rips and loop points are by ShinxHijinx / PersimBand and the [Explorers of Sky Origins](https://github.com/Minemaker0430/ExplorersOfSkyOrigins) project. Sound effects are from Explorers of Sky, as collected by [PMD Origins](https://github.com/audinowho/DumpAsset). The font is built from Pokémon Emerald's glyphs in the [pret/pokeemerald](https://github.com/pret/pokeemerald) decompilation.
 
 This is a non-commercial fan project and is not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon is a trademark of Nintendo, Game Freak and Creatures.

@@ -30,7 +30,8 @@ function buildMode(id,unspr=OPTS.unsprited){
     for(const t in need){const rootIn=i=>S.has(i)&&!(D[i].f&&S.has(D[i].f)),have=[...S].filter(i=>rootIn(i)&&lineHas(i,t)).length;if(have>=need[t])continue;
       // a set this generation has no lines for simply doesn't appear in it; the others get topped up from the nearest generations
       if(!have)continue;
-      const cand=shuffle(ROOTS.filter(r=>!inS(r)&&fam(r).length&&lineHas(r,t)&&!fam(r).some(i=>D[i].L||D[i].M))).sort((a,b)=>Math.abs(D[a].g-gen)-Math.abs(D[b].g-gen));
+      // deterministic (nearest generation, then Pokédex order) so a saved run rebuilds the same pool when you continue it
+      const cand=ROOTS.filter(r=>!inS(r)&&fam(r).length&&lineHas(r,t)&&!fam(r).some(i=>D[i].L||D[i].M)).sort((a,b)=>Math.abs(D[a].g-gen)-Math.abs(D[b].g-gen)||a-b);
       for(const r of cand.slice(0,need[t]-have))fam(r).forEach(i=>{if(!S.has(i))guestDex.add(i);S.add(i);});}}
   const kids=i=>(KIDS[i]||[]).filter(k=>S.has(k));
   const sub=i=>{const o=[i];for(const k of kids(i))o.push(...sub(k));return o;};
@@ -152,7 +153,7 @@ const R=17,HW=Math.sqrt(3)*R,SQ=0.78,RS=1.5*R*SQ,COLS=7,ROWS=8;
 const BX=320-(COLS*HW+HW/2)/2+HW/2, BY=56;
 const hexXY=(c,r)=>({x:BX+c*HW+(r&1?HW/2:0),y:BY+r*RS});
 const BENCH_Y=246, BENCH_DX=29;let BENCH_N=9;
-// bench stumps: 9 are baked into the map; Deep Bench's extra slots are drawn live each frame
+// bench stumps are drawn live each frame in the style picked on the Profile screen (meta.js); this is the classic one
 function drawStump(g,p){g.fillStyle='#00000035';g.beginPath();g.ellipse(p.x,p.y+3,12,4.5,0,0,7);g.fill();
   g.fillStyle='#7a5532';g.beginPath();g.ellipse(p.x,p.y+1,11,4.5,0,0,7);g.fill();g.fillStyle='#b98a55';g.beginPath();g.ellipse(p.x,p.y,10,3.6,0,0,7);g.fill();g.strokeStyle='#8f6638';g.beginPath();g.ellipse(p.x,p.y,6,2,0,0,7);g.stroke();}
 const benchXY=i=>({x:320+(i<9?i-4:i===9?-5:5)*BENCH_DX,y:BENCH_Y});
@@ -181,6 +182,14 @@ function ensure(dex){
     SPR[dex]=s;return s;
   })();
 }
+// shiny sprites: assets/<dex>/shiny/<anim>.png (official PMD shinies, or recoloured from the official shiny palette);
+// stand-in forms use their base's shiny tinted like the normal stand-in; anything missing falls back to the normal sheet
+function ensureShiny(dex){const key='S'+dex;if(SPR[key])return Promise.resolve(SPR[key]);if(LOADING[key])return LOADING[key];
+  return LOADING[key]=(async()=>{const base=await ensure(dex),m=SM[dex]||null,sk=m&&m.base?pad(m.base):pad(dex);
+    const s={m:base.m,img:{},por:null,top:base.top,k:base.k};const jobs=[loadImg(shinyPor(dex)).then(i=>s.por=i||base.por)];
+    if(base.m)for(const[w,v]of Object.entries(base.m.a))jobs.push(loadImg(`assets/${sk}/shiny/${v[0]}.png`).then(i=>s.img[w]=i));
+    await Promise.all(jobs);if(m&&m.base&&typeof FORMS!=='undefined'&&FORMS[dex])tintStandIn(s,FORMS[dex]);
+    for(const w in s.img)if(!s.img[w])s.img[w]=base.img[w];SPR[key]=s;return s;})();}
 // Forms without their own PMD sprite reuse the base sprite, tinted toward the colors of the form's portrait
 function formTint(f,por){
   const fixed={gmax:[255,70,90]};if(fixed[f.kind])return fixed[f.kind];
@@ -203,8 +212,8 @@ function dirFrom(dx,dy){const a=Math.atan2(dy,dx);const o=Math.round(a/(Math.PI/
 function animOf(dex,anim){const s=SPR[dex];if(!s||!s.m)return null;return s.m.a[anim]&&s.img[anim]?s.m.a[anim]:(anim==='Faint'&&s.m.a.Hurt?s.m.a.Hurt:s.m.a.Idle);}
 function animLen(dex,anim){const a=animOf(dex,anim);return a?a[3].reduce((x,y)=>x+y,0)/60:.5;}
 function hitTime(dex,anim){const a=animOf(dex,anim);if(!a)return .25;if(a[4]<0)return animLen(dex,anim)*.5;let t=0;for(let i=0;i<a[4];i++)t+=a[3][i];return t/60;}
-function drawSprite(dex,anim,t,dir,x,y,{loop=true,alpha=1,scale=1}={}){
-  const s=SPR[dex];if(!s){ensure(dex);return;}
+function drawSprite(dex,anim,t,dir,x,y,{loop=true,alpha=1,scale=1,shiny=false}={}){
+  let s=shiny?SPR['S'+dex]:SPR[dex];if(!s){if(shiny){ensureShiny(dex);s=SPR[dex];}if(!s){ensure(dex);return;}}
   ctx.globalAlpha=alpha;
   if(!s.m){ // no PMD sprite yet: round portrait token with a type ring that hops when it walks
     if(s.por){const walk=anim==='Walk',hop=walk?-Math.abs(Math.sin(t*9))*4:Math.sin(t*3)*1.2,z=Math.round(22*scale),cx=Math.round(x),cy=Math.round(y-z/2+2+hop);
@@ -253,7 +262,6 @@ function renderForest(bg){
     const s=rnd(3,6);px(x-s,y-s+2,s*2,s,'#8a9196');px(x-s+1,y-s+1,s*2-2,1,'#b5bcbf');px(x-s+1,y+1,s*2-2,1,'#5d6468');}
   for(let r=0;r<ROWS;r++)for(let col=0;col<COLS;col++){const p=hexXY(col,r);hexPath(g,p.x,p.y,R-1.2,SQ);g.fillStyle=r>=4?'rgba(255,255,230,.16)':'rgba(255,255,255,.08)';g.fill();
     g.lineWidth=1;g.strokeStyle='rgba(34,66,24,.45)';g.stroke();hexPath(g,p.x,p.y-1,R-3,SQ);g.strokeStyle='rgba(255,255,255,.10)';g.stroke();}
-  for(let i=0;i<9;i++)drawStump(g,benchXY(i));
   const trees=[];
   for(let i=0;i<16000&&trees.length<900;i++){const x=rnd(-MX-10,W+MX+10),y=rnd(-MY-10,H+MY+20);const d=Math.hypot((x-CX)/RX,(y-CY)/RY);if(d<1.04)continue;
     const s=rnd(13,23)+(d>1.3?3:0);if(trees.some(t=>Math.hypot(t.x-x,(t.y-y)*1.4)<(t.s+s)*.62))continue;trees.push({x,y,s});}
@@ -310,13 +318,13 @@ const NATPOOL=[22,26,24,16,12];
 // trait sets need one more line in the pool than their top breakpoint
 // every trait set needs as many lines in the pool as its top breakpoint, so it can always be maxed
 function traitNeed(){const o={};for(const k in SETS)if(SETS[k].cat==='style'&&!SETS[k].kin)o[k]=SETS[k].bp[SETS[k].bp.length-1];return o;}
-function samplePool(keep=[]){if(MODE.gen)return;MODE.byCost=MODE.byCostAll.map((l,i)=>shuffle(l).slice(0,NATPOOL[i]));
+function samplePool(keep=[]){if(MODE.gen)return;const ok=natAllowed(),okR=r=>!ok||ok.has(r);MODE.byCost=MODE.byCostAll.map((l,i)=>shuffle(l.filter(okR)).slice(0,NATPOOL[i]));
   {const need=traitNeed(),inPool=new Set(MODE.byCost.flat());for(const t in need){let have=[...inPool].filter(r=>lineSets(r).includes(t)).length;
-    for(const r of shuffle(MODE.roots.filter(r=>!inPool.has(r)&&MODE.lines[r].cost<=4&&lineSets(r).includes(t)))){if(have>=need[t])break;MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}for(const r of keep){const c=MODE.lines[r].cost-1;if(!MODE.byCost[c].includes(r))MODE.byCost[c].push(r);}
+    for(const r of shuffle(MODE.roots.filter(r=>okR(r)&&!inPool.has(r)&&MODE.lines[r].cost<=4&&lineSets(r).includes(t)))){if(have>=need[t])break;MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}for(const r of keep){if(!okR(r)||!MODE.lines[r])continue;const c=MODE.lines[r].cost-1;if(!MODE.byCost[c].includes(r))MODE.byCost[c].push(r);}
   // kinship groups come as a set: if one member's line made the pool, the rest of the group joins it so the set can be finished
   {const inPool=new Set(MODE.byCost.flat());for(const k in KIN){const rs=[...new Set(MODE.roots.filter(r=>MODE.lines[r].mem.some(d=>KIN[k].includes(d))))];
     if(!rs.some(r=>inPool.has(r)))continue;const top=(SETS[k].bp0||SETS[k].bp).slice(-1)[0];let have=rs.filter(r=>inPool.has(r)).length;
-    for(const r of shuffle(rs))if(have<top&&!inPool.has(r)){MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}}
+    for(const r of shuffle(rs))if(have<top&&!inPool.has(r)&&okR(r)){MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}}
 function newRun(strat,keep=[]){
   samplePool(keep);BENCH_N=9;
   run={strat:{id:'none',name:'',type:null,pts:[]},hp:100,maxHp:100,gold:5,level:2,xp:0,floor:1,streak:0,augs:[],augsAt:[],
@@ -325,9 +333,9 @@ function newRun(strat,keep=[]){
   run.unspr=MODE.unspr?1:0;run.boss=pickBoss();planAct();
   if(strat)applyStrat(strat);
 }
-// lock in the investment environment (once, at the start of the run)
+// lock in the expedition (once, at the start of the run)
 function applyStrat(s,feat){
-  run.strat=s;BENCH_N=benchSize();while(run.bench.length<BENCH_N)run.bench.push(null);const hp0=s.id==='tidal'?125:s.id==='wager'?75:100;run.hp=run.maxHp=hp0;
+  run.strat=s;BENCH_N=benchSize();while(run.bench.length<BENCH_N)run.bench.push(null);const hp0=(s.id==='tidal'?125:s.id==='wager'?75:100)-(100-ascStartHp());run.hp=run.maxHp=hp0;
   run.featured=feat||(s.general?[]:featured(s));
   if(s.id==='armory')for(let i=0;i<2;i++)run.bag.push({k:pick(CORDER),mut:[]});
   if(s.gain)s.gain.call(s);
@@ -363,8 +371,10 @@ function pickBoss(){
 // three Pokémon that start the run's first shop: the matching starter (Fire, Water and Grass strategies) and lines of the
 // strategy's type, cheapest first; a pool short on that type fills in with the lines that evolve into it
 function featured(strat){
-  const st=strat.si!=null?STARTERS[MODE.starGen-1][strat.si]:null,has=r=>MODE.lines[r].mem.some(d=>D[d].t.includes(strat.type));
-  const ok=r=>r!==st&&SM[r]&&MODE.lines[r].cost<=3;
+  // National Dex: only lines you've unlocked (and that are in your roster)
+  const A=MODE.gen?null:natAllowed(),inA=r=>!A||A.has(r);
+  let st=strat.si!=null?STARTERS[MODE.starGen-1][strat.si]:null;if(st&&(!MODE.lines[st]||!inA(st)))st=null;const has=r=>MODE.lines[r].mem.some(d=>D[d].t.includes(strat.type));
+  const ok=r=>r!==st&&SM[r]&&MODE.lines[r].cost<=3&&inA(r);
   let c=shuffle(MODE.roots.filter(r=>ok(r)&&D[r].t.includes(strat.type)));
   if(c.length<3)c=c.concat(shuffle(MODE.roots.filter(r=>ok(r)&&!c.includes(r)&&has(r))));
   if(c.length<3)c=c.concat(shuffle(MODE.roots.filter(r=>ok(r)&&!c.includes(r)&&MODE.lines[r].cost===1)));
@@ -444,21 +454,21 @@ function scoutState(){
 /* ---------- economy ---------- */
 // what a Pokémon in the shop costs you right now (investments like Coupon Book and Deflation change it)
 function priceOf(r){return Math.max(1,MODE.lines[r].cost+perkNum('price',r));}
-function interestCapOf(){return(run.strat.id==='verdant'?7:5)+(hasRelic('coin-case')?3:0)+augInterestCap()+perkNum('cap');}
+function interestCapOf(){return(run.strat.id==='verdant'?7:5)-(ascAt(9)?1:0)+(hasRelic('coin-case')?3:0)+augInterestCap()+perkNum('cap');}
 function interestOf(){if(perkAny('noInterest'))return 0;const v=Math.min(interestCapOf(),Math.floor((run.gold+interestPad())/interestPer()));return Math.max(v,perkNum('imin'));}
-function streakGold(){const s=Math.abs(run.streak);let g=s>=5?3:s>=4?2:s>=2?1:0;if(run.strat.id==='ember'&&run.streak>0)g*=2;if(run.strat.id==='underdog'&&run.streak<0)g*=2;return g+perkNum('streak');}
+function streakGold(){const s=Math.abs(run.streak);let g=s>=5?3:s>=4?2:s>=2?1:0;if(run.strat.id==='ember'&&run.streak>0)g*=2;if(run.strat.id==='underdog'&&run.streak<0)g*=2;return Math.max(0,g+perkNum('streak')-(ascAt(16)&&g>0?1:0));}
 // strategy income: Haunted Wager pays ₽2 every floor; Glacial Patience pays ₽3 after a floor where you bought no Pokémon
 // (prev: settling the floor that just ended, rather than previewing the current one)
 function stratGold(prev){const s=run.strat.id,f=effFloor(run.floor)-(prev?1:0);return s==='wager'?2:s==='glacial'&&run.boughtF!==f?3:0;}
 // with 10-floor acts each floor pays more than it used to (₽5 → ₽9 base, 2 → 4 XP), so an act still adds up to about the same
 const BASE_INC=11,FLOOR_XP=4;
-// perk: environments and augments that pay (or take) money at each floor; prev = this is the real payout
-function incomePreview(prev){return{base:BASE_INC,interest:interestOf(),streak:streakGold(),extra:augIs('payday')?3:0,strat:stratGold(prev),perk:perkNum('inc',!!prev)};}
+// perk: expeditions and augments that pay (or take) money at each floor; prev = this is the real payout
+function incomePreview(prev){return{base:BASE_INC-ascIncome(),interest:interestOf(),streak:streakGold(),extra:augIs('payday')?3:0,strat:stratGold(prev),perk:perkNum('inc',!!prev)};}
 // Dragon Tamer: ₽4 and ₽5 Pokémon roll at the next level's odds
 function shopOdds(first){const o=LVODDS[run.level];if(run.strat.id!=='tamer'||first||run.level>=MAXLV)return o;
   const n=LVODDS[run.level+1],m=o.map((p,i)=>i<3?p:Math.max(p,n[i])),t=m.reduce((a,b)=>a+b,0);return m.map(p=>p/t);}
 function gainXP(n){if(run.level>=MAXLV)return;run.xp+=n;while(run.level<MAXLV&&run.xp>=XPNEXT[run.level]){run.xp-=XPNEXT[run.level];run.level++;perkRun('level',run.level);if(!SIM.on){sfx('level',200);}if(!SIM.on)toast(`Trainer level ${run.level}! You can field ${teamCap()} Pokémon.`);}if(run.level>=MAXLV)run.xp=0;}
-const xpCost=()=>run?Math.max(1,(run.strat.id==='overcharge'?3:4)+perkNum('xpc')):4;
+const xpCost=()=>run?Math.max(1,(run.strat.id==='overcharge'?3:4)+perkNum('xpc')+(ascAt(13)?1:0)):4;
 function buyXP(){if(mode!=='plan'||run.gold<xpCost()||run.level>=MAXLV)return false;perkRun('spent',xpCost(),'xp');run.gold-=xpCost();gainXP(xpBuyAmount());renderUI();return true;}
 
 /* ---------- shop ---------- */
@@ -496,13 +506,13 @@ function buy(i){
   if(slot<0&&copies<copiesNeeded({root,dex:root,star:1})-1){toast('Your bench is full. Release a Pokémon first.');return false;}
   run.buys=(run.buys||0)+1;achAdd('buys');run.boughtF=effFloor(run.floor);const free=(run.strat.id==='collector'&&run.buys%4===0)||perkAny('free',root);
   if(free&&!SIM.on)toast(`${D[root].n} is free!`);
-  const paid=free?0:price;run.gold-=paid;if(paid)perkRun('spent',paid,'buy');run.shop[i]=null;const u=mkUnit(root);if(!SIM.on){ensure(root);sfx('buy');}perkRun('buy',u);
+  const paid=free?0:price;run.gold-=paid;if(paid)perkRun('spent',paid,'buy');run.shop[i]=null;const u=metaJoin(mkUnit(root));if(!SIM.on){ensure(root);sfx('buy');}perkRun('buy',u);
   if(slot>=0)run.bench[slot]=u;else run.bench.push(u); // full bench: it waits in an overflow slot and combines straight away
   combine();benchFix();renderUI();return true;
 }
 // put anything left in the overflow slot back into a free slot (sold if there's truly no room)
 function benchFix(){while(run.bench.length>BENCH_N){const x=run.bench.pop();if(!x)continue;const j=run.bench.indexOf(null);if(j>=0)run.bench[j]=x;else{run.gold+=sellValue(x);for(const it of x.items)run.bag.push(it);}}}
-function addCopy(root){const slot=run.bench.indexOf(null);if(slot<0&&allOwned().filter(u=>u.dex===root&&u.star===1).length<copiesNeeded({root,dex:root,star:1})-1)return false;const u=mkUnit(root);if(slot>=0)run.bench[slot]=u;else run.bench.push(u);if(!SIM.on)ensure(root);combine();benchFix();return true;}
+function addCopy(root){const slot=run.bench.indexOf(null);if(slot<0&&allOwned().filter(u=>u.dex===root&&u.star===1).length<copiesNeeded({root,dex:root,star:1})-1)return false;const u=metaJoin(mkUnit(root));if(slot>=0)run.bench[slot]=u;else run.bench.push(u);if(!SIM.on)ensure(root);combine();benchFix();return true;}
 function locate(u){for(const[k,v]of Object.entries(run.board))if(v===u){const[c,r]=k.split(',').map(Number);return{kind:'board',c,r,...hexXY(c,r)};}
   const i=run.bench.indexOf(u);if(i>=0)return{kind:'bench',i,...benchXY(i)};return null;}
 function removeUnit(u){for(const k in run.board)if(run.board[k]===u)delete run.board[k];const i=run.bench.indexOf(u);if(i>=0)run.bench[i]=null;}
@@ -516,7 +526,7 @@ function combine(){
       for(const o of ordered.slice(1,need)){removeUnit(o);if(o.fuse){if(!keep.fuse)keep.fuse=o.fuse;else returnPartner(o.fuse.p);}if(o.forme&&!keep.forme)keep.forme=o.forme;for(const g of['stone','crystal','shard','formItem'])if(o[g]){if(!keep[g])keep[g]=o[g];else run.bag.push({k:g==='formItem'?'form:'+o[g]:`g:${{stone:'stone',crystal:'z',shard:'shard'}[g]}:${o[g]}`,mut:[]});}if(o.formeAsked)keep.formeAsked=1;
         for(const it of o.items)if(keep.items.length<3)equipRaw(it,keep);else run.bag.push(it);
         for(const s in o.g)keep.g[s]=(keep.g[s]||0)+o.g[s];keep.gs+=o.gs;if(o.mut&&!keep.mut)keep.mut=o.mut;keep.mgs=Math.max(keep.mgs||0,o.mgs||0);}
-      keep.star++;perkRun('combine',keep);if(run.strat.id==='swarm'){const g=keep.star===2?1:keep.star===3?4:0;run.gold+=g;if(g&&!SIM.on)toast(`Swarm Tactics: +₽${g}`);}
+      if(ordered.slice(1,need).some(o=>o.shiny))keep.shiny=1;keep.star++;perkRun('combine',keep);metaStar(keep);if(run.strat.id==='swarm'){const g=keep.star===2?1:keep.star===3?4:0;run.gold+=g;if(g&&!SIM.on)toast(`Swarm Tactics: +₽${g}`);}
       const p=locate(keep);if(!SIM.on){sfx('star',150);burst(p.x,p.y-10,'#fff7c2',26,1.4);burst(p.x,p.y-10,TYPES[D[keep.dex].t[0]],14,1);}
       evolveStep(keep);changed=true;break;}
   }
@@ -618,7 +628,7 @@ async function setupCombatFloor(fromEvent){
   showGameUI(true);renderUI();
   if(augDue())showAugment();
   else if(gimDue())showGimmickChoice();
-  else{banner(`Floor ${f}`,trainerName(f),1400);if(run.lastIncome&&f>1&&!fromEvent){const i=run.lastIncome;toast(`+₽${i.total} income: ₽${i.base} base${i.interest?` + ₽${i.interest} interest`:''}${i.streak?` + ₽${i.streak} streak`:''}${i.extra?` + ₽${i.extra} Pay Day`:''}${i.strat?` + ₽${i.strat} ${run.strat.name}`:''}${i.perk?` ${i.perk>0?'+':'−'} ₽${Math.abs(i.perk)} environment and augments`:''}`);}}
+  else{banner(`Floor ${f}`,trainerName(f),1400);if(run.lastIncome&&f>1&&!fromEvent){const i=run.lastIncome;toast(`+₽${i.total} income: ₽${i.base} base${i.interest?` + ₽${i.interest} interest`:''}${i.streak?` + ₽${i.streak} streak`:''}${i.extra?` + ₽${i.extra} Pay Day`:''}${i.strat?` + ₽${i.strat} ${run.strat.name}`:''}${i.perk?` ${i.perk>0?'+':'−'} ₽${Math.abs(i.perk)} expedition and augments`:''}`);}}
 }
 function autoFill(){
   const cap=teamCap();
@@ -635,7 +645,7 @@ function startCombat(){
   battle={coin:0,flute:hasRelic('poke-flute'),weather:null,wPow:1,wSide:-1,kills:[0,0],rocks:[0,0],plague:[0,0],swarm:[0,0]};
   const mine=boardUnits(),ptr=countTraits(mine.map(x=>x.u)),etr=enemyTraits(enemyPreview.map(e=>e.u));battle.trs=[ptr,etr];
   for(const b of mine)units.push(makeCombatant(b.u,0,b.c,b.r,ptr,1));
-  for(const e of enemyPreview)units.push(makeCombatant(e.u,1,e.c,e.r,etr,e.mult,e.boss));
+  for(const e of enemyPreview){const c=makeCombatant(e.u,1,e.c,e.r,etr,e.mult*ascEnemyMul(e.boss),e.boss);if(ascAt(11)&&c.maxMana)c.mana+=15;if(ascAt(18))c.as*=1.1;units.push(c);}
   for(const c of units)formsOnStart(c);
   routeOnStart(etr);
   startOfBattle([ptr,etr]);
@@ -720,6 +730,7 @@ function makeCombatant(u,team,c,r,tr,mult,boss){
     if(s==='charm'&&ty.includes('Fairy'))addE(E,{healAmp:.2});
     if(s==='collector'&&ty.includes('Normal'))addE(E,{hpP:.1});
     addE(E,augE(u,c,r,tr));
+    {const T=trainOf(u.root);if(T)addE(E,{hpP:T,dmg:T});}
     if(hasRelic('soothe-bell'))addE(E,{regen:.015});if(hasRelic('rainbow-wing'))addE(E,{hpP:.12,dmg:.12});if(hasRelic('silver-wing'))addE(E,{shieldP:.15});
   }
   for(const it of u.items)if(isGear(it))addE(E,gearEffects(it,u,tr));
@@ -1030,10 +1041,10 @@ function endCombat(win){
   let msg='';const RR=routeResult(win);gold+=RR.gold;
   if(win){run.wins++;run.streak=Math.max(1,run.streak+1);gold+=1;run.results[f]='win';run.lastRes='win';if(!SIM.on)sfx('win');msg=`+₽${gold}`;
     if(hasRelic('oval-charm')){const own=allOwned();if(own.length&&addCopy(pick(own).root))msg+=' · Oval Charm found a Pokémon';}}
-  else{run.streak=Math.min(-1,run.streak-1);const surv=alive(1).reduce((s,u)=>s+u.u.star,0);let dmg=3+Math.round(surv*1.5)+Math.floor(oldF(f)/3)+actOf()*2+(kind==='boss'?8:0)+(kind==='elite'?3:0);if(run.strat.id==='ember')dmg+=2;dmg=Math.max(1,Math.round((dmg+RR.dmgAdd+perkNum('hpLoss'))*RR.dmgMul));if(perkAny('shield'))dmg=0;
+  else{run.streak=Math.min(-1,run.streak-1);const surv=alive(1).reduce((s,u)=>s+u.u.star,0);let dmg=3+Math.round(surv*1.5)+Math.floor(oldF(f)/3)+actOf()*2+(kind==='boss'?8:0)+(kind==='elite'?3:0);if(run.strat.id==='ember')dmg+=2;dmg+=ascLoss();dmg=Math.max(1,Math.round((dmg+RR.dmgAdd+perkNum('hpLoss'))*RR.dmgMul));if(perkAny('shield'))dmg=0;
     run.hp=Math.max(0,run.hp-dmg);run.results[f]='loss';run.lastRes='loss';if(!SIM.on)sfx('lose');msg=`Trainer takes ${dmg} damage`;}
   run.gold+=gold;if(augMsgs.length)msg+=' · '+augMsgs.join(' · ');
-  achBattle(win,kind);
+  achBattle(win,kind);metaBattle(win);
   if(SIM.on){afterResult(win);return;}
   banner(win?'Victory!':'Defeat',RR.label?RR.label+' · '+msg:msg,1600);
   if(grew.length)setTimeout(()=>toast(`Grew stronger: ${grew.join(', ')}`),900);
@@ -1162,7 +1173,7 @@ function draw(t){
   const list=[];
   if(mode==='title'||mode==='modes'||mode==='strategy'||mode==='dex')for(const w of wander)list.push({dex:w.dex,anim:w.anim,t:w.t,dir:w.dir,x:w.x,y:w.y,shadow:1});
   if(run&&['plan','augment','combat','result','loot','route','event','kshop','reward','carousel'].includes(mode)){
-    for(let i=9;i<BENCH_N;i++)drawStump(ctx,benchXY(i));
+    for(let i=0;i<BENCH_N;i++)drawStumpSkin(ctx,benchXY(i),META.stump);
     if(drag||itemDrag){for(let r=4;r<ROWS;r++)for(let c=0;c<COLS;c++){const p=hexXY(c,r);hexPath(ctx,p.x,p.y,R-2,SQ);const ov=drag&&drag.over;const hov=ov&&ov.kind==='board'&&ov.c===c&&ov.r===r;ctx.fillStyle=hov?'rgba(255,230,120,.45)':'rgba(255,255,255,.12)';ctx.fill();}
       if(drag&&drag.over&&drag.over.kind==='board')drawRange(drag.u,drag.over,t);
       if(drag&&drag.over&&drag.over.kind==='bench'){const p=benchXY(drag.over.i);ctx.fillStyle='rgba(255,230,120,.5)';ctx.beginPath();ctx.ellipse(p.x,p.y,12,5,0,0,7);ctx.fill();}}
@@ -1178,12 +1189,13 @@ function draw(t){
   for(const s of list)if(s.shadow){ctx.fillStyle=`rgba(10,30,10,${.35*(s.alpha??1)})`;ctx.beginPath();ctx.ellipse(s.x,s.y+1,9*(s.sc||1),3.2,0,0,7);ctx.fill();}
   drawZones(t);drawCarouselGround(t);
   if(chest)drawPmdChest(chest,t);
-  for(const s of list){const o={loop:s.loop!==false,alpha:s.alpha??1,scale:s.sc||1};
+  for(const s of list){const o={loop:s.loop!==false,alpha:s.alpha??1,scale:s.sc||1,shiny:!!((s.pu&&s.pu.shiny)||(s.cu&&s.cu.team===0&&s.cu.u&&s.cu.u.shiny))};
     const cu=s.cu,F=FORMS[s.dex];
     if(cu&&!cu.dead&&(cu.dmaxOn||cu.mega||(F&&!F.ownSprite))){const col=cu.dmaxOn?'255,60,80':cu.mega?'255,150,230':'255,230,150',pulse=.25+.12*Math.sin(t*6);
       ctx.fillStyle=`rgba(${col},${pulse})`;ctx.beginPath();ctx.ellipse(s.x,s.y-10*(s.sc||1),14*(s.sc||1),18*(s.sc||1),0,0,7);ctx.fill();}
     drawUnitAura(s,t);
     drawSprite(s.dex,s.anim,s.t,s.dir,s.x,s.y-6,o);
+    if(o.shiny&&(s.alpha??1)>.5)drawShinySparkle(s,t);
     if(cu&&!cu.dead)drawFormBadges(cu,s,t);
     if(cu&&cu.teraOn&&!cu.dead){const sp=SPR[s.dex],top=s.y-6+(sp?sp.top*(s.sc||1)*sp.k:-20)-12,cx=Math.round(s.x),c2=TYPES[cu.tera]||'#7fe7ff';
       ctx.fillStyle='#1b2430';ctx.beginPath();ctx.moveTo(cx,top-6);ctx.lineTo(cx+5,top);ctx.lineTo(cx,top+4);ctx.lineTo(cx-5,top);ctx.closePath();ctx.fill();
@@ -1196,7 +1208,7 @@ function draw(t){
   for(const s of list){if(s.bench&&mode!=='plan'&&mode!=='loot')continue;drawBar(s);drawItems(s);}
   for(const l of leaves){ctx.fillStyle=l.col;ctx.fillRect(Math.round(l.x),Math.round(l.y),2,1);ctx.fillRect(Math.round(l.x)+1,Math.round(l.y)+1,1,1);}
   drawRotomChips(t);
-  if(drag)drawSprite(shownDex(drag.u),'Walk',t,DIR.down,drag.x,drag.y-6);
+  if(drag)drawSprite(shownDex(drag.u),'Walk',t,DIR.down,drag.x,drag.y-6,{shiny:!!drag.u.shiny});
   ctx.setTransform(RES,0,0,RES,0,0);
   drawWeather(t);
   if(chest&&!chest.open){const bob=Math.sin(t*3)*3;ctx.font='24px PokeEmerald,"Pixelify Sans",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#1b2430';const txt=chest.kind==='relic'?'Open the rival\'s chest':'Open the chest';
@@ -1394,7 +1406,7 @@ function showTip(u,e,hit={}){
   if(!enemy&&u.uid&&(u.fr||0)>0&&setsOf(u.dex,u.root).includes('Partner'))notes.push(`<b>Friendship ${u.fr}/20</b> +${(u.fr*1.5).toFixed(1)}% HP and damage${u.fr>=10?', hangs on once':''}.`);
   if(!enemy&&u.uid&&bondOf(u)){const B=bondOf(u),f=Math.min(20,u.fr||0);notes.push(`<b>${B.n} ${f}/20</b> ${B.d(f)}.`);}
   if(!enemy&&u.star<3&&evo.length)notes.push(`<span class="sc">${u.star===1?'At 2★':'At 3★'} → ${esc(evo.join(' / '))}</span>`);
-  tip.innerHTML=`<div class="top"><img src="${por(sd)}" alt=""><div class="hd"><div class="nmrow"><h3>${u.mut?`<span style="color:${MUTCOL[u.mut]==='#fff6d0'?'#b59a3a':MUTCOL[u.mut]}">${unitMutName(u)}</span> `:''}${esc(D[sd].n)}</h3>${enemy?'':`<span class="cost c${L.cost}">₽${L.cost}</span>`}</div>
+  tip.innerHTML=`<div class="top">${porImg(sd,!!(u.shiny&&!enemy))}<div class="hd"><div class="nmrow"><h3>${u.mut?`<span style="color:${MUTCOL[u.mut]==='#fff6d0'?'#b59a3a':MUTCOL[u.mut]}">${unitMutName(u)}</span> `:''}${esc(D[sd].n)}</h3>${enemy?'':`<span class="cost c${L.cost}">₽${L.cost}</span>`}</div>
     <div class="sub"><span class="stars">${'★'.repeat(u.star)}</span>${tag?` <span class="tag">${tag}</span>`:''}</div><div class="chips">${sets.map(k=>SETS[k]&&SETS[k].cat==='type'?chip(k,TYPES[k]):setChip(k)).join('')}</div></div></div>
     <div class="strip">${st('HP',hp,'hp')}${st('Atk',Math.round(c.atk),'atk')}${st('SpA',Math.round(c.spa),'spa')}${st('AS',c.as.toFixed(2),'as')}${st('Def',Math.round(c.def),'def')}${st('SpD',Math.round(c.res),'res')}${st('Rng',c.range,'rng')}${st('PP',c.maxMana?Math.round(c.mana)+'/'+c.maxMana:'—','pp')}</div>
     <div class="ab">${moveDesc(c)}${K.ladder?`<p class="ladder">${K.ladder.map(x=>x.dex===u.dex?`<b>${esc(x.n)}</b>`:esc(x.n)).join(' → ')}</p>`:''}${K.ab&&!K.ab.own?`<p class="abil"><b>${esc(K.ab.n)}</b> <span class="sc">${K.ab.d}</span></p>`:''}</div>
@@ -1461,14 +1473,14 @@ function renderUI(){achState();
   $('traits').innerHTML=keys.length?shown.map(tr1).join('')+(keys.length>MAXT?`<div class="more" data-more="1">+${keys.length-MAXT} more sets</div>`:'')
     :`<div class="hint">Place Pokémon on the field to activate sets: types, classes and traits.</div>`;
   const s=run.strat,inc=incomePreview();
-  let st0='';try{st0=s.show?s.show():'';}catch(e){}let mh=`<div class="mod mini" title="${esc(s.pts.join(' '))}"><div class="k">Investment environment</div><div class="v">${esc(s.name)}${st0?` <span class="sc">· ${esc(st0)}</span>`:''}</div></div>`;
+  let st0='';try{st0=s.show?s.show():'';}catch(e){}let mh=`<div class="mod mini" title="${esc(s.pts.join(' '))}"><div class="k">Expedition</div><div class="v">${esc(s.name)}${st0?` <span class="sc">· ${esc(st0)}</span>`:''}</div></div>`;
   for(const x of run.augs||[]){const a=AUGMAP[x.id];if(a)mh+=`<div class="mod mini ${x.tier}" title="${esc(a.d)}"><div class="k">${x.tier} augment</div><div class="v">${esc(a.name)}</div></div>`;}
   for(const x of run.invs||[]){const a=INVMAP[x.id];if(!a)continue;let st='';try{st=a.show?a.show():'';}catch(e){}mh+=`<div class="mod mini" title="${esc(a.d)}"><div class="k">Bonus from an older save</div><div class="v">${esc(a.name)}${st?` <span class="sc">· ${esc(st)}</span>`:''}</div></div>`;}
   for(const g of gimList()){const GM=GIMMICKS[g],mega=g==='mega',el=allOwned().filter(u=>gimEligible(u,g)&&(mega||!(gimOn('mega')&&!u.megaOff&&gimEligible(u,'mega'))));
     const tgt=mega?null:allOwned().find(u=>u.uid===gimT(g)&&gimEligible(u,g));const onField=tgt&&Object.values(run.board).includes(tgt);
     mh+=`<div class="mod gim" style="border-color:${GM.col}"><div class="k"><img src="${iconOf(GM.key)}" alt="">${GM.n}</div>${el.length?`<div class="caps">${el.map(u=>`<button class="cap${(mega?!u.megaOff:u===tgt)?' on':''}" data-cap="${u.uid}" data-capg="${g}" aria-label="${mega?`Toggle Mega Evolution for ${esc(nameOf(u))}`:`Use ${esc(GM.n)} with ${esc(nameOf(u))}`}"><img src="${por(shownDex(u))}" alt=""></button>`).join('')}</div><p>${mega?'Every Pokémon holding its Mega Stone Mega Evolves. Click one (or right-click it on the board) to switch it on or off.':tgt?(onField?`${esc(nameOf(tgt))} will use it this battle.`:`${esc(nameOf(tgt))} is on the bench.`):'Pick who uses it this battle.'}</p>`:`<p>${{mega:'Find a Mega Stone for one of your Pokémon.',zmove:'Give a Z-Crystal to a Pokémon with a matching move.',dmax:'Feed a Pokémon Max Mushrooms, then pick it here.',tera:'Give a Tera Shard to a Pokémon.'}[g]}</p>`}</div>`;}
   if(run.relics.length)mh+=`<div class="mod"><div class="k">Relics</div><div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" data-relic="${r}">`).join('')}</div></div>`;
-  mh+=`<div class="mod mini"><div class="k">Next floor income</div><div class="v inc">₽${Math.max(0,inc.base+inc.interest+inc.streak+inc.extra+inc.strat+inc.perk)}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}${inc.strat?` · ₽${inc.strat} ${run.strat.name}`:''}${inc.perk?` · ${inc.perk>0?'':'−'}₽${Math.abs(inc.perk)} environment and augments`:''}</p></div>`;
+  mh+=`<div class="mod mini"><div class="k">Next floor income</div><div class="v inc">₽${Math.max(0,inc.base+inc.interest+inc.streak+inc.extra+inc.strat+inc.perk)}</div><p>₽${inc.base} base · ₽${inc.interest} interest · ₽${inc.streak} ${run.streak<0?'loss':'win'} streak${inc.extra?` · ₽${inc.extra} Pay Day`:''}${inc.strat?` · ₽${inc.strat} ${run.strat.name}`:''}${inc.perk?` · ${inc.perk>0?'':'−'}₽${Math.abs(inc.perk)} expedition and augments`:''}</p></div>`;
   {const sc=scoutState();
     if(sc.focus.length)mh+=`<div class="mod scout"><div class="k">Scouting</div><div class="v">${sc.focus.join(' · ')}</div><p>Each shop slot has a ${pct(sc.p)} chance to show these sets. Rises after shops that miss.</p></div>`;
     else if(sc.top)mh+=`<div class="mod"><div class="k">Scouting</div><div class="v">${sc.top.k}: ${Math.min(sc.top.lines,SCOUT.minLines)}/${SCOUT.minLines} lines · ₽${Math.min(sc.top.gold,SCOUT.minGold)}/${SCOUT.minGold}</div><p>${run.floor<SCOUT.minFloor?`Unlocks on floor ${SCOUT.minFloor}. `:''}Invest in a set and the shop starts favoring it.</p></div>`;}
@@ -1578,8 +1590,11 @@ function showTitle(){music('menu');
     <div class="menu-row"><nav class="win menu" aria-label="Main menu">
       ${d?'<button class="mi" id="m-continue">Continue</button>':''}
       <button class="mi" id="m-new">New game</button>
-      <button class="mi" id="m-dex">Kit Dex</button>
+      <button class="mi" id="m-col">Pokémon</button>
+      <button class="mi" id="m-egg">Hatchery${META.vouchers?` <span class="vbadge">${META.vouchers}</span>`:''}</button>
+      <button class="mi" id="m-prof">Profile</button>
       <button class="mi" id="m-ach">Achievements</button>
+      <button class="mi" id="m-dex">Kit Dex</button>
       <button class="mi" id="m-options">Options</button>
       <button class="mi" id="m-credits">Credits</button>
     </nav>${sum}</div>
@@ -1587,7 +1602,7 @@ function showTitle(){music('menu');
     <div class="credit">Sprites and portraits: <a href="https://sprites.pmdcollab.org/" target="_blank" rel="noopener">PMD SpriteCollab</a> contributors. Pokédex data and item sprites: <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>. Font: Pokémon Emerald glyphs via <a href="https://github.com/pret/pokeemerald" target="_blank" rel="noopener">pret/pokeemerald</a>. Fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company.</div>`;
   if(d)$('m-continue').onclick=continueRun;
   $('m-new').onclick=()=>{if(readSave())return confirmNew();showModes();};
-  $('m-options').onclick=showOptions;$('m-ach').onclick=()=>showAchievements();$('m-dex').onclick=()=>showKitDex('title');$('m-credits').onclick=showCredits;
+  $('m-options').onclick=showOptions;$('m-ach').onclick=()=>showAchievements();$('m-col').onclick=()=>showCollection();$('m-egg').onclick=()=>showHatchery();$('m-prof').onclick=()=>showProfile();$('m-dex').onclick=()=>showKitDex('title');$('m-credits').onclick=showCredits;
   (d?$('m-continue'):$('m-new')).focus();
 }
 function confirmNew(){
@@ -1614,14 +1629,14 @@ function showModes(){
       <div class="meta">${n} lines${b?` · <span style="color:var(--leaf)">best ${b}/15</span>`:''}</div></button>`;}).join('');
   const nb=bestOf('nat');
   const legs=shuffle(ROOTS.filter(r=>D[r].L&&SM[r])).slice(0,9);
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Choose a region</h1><p class="sub">Each region uses the Pokémon introduced in that generation, plus older relatives that gained new evolutions there.</p>
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Choose a region</h1><p class="sub">Each region uses the Pokémon introduced in that generation, plus older relatives that gained new evolutions there.</p>${ascControl()}
     <div class="modes">${tiles}<button class="mode win nat" data-m="nat"><div class="meta">Every generation</div><h2>National Dex</h2>
       <div class="grid5">${legs.map(d=>`<img src="${por(d)}" alt="${esc(D[d].n)}">`).join('')}</div>
-      <p>All ${ROOTS.flatMap(family).length.toLocaleString()} Pokémon across ${ROOTS.length} evolution lines. Region bonuses are active.</p>
+      <p>Every generation, using the ${unlockedSet().size} lines you've unlocked (pick your roster next). Region bonuses are active.</p>
       <div class="meta">${nb?`Best ${nb}/15`:'Not cleared yet'}</div></button></div></div>
     <button class="btn back" id="back">Back</button>`;
-  ov.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{MODE=buildMode(b.dataset.m);ov.innerHTML='';beginRun();});
-  $('back').onclick=showTitle;
+  ov.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{MODE=buildMode(b.dataset.m);if(MODE.gen)showPartner(showModes);else showRoster(()=>showPartner(showModes),showModes);});
+  wireAsc(showModes);$('back').onclick=showTitle;
 }
 const MODECOUNT={};
 function buildModeCount(id){const k=id+(OPTS.unsprited?'u':'');if(!MODECOUNT[k])MODECOUNT[k]=buildMode(id).roots.length;return MODECOUNT[k];}
@@ -1669,7 +1684,7 @@ function showGimmickChoice(){
 /* ---------- act transitions and Endless mode ---------- */
 function guardianDone(win){
   if(!win)return SIM.on?(mode='over'):showEnd(false);
-  achAct(actOf());
+  achAct(actOf());metaAct(actOf());
   const a=actOf();
   if(a<ACTS.length-1||run.endless){if(SIM.on){const rc=shuffle(Object.keys(RELICS).filter(r=>!run.relics.includes(r)))[0];if(rc)run.relics.push(rc);return startNextAct();}return showActClear();}
   return SIM.on?(mode='over'):showEnd(true);
@@ -1709,7 +1724,7 @@ function showEvoChoice(){
   ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{hideTip();job.u.dex=+b.dataset.k;ensure(job.u.dex);ov.innerHTML='';evoOpen=false;
     toast(`${job.before} evolved into ${D[job.u.dex].n}!`);combine();renderUI();if(evoQueue.length)showEvoChoice();});
 }
-function showEnd(won){music(won?'theme':'menu');achCheck('end',{won});
+function showEnd(won){music(won?'theme':'menu');achCheck('end',{won});metaRunEnd(won);
   mode='over';showGameUI(false);setBest(MODE.id,run.wins);chest=null;clearSave();
   const team=Object.values(run.board).concat(run.bench.filter(Boolean)).sort((a,b)=>b.star-a.star).slice(0,7);
   const where=MODE.gen?MODE.region:'National Dex';
@@ -1717,7 +1732,7 @@ function showEnd(won){music(won?'theme':'menu');achCheck('end',{won});
     <h1 class="h1">${won?`${where}: Champion!`:'Your run has ended'}</h1>
     <p class="sub">${won?`${esc(D[run.boss.dex].n)} steps aside. All three acts are cleared. Keep going in Endless mode, where every new act hits harder than the last.`:`Your team fell on Floor ${run.floor} of the ${esc(actDef().name)} (${actLabel()}${run.endless?`, ${actOf()-ACTS.length+1} endless act${actOf()-ACTS.length?'s':''} deep`:''}).`}</p>
     <div class="win" style="padding:14px 20px;display:flex;flex-direction:column;gap:12px;align-items:center">
-      <div class="endstat"><div><span class="lbl">Floors won</span><b>${run.wins}</b></div><div><span class="lbl">Trainer level</span><b>${run.level}</b></div><div><span class="lbl">Environment</span><b style="font-size:20px">${run.strat.name}</b></div>${(run.augs||[]).length?`<div><span class="lbl">Augments</span><b style="font-size:16px">${run.augs.map(x=>esc((AUGMAP[x.id]||{}).name||x.id)).join(', ')}</b></div>`:''}</div>
+      <div class="endstat"><div><span class="lbl">Floors won</span><b>${run.wins}</b></div><div><span class="lbl">Trainer level</span><b>${run.level}</b></div><div><span class="lbl">Expedition</span><b style="font-size:20px">${run.strat.name}</b></div>${(run.augs||[]).length?`<div><span class="lbl">Augments</span><b style="font-size:16px">${run.augs.map(x=>esc((AUGMAP[x.id]||{}).name||x.id)).join(', ')}</b></div>`:''}</div>
       <div style="display:flex;gap:6px">${team.map(u=>`<img src="${por(u.dex)}" alt="${esc(nameOf(u))}" title="${esc(nameOf(u))} ${'★'.repeat(u.star)}" style="width:56px;height:56px;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px">`).join('')}</div>
       ${run.relics.length?`<div class="relics">${run.relics.map(r=>`<img src="${iconOf(r)}" alt="${esc(RELICS[r].n)}" title="${esc(RELICS[r].n)}">`).join('')}</div>`:''}
     </div>

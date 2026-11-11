@@ -12,7 +12,7 @@ const WEATHER_TXT={sun:'harsh sunlight (Fire moves +20%, Water moves −15%)',ra
 const augStrongest=()=>{let b=null,v=-1;for(const u of Object.values(run.board)){const x=lineOf(u).cost*Math.pow(3,u.star-1)+u.items.length*.5;if(x>v){v=x;b=u;}}return b;};
 const bySet=(k,c0,c1)=>{const out=[];for(let c=c0;c<=c1;c++)for(const r of MODE.byCost[c-1]||[])if(lineSets(r).includes(k))out.push(r);return out;};
 function gainUnit(root,star=1){const slot=run.bench.indexOf(null);if(slot<0){if(!SIM.on)toast('Your bench is full, so the Pokémon left.');return false;}
-  const u=mkUnit(root);u.star=star;run.bench[slot]=u;if(!SIM.on)ensure(root);if(star>1)for(let s=2;s<=star;s++)evolveStep(u);combine();return true;}
+  const u=metaJoin(mkUnit(root));u.star=star;run.bench[slot]=u;if(!SIM.on)ensure(root);if(star>1)for(let s=2;s<=star;s++)evolveStep(u);combine();return true;}
 const gainItems=(n,craft)=>{for(let i=0;i<n;i++){const it=craft?{k:randCraft(),mut:[]}:mkComp(randComp(),[]);if(run.bag.length<BAGMAX)run.bag.push(it);}};
 
 const AUGDEF=[
@@ -163,7 +163,7 @@ const AUGS={silver:AUGDEF.filter(a=>a.t==='silver'&&!a.set),gold:AUGDEF.filter(a
 
 /* ---------- state ---------- */
 const myAugs=()=>((run&&run.augs)||[]).map(x=>AUGMAP[x.id]).filter(Boolean);
-// augments and investment environments share hooks (see team.js)
+// augments and expeditions share hooks (see team.js)
 const perks=()=>myAugs().concat(typeof myInvs==='function'?myInvs():[]).concat(run&&run.strat&&run.strat.general?[run.strat]:[]);
 const augS=id=>{run.augSt=run.augSt||{};return run.augSt[id]=run.augSt[id]||{};};
 // how many of your Pokémon stand next to this one
