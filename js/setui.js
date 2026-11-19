@@ -65,7 +65,7 @@ function showRocketHQ(){const H=hqStock(),T=featTier('Team Rocket'),L=run.rloot|
   const vault=T>=4&&!run.vaultDone;
   const body=`<div class="setgrid">${H.s.map((x,i)=>optBtn(`data-hq="${i}"`,null,x.n,x.d,x.sold?'Sold':`${x.c} Loot`,x.sold||L<x.c)).join('')}
     ${vault?optBtn('data-vault="1"',iconOf('relic-gold'),'Giovanni\'s Gambit',`Cash in all ${L} Loot: ₽${Math.floor(L/3)}${L>=40?', a 2★ ₽4 or ₽5 Pokémon':''}${L>=60?' and a relic':''}`,'Once per run',L<10):''}</div>`;
-  const close=setMenu('<span class="rocket-r">R</span> Rocket HQ',`You have <b>${L} Loot</b>. Earn more from Rocket knockouts${T>=2?' and lost rounds':''}. Stock changes each round.`,body,{cls:'rocketwin'});
+  const close=setMenu('Rocket HQ',`You have <b>${L} Loot</b>. Earn more from Rocket knockouts${T>=2?' and lost rounds':''}. Stock changes each round.`,body,{cls:'rocketwin',icon:'big-nugget'});
   ov.querySelectorAll('[data-hq]').forEach(b=>b.onclick=()=>{const x=H.s[+b.dataset.hq];if(x.sold||(run.rloot||0)<x.c)return;run.rloot-=x.c;x.sold=1;hqBuy(x.id);sfx('buy');showRocketHQ();});
   const v=ov.querySelector('[data-vault]');if(v)v.onclick=()=>{const L2=run.rloot||0;run.vaultDone=1;run.rloot=0;run.gold+=Math.floor(L2/3);let msg=`+₽${Math.floor(L2/3)}`;
     if(L2>=40){const pool=[...MODE.byCost[3],...MODE.byCost[4]];const r=pick(pool);if(r&&typeof gainUnit==='function'){gainUnit(r,2);msg+=`, ${D[r].n} 2★`;}}
