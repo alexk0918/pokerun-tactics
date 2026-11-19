@@ -45,7 +45,7 @@ function dashTo(c,t,behind,dur=.2){
   if(!SIM.on){pfx('Puff_'+colFamily(tcol(c)),c.x,c.y-6,{sc:.7,force:1});}
   return true;
 }
-function knock(c,t){if(t.dead||t.stunImm)return;const opts=nbrs(t.c,t.r).filter(h=>!occupied(h.c,h.r,t)&&hdist(h,c)>hdist(t,c));if(!opts.length)return;
+function knock(c,t){if(t.dead||t.stunImm||anchored(t))return;const opts=nbrs(t.c,t.r).filter(h=>!occupied(h.c,h.r,t)&&hdist(h,c)>hdist(t,c));if(!opts.length)return;
   const h=pick(opts),p=hexXY(h.c,h.r);t.move={c:h.c,r:h.r,fx:t.x,fy:t.y,tx:p.x,ty:p.y,t:0,dur:.18};stun(t,.25);}
 function cluster(c){let best=null,bn=-1;for(const o of foesOf(c)){const n=near(o,1).length;if(n>bn||(n===bn&&hdist(o,c)<hdist(best,c))){bn=n;best=o;}}return best;}
 function lineHits(c,t){const dx=t.x-c.x,dy=(t.y-c.y)/SQ,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
@@ -100,12 +100,12 @@ defSig({ids:[936],role:'Cannon Knight',cls:'Artillery',cat:'spec',range:3,mana:9
     c.def=Math.max(0,c.def-6);c.res=Math.max(0,c.res-6);}});
 
 // Dragapult: launches Dreepy like missiles. More darts every few casts, for the whole run (Ezreal / Kai'Sa style).
-const dartsOf=(c,i)=>[2,3,4][i]+Math.min(8,Math.floor(((c.u&&c.u.ss)||0)/4));
+const dartsOf=(c,i)=>[2,3,4][i]+Math.floor(((c.u&&c.u.ss)||0)/4);
 defSig({ids:[885,886,887],role:'Marksman',cls:'Combo',cat:'phys',range:3,mana:60,pf:[.65,.8,.9],names:['Infestation','Dragon Darts','Dragon Darts'],mvType:'Dragon',
-  d:(c,i)=>{const n=dartsOf(c,i),ss=(c.u&&c.u.ss)||0,maxed=n-[2,3,4][i]>=8;return`Launches <b>${n}</b> Dreepy that arc through the air and spread across enemies within 4 hexes, each dealing ${DT(c,.42)}. <b>Grows:</b> every 4 casts adds another dart for the rest of the run (up to +8). ${maxed?'Fully grown!':`Next dart in ${4-ss%4} cast${4-ss%4>1?'s':''} (${ss} casts so far).`}`;},
-  cast(c,tg,i){const n=dartsOf(c,i),pool=shuffle(foesOf(c).filter(o=>hdist(c,o)<=4));const ts=pool.length?pool:[tg];
+  d:(c,i)=>{const n=dartsOf(c,i),ss=(c.u&&c.u.ss)||0,maxed=n-[2,3,4][i]>=8;return`Launches <b>${n}</b> Dreepy that arc through the air and spread across enemies within 4 hexes, each dealing ${DT(c,.42)}. <b>Grows:</b> every 4 casts adds another dart for the rest of the run, forever (past 12 darts, each dart hits harder instead). ${false?'':`Next dart in ${4-ss%4} cast${4-ss%4>1?'s':''} (${ss} casts so far).`}`;},
+  cast(c,tg,i){const ov=overflow(dartsOf(c,i),PROJ_DRAW),n=ov.n,pool=shuffle(foesOf(c).filter(o=>hdist(c,o)<=4));const ts=pool.length?pool:[tg];
     for(let k=0;k<n;k++)schedule(k*.07,()=>{if(c.dead)return;const a=ts.filter(o=>!o.dead);if(!a.length)return;const t=a[k%a.length];
-      fire(c,t,k%2?'#7be0c8':'#b48cff',()=>hitAb(c,t,.42),{arc:1,dur:.5+Math.random()*.3,size:3,lift:50+Math.random()*70,side:(k%2?1:-1)*(20+Math.random()*60),retarget:1});});
+      fire(c,t,k%2?'#7be0c8':'#b48cff',()=>hitAb(c,t,.42*ov.mul),{arc:1,dur:.5+Math.random()*.3,size:3,lift:50+Math.random()*70,side:(k%2?1:-1)*(20+Math.random()*60),retarget:1});});
     if(c.u)c.u.ss=(c.u.ss||0)+1;}});
 
 // Swalot: Cho'Gath. Swallows weak enemies whole and keeps the HP forever.
@@ -264,7 +264,7 @@ defSig({ids:[624,625,983],role:'Leader',cls:'Bruiser',cat:'phys',range:1,mana:[7
 defSig({ids:[446,143],role:'Glutton',cls:'Juggernaut',type:'guard',cat:'phys',range:1,mana:[80,90],start:20,pf:[.8,1],names:['Lick','Body Slam'],mvType:'Normal',
   d:(c,i)=>`${i?`If it's below 60% HP, it first takes a quick <b>Rest</b>: asleep for 1.5s while healing <b class="s-hp">${Math.round(c.maxHp*.4)}</b> <span class="sc">(40% <span class="s-hp">max HP</span>)</span>. Then it`:'It'} Body Slams the target and adjacent enemies for <b class="s-hp">${Math.round(c.base*.6+c.maxHp*.1)}</b> <span class="sc">(${Math.round(c.base*.6)} + 10% <span class="s-hp">max HP</span>)</span> <span class="s-atk">physical</span> damage, stunning them for 0.6s.`,
   cast(c,tg,i){const slam=()=>{if(c.dead||tg.dead)return;for(const o of[tg,...near(tg,1)]){damage(c,o,(c.base*.6+c.maxHp*.08)*(o===tg?1:.7),{ab:1,cat:'phys',type:'Normal'});stun(o,.6);}boom(tg,'#d8c8a8',3);};
-    if(i&&c.hp<c.maxHp*.6){stun(c,1.5);heal(c,c.maxHp*.4);if(!SIM.on)texts.push({x:c.x,y:c.y-38,txt:'Zzz...',col:'#c6b3ff',life:1.4,label:1});schedule(1.55,slam);}else slam();}});
+    if(i&&c.hp<c.maxHp*.6){stun(c,1.5);heal(c,c.maxHp*(.4+(c.restAmp||0)));if(!SIM.on)texts.push({x:c.x,y:c.y-38,txt:'Zzz...',col:'#c6b3ff',life:1.4,label:1});schedule(1.55,slam);}else slam();}});
 
 // Gimmighoul/Gholdengo: the treasure keeper. Make It Rain hits harder the richer you are.
 const richBonus=c=>c.team===0&&run?Math.min(.3,Math.floor(run.gold/2)*.01):0;

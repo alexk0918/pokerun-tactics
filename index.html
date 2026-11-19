@@ -561,6 +561,41 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .trait.m-prism .hex{background:linear-gradient(135deg,#ff8de1,#8ad8ff 35%,#ffe27a 65%,#9dff9a);animation:prism 3s linear infinite;background-size:200% 200%;}
 .trait.m-prism{border-color:#ffd0f4;box-shadow:0 0 10px #ff8de188;}
 @keyframes prism{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+/* set features: menus and side-panel buttons */
+.setwin{width:min(760px,94vw);max-height:86vh;overflow:auto;padding:16px 20px;position:relative;animation:winIn .22s cubic-bezier(.2,1.3,.4,1);}
+.setwin .h1{margin:0 0 4px;} .setwin .sub{margin:0 0 12px;}
+.setwin-ico{position:absolute;right:18px;top:14px;width:44px;height:44px;image-rendering:pixelated;animation:icoBob 2.4s ease-in-out infinite;}
+.setgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:10px;}
+.setgrid.jr{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));max-height:46vh;overflow:auto;}
+.setopt{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:left;border:2px solid #c5d1d9;border-radius:8px;padding:7px 9px;background:#fff;font-family:var(--body);font-size:15px;color:var(--ink);cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s;}
+.setopt img{grid-row:span 2;width:40px;height:40px;image-rendering:pixelated;object-fit:contain;}
+.setopt b{font-family:var(--display);font-size:16px;} .setopt span{font-size:13px;color:var(--muted);}
+.setopt em{grid-column:2;font-style:normal;font-family:var(--label);font-size:15px;color:#b5532f;}
+.setopt:not([disabled]):hover,.setopt:not([disabled]):focus-visible,.setopt.padfocus{transform:translateY(-2px);border-color:var(--ink);box-shadow:0 3px 0 var(--ink);outline:none;}
+.setopt[disabled]{opacity:.45;cursor:default;} .setopt.on{border-color:#c9961d;background:#fff4d6;}
+.setopt.empty{background:repeating-linear-gradient(135deg,#eef0ea 0 6px,#e3e7df 6px 12px);cursor:default;}
+.setopt.mini{display:inline-flex;padding:4px 8px;} .setopt.mini b{font-size:14px;}
+.setwin .umacts{flex-direction:row;justify-content:flex-end;}
+.setwin .lbl{font-family:var(--label);color:var(--muted);text-transform:uppercase;margin:6px 0 4px;}
+.setwin .search{width:100%;font-size:16px;padding:6px 10px;border:2px solid var(--ink);border-radius:8px;margin-bottom:8px;}
+.rocketwin{background:linear-gradient(#fff,#fff 70%,#fde8e8);} .rocket-r{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#d8262c;color:#fff;font-weight:900;margin-right:6px;}
+.dojolist{display:flex;flex-direction:column;gap:6px;} .dojorow{display:grid;grid-template-columns:44px 170px 1fr;align-items:center;gap:8px;border:2px solid #c5d1d9;border-radius:8px;padding:5px 8px;background:#fff;}
+.dojorow img{width:40px;height:40px;image-rendering:pixelated;} .dj-n{display:flex;flex-direction:column;} .dj-t{display:flex;gap:4px;flex-wrap:wrap;} .dojorow .dj-t+.dj-t{grid-column:3;}
+.belt{font-size:13px;display:inline-flex;align-items:center;gap:4px;} .belt::before{content:'';width:18px;height:6px;border-radius:2px;background:var(--bc);border:1px solid #0006;}
+.feedwin{width:min(680px,94vw);padding:16px 20px;animation:winIn .22s cubic-bezier(.2,1.3,.4,1);} .feedgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:52vh;overflow:auto;margin-bottom:8px;}
+.feedopt{display:grid;grid-template-columns:40px 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:left;border:2px solid #c5d1d9;border-radius:8px;padding:6px 8px;background:#fff;cursor:pointer;font-size:14px;}
+.feedopt img{grid-row:span 2;width:40px;height:40px;image-rendering:pixelated;object-fit:contain;} .feedopt b{color:#b5532f;font-family:var(--label);}
+.feedopt:hover,.feedopt:focus-visible,.feedopt.padfocus{border-color:var(--ink);box-shadow:0 3px 0 var(--ink);transform:translateY(-2px);outline:none;}
+.mod.feats .featrow{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
+.featbtn{display:flex;align-items:center;gap:8px;text-align:left;border:2px solid #0008;border-radius:7px;padding:3px 7px;background:linear-gradient(#2a4434,#1c3326);color:#f0f4ec;cursor:pointer;font-family:var(--body);transition:transform .12s,filter .12s;animation:featIn .4s ease-out;}
+.featbtn img{width:28px;height:28px;image-rendering:pixelated;object-fit:contain;} .featbtn b{display:block;font-size:14px;font-family:var(--display);} .featbtn small{font-size:12px;color:#c9d8c4;}
+.featbtn:hover,.featbtn:focus-visible,.featbtn.padfocus{transform:translateX(3px);filter:brightness(1.2);outline:2px solid #ffe27a;}
+.featbtn[disabled]{opacity:.55;cursor:default;}
+.mod.gated .v{color:#ffd34d;font-size:14px;}
+.badgepick .icon img{animation:icoBob 2s ease-in-out infinite;}
+@keyframes winIn{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+@keyframes featIn{from{transform:translateX(-10px);opacity:0}to{transform:none;opacity:1}}
+@keyframes icoBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 /* unit menu */
 .umwin{display:grid;grid-template-columns:330px 300px;gap:18px;padding:16px 18px;max-height:640px;}
 .umdetails{font-size:16px;max-height:600px;overflow:auto;}
@@ -839,16 +874,17 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 </div></div>
 
 <script src="js/data.js?v=21"></script>
-<script src="js/sets.js?v=23"></script>
-<script src="js/game.js?v=68"></script>
+<script src="js/sets.js?v=24"></script>
+<script src="js/homes.js?v=1"></script>
+<script src="js/game.js?v=69"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=7"></script>
 <script src="js/cine.js?v=10"></script>
 <script src="js/forms.js?v=18"></script>
-<script src="js/route.js?v=125"></script>
+<script src="js/route.js?v=126"></script>
 <script src="js/carousel.js?v=11"></script>
-<script src="js/kits.js?v=23"></script>
+<script src="js/kits.js?v=24"></script>
 <script src="js/kits_gen1.js?v=5"></script>
 <script src="js/kits_gen2.js?v=4"></script>
 <script src="js/kits_gen3.js?v=4"></script>
@@ -860,15 +896,18 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 <script src="js/kits_forms.js?v=4"></script>
 <script src="js/kits_gen9.js?v=3"></script>
 <script src="js/kits_alt.js?v=3"></script>
+<script src="js/growth.js?v=1"></script>
+<script src="js/sets2.js?v=1"></script>
 <script src="js/fusion.js?v=11"></script>
-<script src="js/traits.js?v=3"></script>
+<script src="js/traits.js?v=4"></script>
 <script src="js/team.js?v=6"></script>
 <script src="js/achievements.js?v=2"></script>
 <script src="js/meta.js?v=10"></script>
 <script src="js/audio.js?v=14"></script>
 <script src="js/kitdex.js?v=5"></script>
-<script src="js/augments.js?v=12"></script>
-<script src="js/ui.js?v=17"></script>
+<script src="js/augments.js?v=13"></script>
+<script src="js/ui.js?v=18"></script>
+<script src="js/setui.js?v=1"></script>
 <script src="js/meter.js?v=1"></script>
 <script src="js/gamepad.js?v=23"></script>
 </body>

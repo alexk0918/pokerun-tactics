@@ -143,6 +143,7 @@ function showUnitMenu(u,h={}){
     for(const o of fusionOptions(u))acts.push(o.partner?`<button class="btn" data-fuse="${o.fid}">Fuse with ${esc(nameOf(o.partner))} → ${esc(D[o.fid].n)}</button>`:`<button class="btn" disabled>${esc(D[o.fid].n)}: needs ${esc(D[o.pd].n)}</button>`);
     if(u.fuse)acts.push(`<button class="btn" id="um-unfuse">Separate ${esc(nameOf(u.fuse.p))}</button>`);
     if(FORME_BASES[baseOf(u.dex)])acts.push(`<button class="btn" id="um-forme">Change forme (Meteorite)</button>`);}
+  for(const[k,n]of unitActs(u))acts.push(`<button class="btn" data-uact="${k}">${esc(n)}</button>`);
   umWasPaused=paused;if(mode==='combat')paused=true;
   ov.innerHTML=`<div class="scrim" id="um-scrim"></div><div class="screen"><div class="win umwin"><div class="umdetails">${details}</div>
     <div class="umside"><div class="lbl">Held items</div>${slots}${gims?`<div class="lbl" style="margin-top:8px">Gimmick</div>${gims}`:''}
@@ -153,6 +154,7 @@ function showUnitMenu(u,h={}){
   $('back').onclick=close;$('um-scrim').onclick=close;
   if($('um-mega'))$('um-mega').onclick=()=>{u.megaOff=!u.megaOff;close();if(!u.megaOff&&!SIM.on){const p=locate(u);if(p){toast(`${nameOf(u)} Mega Evolved!`);['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'].forEach(col=>burst(p.x,p.y-12,col,10,1.4));}}else toast(`${nameOf(u)} will stay in its normal form.`);};
   ov.querySelectorAll('[data-fuse]').forEach(b=>b.onclick=()=>{const o=fusionOptions(u).find(x=>x.fid===+b.dataset.fuse);ov.innerHTML='';paused=umWasPaused;if(o)fuse(u,o);renderUI();});
+  ov.querySelectorAll('[data-uact]').forEach(b=>b.onclick=()=>{ov.innerHTML='';paused=umWasPaused;unitAct(u,b.dataset.uact);});
   if($('um-unfuse'))$('um-unfuse').onclick=()=>{ov.innerHTML='';paused=umWasPaused;unfuse(u);renderUI();};
   if($('um-forme'))$('um-forme').onclick=()=>{ov.innerHTML='';paused=umWasPaused;showFormePick(u);};
   if($('um-rotom'))$('um-rotom').onclick=()=>{ov.innerHTML='';paused=umWasPaused;showRotomCatalog(u);};

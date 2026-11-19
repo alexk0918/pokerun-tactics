@@ -61,6 +61,7 @@ const AUGDEF=[
     ef:x=>{const d=shownDex(x.u),dd=D[d];return(dd&&(dd.rf||dd.af))||x.u.fuse||x.u.forme?{hpP:.15,dmg:.15,as:.15}:null;}},
   {id:'fusionreactor',t:'prismatic',tag:'team',icon:'prison-bottle',name:'Fusion Reactor',d:'Fused Pokémon gain +30% max HP, damage and Attack Speed. If you have none, a random fusion-ready legendary (Kyurem, Necrozma or Calyrex) joins your bench.',
     ef:x=>x.u.fuse?{hpP:.3,dmg:.3,as:.3}:null,gain(){if(allOwned().some(u=>[646,800,898].includes(baseOf(u.dex))))return;const p=[646,800,898].filter(r=>MODE.lines[r]);if(p.length)gainUnit(pick(p),1);}},
+  {id:'guild',t:'prismatic',tag:'set',icon:'badge-30',name:'Guild Membership',d:'Receive a Blank Guild Badge now. Engrave it for one of your sets: its holder becomes a member and unlocks that set\'s capstone.',gain(){if(typeof giveBlankBadge==='function'&&!giveBlankBadge('Guild Membership'))run.gold+=8;}},
   {id:'gathering',t:'prismatic',tag:'set',icon:'soul-dew',name:'Legendary Gathering',d:'Every kinship set you have active (Wolf Pack, Tao Trio, Island Guardians, Eeveelutions…) counts one extra member.',kin:1},
   {id:'packleader',t:'gold',tag:'set',icon:'razor-claw',name:'Pack Leader',d:'Kinship sets need one fewer member: each counts one extra as long as you have at least one member.',kinAll:1},
   /* ---------------- more silver ---------------- */
@@ -197,7 +198,7 @@ function augPool(tier,exclude){const own=new Set((run.augs||[]).map(x=>x.id)),se
 function seenAug(ids){run.augSeen=run.augSeen||[];for(const id of ids)if(!run.augSeen.includes(id))run.augSeen.push(id);}
 function setAugFor(tier,exclude){
   // a set augment for one of the sets you already play (weighted toward your biggest)
-  const ct=countTraits(allOwned());const ks=Object.keys(ct).filter(k=>SETS[k]&&(SETS[k].cat==='type'||SETS[k].cat==='class'||(SETS[k].cat==='style'&&!SETS[k].kin)));if(!ks.length)return null;
+  const ct=countTraits(allOwned());const ks=Object.keys(ct).filter(k=>SETS[k]&&(SETS[k].cat==='type'||SETS[k].cat==='class'||(SETS[k].cat==='style'&&!SETS[k].kin&&ct[k]>=2&&!(tier==='prismatic'&&SETS[k].trait))));if(!ks.length)return null;
   ks.sort((a,b)=>ct[b]-ct[a]);const k=Math.random()<.6?ks[0]:pick(ks.slice(0,4));
   const id=({silver:'heart:',gold:'crest:',prismatic:'crown:'}[tier])+k;
   if(exclude.has(id)||(run.augs||[]).some(x=>x.id===id)||(run.augSeen||[]).includes(id))return null;return AUGMAP[id];}
