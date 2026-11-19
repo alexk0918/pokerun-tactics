@@ -266,21 +266,37 @@ function showRoster(next,back){
 }
 function editRoster(i,next,back){
   const R=META.roster,U=unlockedSet(),N=natMode(),P=i>=0?R.presets[i]:{name:`Roster ${R.presets.length+1}`,lines:[...U]};
-  const sel=new Set(P.lines.filter(r=>U.has(r)));let name=P.name;
-  const draw=()=>{const c=rosterCounts([...sel]);const ok=c.every((n,k)=>n>=ROSTER_MIN[k]);
-    const col=k=>{const ls=[...U].filter(r=>N.lines[r]&&N.lines[r].cost===k+1).sort((a,b)=>lineName(a).localeCompare(lineName(b)));
-      return`<div class="rcol"><h3>₽${k+1} <small class="${c[k]>=ROSTER_MIN[k]?'ok':'bad'}">${c[k]} (min ${ROSTER_MIN[k]})</small></h3><button class="btn sm" data-all="${k}">All</button><button class="btn sm" data-none="${k}">None</button>
-        <div class="rtiles">${ls.map(r=>`<button class="rt${sel.has(r)?' on':''}" data-r="${r}" title="${esc(lineName(r))}">${porImg(r,shinyShown(r),'',lineName(r))}</button>`).join('')}</div></div>`;};
+  const sel=new Set(P.lines.filter(r=>U.has(r)));let name=P.name,q='';R.fold=R.fold||{};R.group=R.group||'trait';
+  const all=[...U].filter(r=>N.lines[r]);
+  // group lines by their trait (or kinship / lineage), by cost, or by type
+  const groupsOf=r=>{const g=R.group;if(g==='cost')return['₽'+N.lines[r].cost];if(g==='type'){const L=N.lines[r];return[...new Set(D[L.mem[L.mem.length-1]].t)];}return[originOf(r)||'Other'];};
+  const gorder=k=>R.group==='cost'?k:R.group==='type'?k:((SETS[k]&&SETS[k].kin)?'2'+k:(SETS[k]&&!SETS[k].trait)?'1'+k:k==='Other'?'3':'0'+k);
+  const draw=()=>{const c=rosterCounts([...sel]);const ok=c.every((n,k)=>n>=ROSTER_MIN[k]);const G={};
+    for(const r of all){if(q&&!lineName(r).toLowerCase().includes(q))continue;for(const g of groupsOf(r))(G[g]=G[g]||[]).push(r);}
+    const keys=Object.keys(G).sort((a,b)=>gorder(a).localeCompare(gorder(b)));
+    const sec=k=>{const ls=G[k].sort((a,b)=>N.lines[a].cost-N.lines[b].cost||lineName(a).localeCompare(lineName(b)));const on=ls.filter(r=>sel.has(r)).length;const fold=!q&&R.fold[R.group+':'+k];
+      const st=on===0?'none':on===ls.length?'all':'some',col=SETS[k]?setColor(k):R.group==='type'&&TYPES[k]?TYPES[k]:'#55606a';
+      return`<section class="rsec${fold?' fold':''}"><div class="rhead"><button class="rfold" data-fold="${esc(k)}" aria-expanded="${!fold}"><span class="rcaret">▾</span><span class="rhex" style="background:${col}">${esc(k.replace(/[^A-Za-z₽0-9]/g,'').slice(0,3).toUpperCase())}</span><b>${esc(k)}</b><span class="rct ${st}">${on}/${ls.length}</span></button>
+        <button class="btn sm" data-gall="${esc(k)}">Enable all</button><button class="btn sm" data-gnone="${esc(k)}">Disable all</button></div>
+        ${fold?'':`<div class="rtiles">${ls.map(r=>`<button class="rt${sel.has(r)?' on':''}" data-r="${r}" title="${esc(lineName(r))} · ₽${N.lines[r].cost}">${porImg(r,shinyShown(r),'',lineName(r))}<span class="rcost c${N.lines[r].cost}">₽${N.lines[r].cost}</span></button>`).join('')}</div>`}</section>`;};
     ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Edit roster</h1>
-      <p class="sub"><input id="rname" value="${esc(name)}" maxlength="24" aria-label="Roster name"> · Click Pokémon to add or remove them. Each cost needs a minimum so the shop always has something to show.</p>${cardToggle()}
-      <p class="padbar padonly"><span class="padkey k-a">A</span> add / remove <span class="padkey k-y">Y</span> unit card <span class="padkey k-s">R stick</span> scroll <span class="padkey k-s">Start</span> save <span class="padkey k-b">B</span> cancel</p>
-      <div class="rcols">${[0,1,2,3,4].map(col).join('')}</div>
+      <p class="sub"><input id="rname" value="${esc(name)}" maxlength="24" aria-label="Roster name"> · Pick which Pokémon can show up. Each cost needs a minimum so the shop always has something to show.</p>${cardToggle()}
+      <div class="rtools"><span class="lbl">Group by</span>${[['trait','Trait'],['cost','Cost'],['type','Type']].map(([k,n])=>`<button class="btn sm${R.group===k?' on':''}" data-grp="${k}" aria-pressed="${R.group===k}">${n}</button>`).join('')}
+        <input id="rq" type="search" placeholder="Search" value="${esc(q)}" aria-label="Search Pokémon"><button class="btn sm" id="rexp">Expand all</button><button class="btn sm" id="rcol">Collapse all</button>
+        <span class="rmins">${c.map((n,k)=>`<span class="${n>=ROSTER_MIN[k]?'ok':'bad'}">₽${k+1} ${n}/${ROSTER_MIN[k]}</span>`).join('')}</span></div>
+      <p class="padbar padonly"><span class="padkey k-a">A</span> add / remove, open or close a group <span class="padkey k-y">Y</span> unit card <span class="padkey k-s">R stick</span> scroll <span class="padkey k-s">Start</span> save <span class="padkey k-b">B</span> cancel</p>
+      <div class="rgroups">${keys.map(sec).join('')||'<p class="sub">Nothing matches your search.</p>'}</div>
       <div class="row"><button class="btn go" id="rsave" ${ok?'':'disabled'}>Save roster</button><button class="btn" id="back">Cancel</button></div>
 </div>`;
     $('rname').oninput=e=>{name=e.target.value;};
+    $('rq').oninput=e=>{q=e.target.value.trim().toLowerCase();clearTimeout(draw.t);draw.t=setTimeout(()=>{draw();const el=$('rq');el.focus();el.setSelectionRange(el.value.length,el.value.length);},200);};
     ov.querySelectorAll('.rt').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;sel.has(r)?sel.delete(r):sel.add(r);keepPlace(draw);});
-    ov.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{for(const r of U)if(N.lines[r]&&N.lines[r].cost===+b.dataset.all+1)sel.add(r);keepPlace(draw);});
-    ov.querySelectorAll('[data-none]').forEach(b=>b.onclick=()=>{for(const r of[...sel])if(N.lines[r]&&N.lines[r].cost===+b.dataset.none+1)sel.delete(r);keepPlace(draw);});
+    ov.querySelectorAll('[data-fold]').forEach(b=>b.onclick=()=>{const k=R.group+':'+b.dataset.fold;R.fold[k]=!R.fold[k];metaSave();keepPlace(draw);});
+    ov.querySelectorAll('[data-gall]').forEach(b=>b.onclick=()=>{for(const r of G[b.dataset.gall]||[])sel.add(r);keepPlace(draw);});
+    ov.querySelectorAll('[data-gnone]').forEach(b=>b.onclick=()=>{for(const r of G[b.dataset.gnone]||[])sel.delete(r);keepPlace(draw);});
+    ov.querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{R.group=b.dataset.grp;metaSave();draw();});
+    $('rexp').onclick=()=>{for(const k of keys)delete R.fold[R.group+':'+k];metaSave();keepPlace(draw);};
+    $('rcol').onclick=()=>{for(const k of keys)R.fold[R.group+':'+k]=true;metaSave();keepPlace(draw);};
     $('rsave').onclick=()=>{const p={name:name.trim()||'Roster',lines:[...sel]};if(i>=0)R.presets[i]=p;else{R.presets.push(p);R.sel=R.presets.length-1;}metaSave();showRoster(next,back);};
     $('back').onclick=()=>showRoster(next,back);wireCards();};
   draw();

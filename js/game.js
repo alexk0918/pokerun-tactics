@@ -1465,7 +1465,7 @@ function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.w
 function hideTip(){$('tip').style.display='none';}
 let toastT=0;function toast(m){if(SIM.on)return;const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2600);}
 function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="banner win">${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</div>`;setTimeout(()=>{if(h.firstChild&&h.firstChild.textContent.startsWith(title))h.innerHTML='';},ms);}
-function showGameUI(on){['hud','traits','shop','bag','meter'].forEach(id=>$(id).hidden=!on);if(!on)closePause();}
+function showGameUI(on){['hud','traits','shop','bag','meter','feats'].forEach(id=>$(id).hidden=!on);if(!on)closePause();}
 function renderUI(){achState();
   if(run&&mode==='plan')grantGear();
   dexLearnOwned();
@@ -1503,8 +1503,8 @@ function renderUI(){achState();
     else if(sc.top)mh+=`<div class="mod"><div class="k">Scouting</div><div class="v">${sc.top.k}: ${Math.min(sc.top.lines,SCOUT.minLines)}/${SCOUT.minLines} lines · ₽${Math.min(sc.top.gold,SCOUT.minGold)}/${SCOUT.minGold}</div><p>${run.floor<SCOUT.minFloor?`Unlocks on floor ${SCOUT.minFloor}. `:''}Invest in a set and the shop starts favoring it.</p></div>`;}
   const nmh=nodeModHtml();mh+=nmh;
   if(mode!=='loot'&&!nmh&&!NONCOMBAT.has(nodeK(f)))mh+=`<div class="mod mini"><div class="k">Next opponent</div><div class="v">${esc(trainerName(f))}</div></div>`;
-  mh+=statusGuideHtml();mh=setsModsHtml()+mh;
-  $('mods').innerHTML=mh;featAnnounce();
+  mh+=statusGuideHtml();
+  $('mods').innerHTML=mh;renderFeats();
   const plan=mode==='plan',owned=new Set(allOwned().filter(u=>u.star<3).map(u=>u.root));
   $('cards').innerHTML=run.shop.map((r,i)=>{if(!r)return`<div class="card empty" aria-hidden="true"></div>`;const L=MODE.lines[r];const G=growthOf({root:r});
     return`<button class="card c${L.cost}${run.gold<priceOf(r)?' poor':''}${owned.has(r)?' owned':''}" data-i="${i}" ${plan?'':'disabled'} aria-label="Buy ${esc(D[r].n)} for ${priceOf(r)}"><div class="band"><span class="name">${kitOf(r).sig?'<span class="sigstar" title="Signature kit">✦</span>':''}${esc(D[r].n)}</span><span class="cost">₽${priceOf(r)}</span></div>

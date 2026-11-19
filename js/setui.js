@@ -35,9 +35,9 @@ const FEATS=[
 ];
 function featsOpen(){if(!run)return[];return FEATS.filter(f=>featTier(f.set)>=f.need&&(!f.when||f.when()));}
 function setsModsHtml(){if(!run||SIM.on)return'';const fs=featsOpen();const blank=run.bag.map((it,i)=>({it,i})).filter(x=>isBadge(x.it)&&!badgeSet(x.it));
-  let h='';if(fs.length||blank.length)h+=`<div class="mod feats"><div class="k">Set features</div><div class="featrow">${fs.map(f=>`<button class="featbtn" data-feat="${f.k}" ${mode==='plan'||f.k==='flight'?'':'disabled'}><img src="${iconOf(f.icon)}" alt=""><span><b>${f.n}</b><small>${esc(f.v())}</small></span></button>`).join('')}
-    ${blank.map(x=>`<button class="featbtn" data-engrave="${x.i}"><img src="${iconOf(badgeIcon(''))}" alt=""><span><b>Engrave badge</b><small>Blank Guild Badge</small></span></button>`).join('')}</div></div>`;
-  for(const k in GATED){const n=fieldCt()[k]||0;h+=`<div class="mod mini gated"><div class="k">${esc(k)} capstone</div><div class="v">${GATED[k]==='badge'?'Needs a Guild Badge on the field':`Needs ${capOf(k)} different members`}</div></div>`;}
+  let h='';if(fs.length||blank.length)h+=`<div class="featrow">${fs.map(f=>`<button class="featbtn" data-feat="${f.k}" ${mode==='plan'||f.k==='flight'?'':'disabled'}><img src="${iconOf(f.icon)}" alt=""><span><b>${f.n}</b><small>${esc(f.v())}</small></span></button>`).join('')}
+    ${blank.map(x=>`<button class="featbtn" data-engrave="${x.i}"><img src="${iconOf(badgeIcon(''))}" alt=""><span><b>Engrave badge</b><small>Blank Guild Badge</small></span></button>`).join('')}</div>`;
+  for(const k in GATED)h+=`<div class="gated"><b>${esc(k)} capstone locked</b>${GATED[k]==='badge'?'Needs a Guild Badge on the field':`Needs ${capOf(k)} different members`}</div>`;
   return h;}
 function featClick(e){const b=e.target.closest('[data-feat],[data-engrave]');if(!b)return false;
   if(b.dataset.engrave!==undefined){showEngraver(+b.dataset.engrave);return true;}
@@ -47,7 +47,7 @@ function featAnnounce(){if(!run||SIM.on)return;run.featSeen=run.featSeen||[];for
 
 /* ---------- shared menu shell ---------- */
 function setMenu(title,sub,body,opts={}){
-  ov.innerHTML=`<div class="scrim" id="sm-scrim"></div><div class="screen"><div class="win setwin ${opts.cls||''}">${opts.icon?`<img class="setwin-ico" src="${iconOf(opts.icon)}" alt="">`:''}<h1 class="h1">${title}</h1><p class="sub">${sub}</p>${body}
+  ov.innerHTML=`<div class="scrim" id="sm-scrim"></div><div class="screen"><div class="win featwin ${opts.cls||''}">${opts.icon?`<img class="setwin-ico" src="${iconOf(opts.icon)}" alt="">`:''}<h1 class="h1">${title}</h1><p class="sub">${sub}</p>${body}
     <div class="umacts">${opts.extra||''}<button class="btn" id="sm-back">Close</button></div></div></div>`;
   const close=()=>{ov.innerHTML='';renderUI();};$('sm-back').onclick=close;$('sm-scrim').onclick=close;
   const first=ov.querySelector('.setopt:not([disabled]),.featopt:not([disabled])')||$('sm-back');first.focus();
@@ -90,7 +90,7 @@ function showWishWell(){const W=run.wishes||0,T=featTier('Fae Folk');
   const j=ov.querySelector('[data-jirachi]');if(j)j.onclick=()=>showJirachi();}
 function showJirachi(q=''){const U=typeof unlockedSet==='function'?unlockedSet():null;const roots=MODE.roots.filter(r=>(!U||U.has(r))&&MODE.lines[r].cost<=5);
   const list=roots.filter(r=>!q||D[r].n.toLowerCase().includes(q.toLowerCase())||D[MODE.lines[r].mem.slice(-1)[0]].n.toLowerCase().includes(q.toLowerCase())).slice(0,60);
-  ov.innerHTML=`<div class="scrim" id="jr-scrim"></div><div class="screen"><div class="win setwin"><h1 class="h1">Jirachi's Wish</h1><p class="sub">Make a wish: this Pokémon joins your bench at 2★.</p>
+  ov.innerHTML=`<div class="scrim" id="jr-scrim"></div><div class="screen"><div class="win featwin"><h1 class="h1">Jirachi's Wish</h1><p class="sub">Make a wish: this Pokémon joins your bench at 2★.</p>
     <input id="jr-q" class="search" type="search" placeholder="Search Pokémon" value="${esc(q)}"><div class="setgrid jr">${list.map(r=>`<button class="setopt" data-jr="${r}"><img src="${por(r)}" alt=""><b>${esc(D[r].n)}</b><span>₽${MODE.lines[r].cost}</span></button>`).join('')}</div>
     <div class="umacts"><button class="btn" id="jr-back">Back</button></div></div></div>`;
   $('jr-back').onclick=()=>showWishWell();$('jr-scrim').onclick=()=>showWishWell();
@@ -191,3 +191,6 @@ if(typeof EVENTS!=='undefined')EVENTS.guild={n:'A Guild Hall',img:()=>iconOf(bad
     {t:'Trade a 2★ Pokémon',d:'Give up your cheapest 2★ Pokémon for a Blank Badge.',ok:()=>allOwned().some(u=>u.star===2),fn:()=>{const u=allOwned().filter(x=>x.star===2).sort((a,b)=>lineOf(a).cost-lineOf(b).cost)[0];if(u){for(const it of u.items)run.bag.push(it);removeUnit(u);}giveBlankBadge('Traded at the Guild Hall');return`${u?nameOf(u):'Your Pokémon'} joins the guild. You get a blank badge in return.`;}},
     {t:'Just look around',d:'Leave with nothing.',fn:()=>'You admire the trophy case and head back out.'}]};
 function badgeReward(a){return a>=1||Math.random()<.2;}
+
+function renderFeats(){const el=$('feats');if(!el)return;const show=run&&!SIM.on&&['plan','loot'].includes(mode);el.hidden=!show;if(!show)return;el.innerHTML=setsModsHtml();featAnnounce();}
+$('feats')&&$('feats').addEventListener('click',e=>{if(featClick(e))e.stopPropagation();});
