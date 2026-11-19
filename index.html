@@ -697,6 +697,13 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .pt{display:flex;flex-direction:column;align-items:center;padding:6px 3px;border-radius:8px;border:2px solid #0002;background:#f6f3ea;font:inherit;cursor:pointer;color:#1d2a22;}.pt.on{border-color:#d4a017;background:#fff5d6;}
 .pt img{width:48px;height:48px;image-rendering:pixelated;}.pt b{font-size:12px;}.pt span{font-size:11px;}
 .ascbar{display:flex;align-items:center;gap:8px;padding:6px 10px;margin:6px auto;max-width:760px;flex-wrap:wrap;}.asclv{font-size:20px;min-width:24px;text-align:center;}.ascd{font-size:13px;}
+
+/* controller / keyboard highlight on the progression screens */
+.ctile.padhover,.ctile:focus-visible,.pt.padhover,.pt:focus-visible,.rpick.padhover,.rpick:focus-visible,.skin.padhover,.skin:focus-visible{outline:3px solid var(--gold);outline-offset:1px;}
+.rt.padhover,.rt:focus-visible{outline:3px solid var(--gold);opacity:1;}.rt.padhover:not(.on){opacity:.7;}
+input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
+.padkey{display:none;align-self:center;font-size:11px;padding:1px 5px;border-radius:4px;background:#2b3a30;color:#fff;}body.pad .padkey{display:inline-block;}
+.stabs .padkey{margin:0 4px;}.rname{min-height:22px;font-size:14px;}.ptitle .btn{min-width:30px;}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -754,7 +761,7 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 
 <script src="js/data.js?v=21"></script>
 <script src="js/sets.js?v=22"></script>
-<script src="js/game.js?v=64"></script>
+<script src="js/game.js?v=66"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=7"></script>
@@ -778,12 +785,12 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 <script src="js/traits.js?v=2"></script>
 <script src="js/team.js?v=6"></script>
 <script src="js/achievements.js?v=2"></script>
-<script src="js/meta.js?v=2"></script>
+<script src="js/meta.js?v=5"></script>
 <script src="js/audio.js?v=14"></script>
-<script src="js/kitdex.js?v=4"></script>
+<script src="js/kitdex.js?v=5"></script>
 <script src="js/augments.js?v=12"></script>
-<script src="js/ui.js?v=16"></script>
+<script src="js/ui.js?v=17"></script>
 <script src="js/meter.js?v=1"></script>
-<script src="js/gamepad.js?v=18"></script>
+<script src="js/gamepad.js?v=20"></script>
 </body>
 </html>

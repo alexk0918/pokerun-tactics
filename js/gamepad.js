@@ -3,6 +3,8 @@
    Left stick moves a visible cursor; the D-pad snaps between targets and hides the cursor (the target is highlighted instead). A selects: press A on a Pokémon or item to pick it up and A again to place it
    (holding A and dragging also works).
    B back / cancel · X reroll · Y level up · Start battle / open chest · Select menu · LB hide or show the shop · RB release Pokémon under cursor
+   In menus: the D-pad moves a highlight from button to button (scrolling lists to keep it in view), A presses it, LB / RB switch tabs,
+   the right stick scrolls the list under the highlight, and pushing the cursor against the edge of a list scrolls it too.
    Right stick zooms (up/down) and pans (left/right) the board · R3 resets the zoom · L3 battle speed. Cursor speed and dead zone live in Settings › Gamepad. */
 const PAD={on:false,x:640,y:360,prev:[],aDown:false,downEl:null,lastMove:0,repeat:{},el:null,hint:null,cur:false};
 const BTN={A:0,B:1,X:2,Y:3,LB:4,RB:5,LT:6,RT:7,SELECT:8,START:9,L3:10,R3:11,UP:12,DOWN:13,LEFT:14,RIGHT:15};
@@ -25,8 +27,41 @@ function padShow(on){
 }
 // the element under the controller cursor gets the same highlight as a mouse hover / keyboard focus
 let padHoverEl=null;
-function padHover(){const p=padClient();const el=document.elementFromPoint(p.x,p.y);const t=el&&el.closest?el.closest('[data-craft],button,.pick,.mode,.card,.srow,.slot:not(.empty),.trait,.mcard'):null;
-  if(t===padHoverEl)return;if(padHoverEl)padHoverEl.classList.remove('padhover');padHoverEl=t;if(t)t.classList.add('padhover');}
+function padSetHover(t){if(t===padHoverEl)return;if(padHoverEl)padHoverEl.classList.remove('padhover');padHoverEl=t;if(t)t.classList.add('padhover');}
+function padHover(){const f=!PAD.cur&&padFocusEl();if(f){padSetHover(f);return;}const p=padClient();const el=document.elementFromPoint(p.x,p.y);
+  padSetHover(el&&el.closest?el.closest('[data-craft],button,.pick,.mode,.card,.srow,.slot:not(.empty),.trait,.mcard,input'):null);}
+
+/* ---------- menus: a focus highlight moved by the D-pad ---------- */
+const padMenu=()=>typeof menuRoot==='function'?menuRoot():null;
+function padFocusEl(){const r=padMenu(),a=document.activeElement;return r&&a&&a!==document.body&&r.contains(a)?a:null;}
+function padPutCursorOn(el){if(!el||!PAD.el)return;const r=padStageRect(),k=r.width/1280,b=el.getBoundingClientRect();
+  PAD.x=clamp((b.left+b.width/2-r.left)/k,4,1276);PAD.y=clamp((b.top+b.height/2-r.top)/k,4,716);PAD.cur=false;padSetHover(el);}
+// focus an element, keep it in view and put the (hidden) cursor on it
+function padFocus(el){if(!el)return;el.focus({preventScroll:true});el.scrollIntoView({block:'nearest',inline:'nearest'});padPutCursorOn(el);}
+function padMenuNav(root,dx,dy){
+  let cur=padFocusEl();
+  // after moving the free cursor with the stick, start from whatever it points at
+  if(PAD.cur){const p=padClient(),el=document.elementFromPoint(p.x,p.y),t=el&&el.closest&&el.closest(NAVSEL);if(t&&root.contains(t)){t.focus({preventScroll:true});cur=t;}}
+  // settings rows change their value with left / right
+  if(cur&&dx&&cur.classList.contains('srow')){cur.dispatchEvent(new KeyboardEvent('keydown',{key:dx<0?'ArrowLeft':'ArrowRight',bubbles:true,cancelable:true}));padPutCursorOn(cur);return;}
+  navMove(root,dx,dy);const f=padFocusEl();if(f)padFocus(f);
+}
+// a freshly opened screen highlights its main choice (or its first button) so you can see where you are
+function padDefault(root){const vis=e=>{const b=e.getBoundingClientRect();return b.width>0&&b.height>0&&!e.closest('[hidden]');};
+  for(const q of['[data-autofocus]','.pt.on','.rpick.on','#pgo','.ctile.on'])for(const e of root.querySelectorAll(q))if(vis(e)&&!e.disabled)return e;
+  return[...root.querySelectorAll(NAVSEL)].find(e=>vis(e)&&e.tagName!=='INPUT')||null;}
+// LB / RB: previous / next tab of the screen's tab group (settings sections, Kit Dex generations, collection costs)
+function padTab(root,d){const g=root.querySelector('[data-tabgroup]');if(!g)return false;
+  const tabs=[...g.querySelectorAll('button:not(:disabled)')];if(!tabs.length)return true;
+  let i=tabs.findIndex(t=>t.classList.contains('on')||t.getAttribute('aria-selected')==='true'||t.getAttribute('aria-pressed')==='true');
+  const n=tabs[(i<0?0:i+d+tabs.length)%tabs.length];n.click();
+  // the screen may have been redrawn: highlight the selected tab in the new one
+  requestAnimationFrame(()=>{const g2=root.querySelector('[data-tabgroup]');if(!g2)return;const t=g2.querySelector('.on,[aria-selected="true"],[aria-pressed="true"]');if(t)padFocus(t);});
+  if(typeof sfx==='function')sfx('select');return true;}
+// the scrollable list to move: the one holding the highlight, else the one under the cursor, else the screen's first
+function padScroller(root){const isS=e=>{if(!e||e===document.body)return false;const cs=getComputedStyle(e);return/(auto|scroll)/.test(cs.overflowY)&&e.scrollHeight>e.clientHeight+4;};
+  const up=e=>{for(;e&&e!==root.parentElement;e=e.parentElement)if(isS(e))return e;return null;};
+  const p=padClient();return up(padFocusEl())||up(document.elementFromPoint(p.x,p.y))||[...root.querySelectorAll('*')].find(isS)||null;}
 function padDraw(){PAD.el.style.left=PAD.x+'px';PAD.el.style.top=PAD.y+'px';PAD.el.classList.toggle('grab',PAD.aDown);let onCv=false;if(!PAD.cur){const p=padClient(),e=document.elementFromPoint(p.x,p.y);onCv=e===cv;}
   PAD.el.classList.toggle('snap',!PAD.cur);PAD.el.style.visibility=PAD.cur||onCv?'':'hidden';}
 
@@ -82,27 +117,44 @@ function padPoll(dt){
   // stick: analog cursor with acceleration
   if(mag>DZ){const sp=(mag-DZ)/(1-DZ),v=(420+1100*sp*sp)*(OPTS.padSens||1);PAD.cur=true;PAD.x=clamp(PAD.x+ax/mag*sp*v*dt,4,1276);PAD.y=clamp(PAD.y+ay/mag*sp*v*dt,4,716);
     if(now-PAD.lastMove>30){PAD.lastMove=now;padFire('pointermove');}}
-  // right stick: zoom (up/down) and pan (left/right) the board, or a fine cursor nudge if chosen in Settings
-  const rx=gp.axes[2]||0,ry=gp.axes[3]||0;
-  if(OPTS.padRS==='fine'){if(Math.hypot(rx,ry)>.3){PAD.cur=true;PAD.x=clamp(PAD.x+rx*220*(OPTS.padSens||1)*dt,4,1276);PAD.y=clamp(PAD.y+ry*220*(OPTS.padSens||1)*dt,4,716);padFire('pointermove');}}
+  // right stick: zoom (up/down) and pan (left/right) the board, or a fine cursor nudge if chosen in Settings (in menus it scrolls lists, below)
+  const rx=gp.axes[2]||0,ry=gp.axes[3]||0,inMenu=!!padMenu();
+  if(OPTS.padRS==='fine'&&!inMenu){if(Math.hypot(rx,ry)>.3){PAD.cur=true;PAD.x=clamp(PAD.x+rx*220*(OPTS.padSens||1)*dt,4,1276);PAD.y=clamp(PAD.y+ry*220*(OPTS.padSens||1)*dt,4,716);padFire('pointermove');}}
   else if($('pause').hidden&&!document.querySelector('#overlay .screen')){if(Math.abs(ry)>.3)camZoom(Math.exp(-(ry-Math.sign(ry)*.3)*1.2*(OPTS.zoomSpd||1)*dt));if(Math.abs(rx)>.3)camPan((rx-Math.sign(rx)*.3)*260*dt,0);}
+  const menu=padMenu();
+  if(menu){
+    if(!PAD.cur&&!padFocusEl()){const d=padDefault(menu);if(d)padFocus(d);}
+    if(padRepeat(gp,BTN.UP,now))padMenuNav(menu,0,-1);if(padRepeat(gp,BTN.DOWN,now))padMenuNav(menu,0,1);
+    if(padRepeat(gp,BTN.LEFT,now))padMenuNav(menu,-1,0);if(padRepeat(gp,BTN.RIGHT,now))padMenuNav(menu,1,0);
+    // right stick scrolls the list; the cursor pushed against a list's top or bottom edge scrolls it as well
+    if(Math.abs(ry)>.25){const s=padScroller(menu);if(s)s.scrollTop+=(ry-Math.sign(ry)*.25)*1100*dt;}
+    if(Math.abs(rx)>.35){const s=padScroller(menu);if(s)s.scrollLeft+=(rx-Math.sign(rx)*.35)*900*dt;}
+    if(PAD.cur){const p=padClient(),el=document.elementFromPoint(p.x,p.y);let s=el;const isS=e=>{const cs=getComputedStyle(e);return/(auto|scroll)/.test(cs.overflowY)&&e.scrollHeight>e.clientHeight+4;};
+      while(s&&s!==menu&&!isS(s))s=s.parentElement;
+      if(s&&s!==menu){const b=s.getBoundingClientRect(),edge=Math.min(40,b.height*.15);if(p.y<b.top+edge)s.scrollTop-=700*dt;else if(p.y>b.bottom-edge)s.scrollTop+=700*dt;}}
+  }else{
   if(padRepeat(gp,BTN.UP,now))padSnap(0,-1);if(padRepeat(gp,BTN.DOWN,now))padSnap(0,1);
-  if(padRepeat(gp,BTN.LEFT,now))padSnap(-1,0);if(padRepeat(gp,BTN.RIGHT,now))padSnap(1,0);
+  if(padRepeat(gp,BTN.LEFT,now))padSnap(-1,0);if(padRepeat(gp,BTN.RIGHT,now))padSnap(1,0);}
   // A: press = pointerdown (starts drags), release = pointerup + click
-  if(padEdge(gp,BTN.A)){PAD.aDown=true;PAD.downEl=padFire('pointerdown');}
+  // in a menu, A presses the highlighted button directly (it may sit in a scrolled list)
+  const foc=menu&&!PAD.cur&&padFocusEl();
+  if(padEdge(gp,BTN.A)&&foc){PAD.aMenu=true;if(foc.tagName==='INPUT')foc.focus();else{foc.click();if(typeof sfx==='function'&&foc.matches('.ctile,.rt,.pt,.skin,.tscard *'))sfx('select');}}
+  else if(padEdge(gp,BTN.A)){PAD.aDown=true;PAD.downEl=padFire('pointerdown');}
+  if(PAD.aMenu&&!padPressed(gp,BTN.A))PAD.aMenu=false;
   if(PAD.aDown&&!padPressed(gp,BTN.A)){PAD.aDown=false;const up=padFire('pointerup');
     if(PAD.downEl&&(PAD.downEl===up||PAD.downEl.contains(up)||up.contains(PAD.downEl))&&up!==cv)padClickAt(up);PAD.downEl=null;}
   if(padEdge(gp,BTN.B))padBack();
   if(padEdge(gp,BTN.X)&&run&&mode==='plan'&&!paused)reroll();
   if(padEdge(gp,BTN.Y)&&run&&mode==='plan'&&!paused)buyXP();
-  if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #m-continue, #overlay #m-new, #overlay #start, #overlay #again, #overlay #evgo');if(s)s.click();else if(paused)closePause();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
+  if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #m-continue, #overlay #m-new, #overlay #start, #overlay #again, #overlay #evgo, #overlay #pgo, #overlay #rgo, #overlay #rsave');if(s)s.click();else if(paused)closePause();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
   if(padEdge(gp,BTN.SELECT)&&run&&!document.querySelector('#overlay .screen')){if(paused)closePause();else openPause();}
-  if(padEdge(gp,BTN.LB)&&run&&!paused)toggleShop();
+  if(menu&&(padEdge(gp,BTN.LB)||padEdge(gp,BTN.RB))){padTab(menu,padEdge(gp,BTN.LB)?-1:1);}
+  else if(padEdge(gp,BTN.LB)&&run&&!paused)toggleShop();
   if(padEdge(gp,BTN.L3))$('speed').click();
   // RT opens the unit menu for the Pokémon under the cursor (same as right-click)
   if(padEdge(gp,BTN.RT)&&run&&!document.querySelector('#overlay .screen')){const p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const h=unitAt(q.x,q.y);if(h&&h.u)showUnitMenu(h.u,h);}
   if(padEdge(gp,BTN.R3))camReset();
-  if(padEdge(gp,BTN.RB)&&run&&(mode==='plan'||mode==='loot')){const r=padStageRect(),p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const o=ownedAt(q.x,q.y);if(o)sell(o.u);}
+  if(!menu&&padEdge(gp,BTN.RB)&&run&&(mode==='plan'||mode==='loot')){const r=padStageRect(),p=padClient();const q=toInternal({clientX:p.x,clientY:p.y});const o=ownedAt(q.x,q.y);if(o)sell(o.u);}
   PAD.prev=gp.buttons.map(b=>b.pressed);
   padDraw();padHover();
 }

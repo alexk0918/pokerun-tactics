@@ -153,7 +153,15 @@ const shinyPor=dex=>`assets/${pad(dex)}/shiny/portrait.png`;
 const porOf=(dex,sh)=>sh?shinyPor(dex):por(dex);
 
 /* =================== screens =================== */
-const porImg=(dex,sh,cls='',alt='')=>`<img class="${cls}" src="${porOf(dex,sh)}" alt="${esc(alt)}" loading="lazy" onerror="this.onerror=null;this.src='${por(dex)}'">`;
+// redraw a screen without losing your place: the highlighted button (controller / keyboard) and each list's scroll
+function placeKey(el){if(!el||el===document.body)return null;if(el.id)return'#'+CSS.escape(el.id);
+  for(const a of el.attributes)if(a.name.startsWith('data-'))return`${el.tagName.toLowerCase()}[${a.name}="${CSS.escape(a.value)}"]`;return null;}
+function keepPlace(render){const a=document.activeElement,key=ov.contains(a)?placeKey(a):null;
+  const scr=[...ov.querySelectorAll('.cgrid,.rcols,.pgrid,.prof,.achlist,.cdet,.hlist,.rlist')].map(e=>[e.className.split(' ')[0],e.scrollTop]);
+  render();
+  for(const[c,t]of scr){const e=ov.querySelector('.'+c);if(e)e.scrollTop=t;}
+  const n=key&&ov.querySelector(key);if(n){n.focus({preventScroll:true});if(typeof PAD!=='undefined'&&PAD.on&&typeof padPutCursorOn==='function')padPutCursorOn(n);}}
+const porImg=(dex,sh,cls='',alt='')=>`<img class="${cls}" src="${porOf(dex,sh)}" alt="${esc(alt)}" decoding="async" onerror="this.onerror=null;this.src='${por(dex)}'">`;
 const costChip=c=>`<span class="cchip c${c}">₽${c}</span>`;
 let colState={f:'all',c:0,q:'',sel:null};
 function showCollection(back){
@@ -175,36 +183,51 @@ function showCollection(back){
   ov.innerHTML=`<div class="scrim"></div><div class="screen colscreen"><h1 class="h1">Pokémon collection</h1>
     <p class="sub">${U.size} of ${all.length} lines unlocked · ${nSh} shinies · ${META.vouchers} egg voucher${META.vouchers===1?'':'s'}</p>
     <div class="cbar"><div class="seg">${[['all','All'],['unl','Unlocked'],['lock','Locked']].map(([k,l])=>`<button class="btn sm${S.f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div>
-      <div class="seg">${[0,1,2,3,4,5].map(c=>`<button class="btn sm${S.c===c?' on':''}" data-c="${c}">${c?'₽'+c:'Any cost'}</button>`).join('')}</div>
+      <div class="seg" data-tabgroup><span class="padkey">LB</span>${[0,1,2,3,4,5].map(c=>`<button class="btn sm${S.c===c?' on':''}" data-c="${c}">${c?'₽'+c:'Any cost'}</button>`).join('')}<span class="padkey">RB</span></div>
       <input id="cq" type="search" placeholder="Search unlocked" value="${esc(S.q)}" aria-label="Search unlocked Pokémon"></div>
     <div class="cwrap"><div class="cgrid">${list.map(tile).join('')||'<p>Nothing here yet.</p>'}</div>${det}</div>
     <div class="row"><button class="btn" id="chatch">Hatchery</button><button class="btn" id="back">Back</button></div></div>`;
-  ov.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.f=b.dataset.f;showCollection(back);});
-  ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{S.c=+b.dataset.c;showCollection(back);});
-  ov.querySelectorAll('.ctile[data-r]').forEach(b=>b.onclick=()=>{S.sel=+b.dataset.r;showCollection(back);});
+  ov.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.f=b.dataset.f;keepPlace(()=>showCollection(back));});
+  ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{S.c=+b.dataset.c;keepPlace(()=>showCollection(back));});
+  ov.querySelectorAll('.ctile[data-r]').forEach(b=>b.onclick=()=>{S.sel=+b.dataset.r;keepPlace(()=>showCollection(back));});
   const q=$('cq');q.oninput=()=>{clearTimeout(q.t);q.t=setTimeout(()=>{S.q=q.value.trim().toLowerCase();showCollection(back);const n=$('cq');n.focus();n.setSelectionRange(n.value.length,n.value.length);},250);};
-  if($('cshiny'))$('cshiny').onclick=()=>{if(buyUpgrade(S.sel,'shiny')){sfx('evolve');showCollection(back);}};
-  if($('ctrain'))$('ctrain').onclick=()=>{if(buyUpgrade(S.sel,'train')){sfx('level');showCollection(back);}};
-  if($('cshow'))$('cshow').onclick=()=>{META.shinyOff[S.sel]=!META.shinyOff[S.sel];metaSave();showCollection(back);};
+  if($('cshiny'))$('cshiny').onclick=()=>{if(buyUpgrade(S.sel,'shiny')){sfx('evolve');keepPlace(()=>showCollection(back));}};
+  if($('ctrain'))$('ctrain').onclick=()=>{if(buyUpgrade(S.sel,'train')){sfx('level');keepPlace(()=>showCollection(back));}};
+  if($('cshow'))$('cshow').onclick=()=>{META.shinyOff[S.sel]=!META.shinyOff[S.sel];metaSave();keepPlace(()=>showCollection(back));};
   $('chatch').onclick=()=>showHatchery(()=>showCollection(back));$('back').onclick=back;
 }
 let hatchLog=[];
-function showHatchery(back){back=back||showTitle;
-  const pityLeft=Math.max(1,10-META.eggs.pity);
-  const res=hatchLog.slice(0,8).map(h=>`<div class="hres ${h.tier}">${porImg(h.r,h.shiny,'',lineName(h.r))}<b>${h.shiny?'★ ':''}${esc(lineName(h.r))}</b><span>${EGG[h.tier].n} · ${h.isNew?'New!':'+10 candy'}</span></div>`).join('');
+const loadPic=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i.naturalWidth?src:null);i.onerror=()=>res(null);i.src=src;});
+const waitMs=ms=>new Promise(r=>setTimeout(r,ms));
+function showHatchery(back){back=back||showTitle;let busy=false;
+  const egg=`<img src="${iconOf('mystery-egg')}" alt="An egg">`;
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Hatchery</h1>
     <p class="sub">Spend an egg voucher to hatch an egg. New lines unlock for National Dex; a line you already have gives 10 candy instead. 1 in 16 eggs is shiny.</p>
-    <div class="win dialog wide hatch"><div class="eggbox"><div class="egg" id="egg"><img src="${iconOf('mystery-egg')}" alt=""></div>
-      <p><b>${META.vouchers}</b> egg voucher${META.vouchers===1?'':'s'} · ${META.eggs.n} hatched</p>
-      <p class="small">Common 60% (₽1–2) · Rare 28% (₽3) · Epic 10% (₽4) · Legendary 2% (₽5)<br>Epic or better guaranteed within ${pityLeft} egg${pityLeft===1?'':'s'}</p>
-      <button class="btn go" id="hatch" ${META.vouchers<1?'disabled':''}>Hatch an egg</button>
-      <p class="small">Vouchers come from achievements, act clears, wins and trainer levels.</p></div>
-      <div class="hlist">${res||'<p>Your hatches will show up here.</p>'}</div></div>
+    <div class="win dialog wide hatch"><div class="eggbox"><div class="egg" id="egg">${egg}</div><div class="rname" id="rname" aria-live="polite"></div>
+      <p id="hinfo"></p><p class="small" id="hpity"></p>
+      <button class="btn go" id="hatch" data-autofocus>Hatch an egg</button>
+      <p class="small">Common 60% (₽1–2) · Rare 28% (₽3) · Epic 10% (₽4) · Legendary 2% (₽5)<br>Vouchers come from achievements, act clears, wins and trainer levels.</p></div>
+      <div class="hlist" id="hlist"></div></div>
     <button class="btn" id="back">Back</button></div>`;
-  $('hatch').onclick=()=>{const b=$('hatch');b.disabled=true;const egg=$('egg');egg.classList.add('wobble');sfx('select');
-    setTimeout(()=>{const h=hatchEgg();if(!h)return showHatchery(back);hatchLog.unshift(h);egg.classList.remove('wobble');egg.classList.add('crack');sfx(h.tier==='legendary'||h.shiny?'evolve':'treasure');
-      egg.innerHTML=`<div class="reveal ${h.tier}">${porImg(h.r,h.shiny,'',lineName(h.r))}</div>`;
-      setTimeout(()=>showHatchery(back),1300);},1100);};
+  const upd=()=>{const left=Math.max(1,10-META.eggs.pity);
+    $('hinfo').innerHTML=`<b>${META.vouchers}</b> egg voucher${META.vouchers===1?'':'s'} · ${META.eggs.n} hatched`;
+    $('hpity').textContent=`Epic or better guaranteed within ${left} egg${left===1?'':'s'}`;
+    $('hatch').disabled=META.vouchers<1&&!busy;$('hatch').setAttribute('aria-busy',busy);$('hatch').textContent=META.vouchers<1?'No vouchers left':'Hatch an egg';
+    $('hlist').innerHTML=hatchLog.slice(0,8).map(h=>`<div class="hres ${h.tier}"><img src="${h.pic||por(h.r)}" alt=""><b>${h.shiny?'★ ':''}${esc(lineName(h.r))}</b><span>${EGG[h.tier].n} · ${h.isNew?'New!':'+10 candy'}</span></div>`).join('')||'<p>Your hatches will show up here.</p>';};
+  upd();
+  // presses while an egg is hatching are ignored (the button stays put so a mashed A can't hit anything else)
+  $('hatch').onclick=async()=>{if(busy||META.vouchers<1)return;busy=true;const hadFocus=document.activeElement===$('hatch');upd();
+    const E=$('egg');E.className='egg wobble';E.innerHTML=egg;$('rname').textContent='';sfx('select');
+    let h=null;try{h=hatchEgg();}catch(e){console.error(e);}
+    if(!h){busy=false;E.className='egg';upd();return;}
+    // wait for the wobble and for the picture (shiny first, then the normal one), up to 5 seconds
+    const pic=await Promise.race([Promise.all([loadPic(porOf(h.r,h.shiny)).then(p=>p||loadPic(por(h.r))),waitMs(1000)]).then(r=>r[0]),waitMs(5000).then(()=>null)]);
+    h.pic=pic||por(h.r);hatchLog.unshift(h);
+    if(!$('egg'))return; // left the screen meanwhile
+    E.className='egg crack';E.innerHTML=`<div class="reveal ${h.tier}"><img src="${h.pic}" alt="${esc(lineName(h.r))}"></div>`;
+    $('rname').innerHTML=`<b>${h.shiny?'★ Shiny ':''}${esc(lineName(h.r))}</b> · ${EGG[h.tier].n} · ${h.isNew?'New line unlocked!':'+10 candy'}`;
+    sfx(h.tier==='legendary'||h.shiny?'evolve':'treasure');busy=false;upd();
+    if(hadFocus&&!$('hatch').disabled){$('hatch').focus({preventScroll:true});if(typeof PAD!=='undefined'&&PAD.on)padPutCursorOn($('hatch'));}};
   $('back').onclick=back;
 }
 function showProfile(back){back=back||showTitle;
@@ -216,14 +239,15 @@ function showProfile(back){back=back||showTitle;
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Trainer profile</h1>
     <div class="win dialog wide prof"><div class="ptop">${fav?porImg(fav,shinyShown(fav),'pfav',lineName(fav)):`<img class="pfav" src="${iconOf('poke-ball')}" alt="">`}
       <div><h2>Level ${META.lvl} <small>${esc(TITLES[META.title]||'')}</small></h2><div class="achbar"><span style="width:${100*META.xp/lvlNeed(META.lvl)}%"></span></div><small>${META.xp} / ${lvlNeed(META.lvl)} XP to the next level</small>
-      <p>Title: <select id="ptitle">${META.titles.map(t=>`<option value="${t}"${t===META.title?' selected':''}>${TITLES[t]}</option>`).join('')}</select>${fav?` · Favourite: <b>${esc(lineName(fav))}</b>`:''}</p></div></div>
+      <p class="ptitle">Title: <button class="btn sm" id="ptprev" aria-label="Previous title">‹</button> <b>${esc(TITLES[META.title]||'')}</b> <button class="btn sm" id="ptnext" aria-label="Next title">›</button>${fav?` · Favourite: <b>${esc(lineName(fav))}</b>`:''}</p></div></div>
       <div class="pstats">${[['Runs',achN('runs')],['Runs won',won],['Battles won',achN('wins')],['Knockouts',achN('kills')],['Lines unlocked',`${U.size}/${all.length}`],['Shinies',all.filter(hasShiny).length],['Eggs hatched',META.eggs.n],['Achievements',`${Object.keys(ACHV.got).length}/${ACHS.length}`],['Ascension',`${META.asc.max}/20`],['Egg vouchers',META.vouchers]].map(([k,v])=>`<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>
       <h3>Bench style</h3><div class="skins">${sk}</div><p class="small">More styles come from trainer levels and achievements.</p>
       <h3>Recent runs</h3>${hist?`<table class="hist">${hist}</table>`:'<p>No finished runs yet.</p>'}</div>
     <button class="btn" id="back">Back</button></div>`;
   ov.querySelectorAll('canvas[data-c]').forEach(c=>{const g=c.getContext('2d');g.imageSmoothingEnabled=false;drawStumpSkin(g,{x:18,y:9},c.dataset.c);});
-  ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{META.stump=b.dataset.s;metaSave();showProfile(back);});
-  $('ptitle').onchange=e=>{META.title=e.target.value;metaSave();};$('back').onclick=back;
+  ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{META.stump=b.dataset.s;metaSave();keepPlace(()=>showProfile(back));});
+  const cyc=d=>{const T=META.titles,i=T.indexOf(META.title);META.title=T[(i+d+T.length)%T.length];metaSave();keepPlace(()=>showProfile(back));};
+  $('ptprev').onclick=()=>cyc(-1);$('ptnext').onclick=()=>cyc(1);$('back').onclick=back;
 }
 // National Dex: pick which unlocked lines can appear
 function showRoster(next,back){
@@ -234,7 +258,7 @@ function showRoster(next,back){
     <div class="rlist">${row(-1,'All unlocked lines',[...U])}${R.presets.map((p,i)=>row(i,p.name,p.lines.filter(r=>U.has(r)))).join('')}</div>
     <div class="row">${R.presets.length<3?'<button class="btn" id="rnew">New roster</button>':''}${R.sel>=0?'<button class="btn" id="redit">Edit</button><button class="btn" id="rdel">Delete</button>':''}
       <button class="btn go" id="rgo">Continue</button><button class="btn" id="back">Back</button></div></div>`;
-  ov.querySelectorAll('.rpick').forEach(b=>b.onclick=()=>{R.sel=+b.dataset.i;metaSave();showRoster(next,back);});
+  ov.querySelectorAll('.rpick').forEach(b=>b.onclick=()=>{R.sel=+b.dataset.i;metaSave();keepPlace(()=>showRoster(next,back));});
   if($('rnew'))$('rnew').onclick=()=>editRoster(-1,next,back);
   if($('redit'))$('redit').onclick=()=>editRoster(R.sel,next,back);
   if($('rdel'))$('rdel').onclick=()=>{R.presets.splice(R.sel,1);R.sel=-1;metaSave();showRoster(next,back);};
@@ -252,9 +276,9 @@ function editRoster(i,next,back){
       <div class="rcols">${[0,1,2,3,4].map(col).join('')}</div>
       <div class="row"><button class="btn go" id="rsave" ${ok?'':'disabled'}>Save roster</button><button class="btn" id="back">Cancel</button></div></div>`;
     $('rname').oninput=e=>{name=e.target.value;};
-    ov.querySelectorAll('.rt').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;sel.has(r)?sel.delete(r):sel.add(r);draw();});
-    ov.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{for(const r of U)if(N.lines[r]&&N.lines[r].cost===+b.dataset.all+1)sel.add(r);draw();});
-    ov.querySelectorAll('[data-none]').forEach(b=>b.onclick=()=>{for(const r of[...sel])if(N.lines[r]&&N.lines[r].cost===+b.dataset.none+1)sel.delete(r);draw();});
+    ov.querySelectorAll('.rt').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;sel.has(r)?sel.delete(r):sel.add(r);keepPlace(draw);});
+    ov.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{for(const r of U)if(N.lines[r]&&N.lines[r].cost===+b.dataset.all+1)sel.add(r);keepPlace(draw);});
+    ov.querySelectorAll('[data-none]').forEach(b=>b.onclick=()=>{for(const r of[...sel])if(N.lines[r]&&N.lines[r].cost===+b.dataset.none+1)sel.delete(r);keepPlace(draw);});
     $('rsave').onclick=()=>{const p={name:name.trim()||'Roster',lines:[...sel]};if(i>=0)R.presets[i]=p;else{R.presets.push(p);R.sel=R.presets.length-1;}metaSave();showRoster(next,back);};
     $('back').onclick=()=>showRoster(next,back);};
   draw();
@@ -268,7 +292,7 @@ function showPartner(back){
     <p class="sub">Your partner starts the run on your bench at 1★. Pick any ₽1–3 line from your collection that this region has.</p>
     <div class="pgrid"><button class="pt${!sel.r?' on':''}" data-r="0"><img src="${iconOf('poke-ball')}" alt=""><b>No partner</b></button>${ch.map(r=>`<button class="pt${sel.r===r?' on':''}" data-r="${r}">${porImg(r,shinyShown(r),'',lineName(r))}<b>${esc(lineName(r))}</b><span>${costChip(MODE.lines[r].cost)}${trainOf(r)?` · +${trainOf(r)*100}%`:''}</span></button>`).join('')}</div>
     <div class="row"><button class="btn go" id="pgo">Start run</button><button class="btn" id="back">Back</button></div></div>`;
-    ov.querySelectorAll('.pt').forEach(b=>b.onclick=()=>{sel.r=+b.dataset.r;draw();});
+    ov.querySelectorAll('.pt').forEach(b=>b.onclick=()=>{sel.r=+b.dataset.r;keepPlace(draw);});
     $('pgo').onclick=()=>{META.partner[MODE.id]=sel.r;metaSave();ov.innerHTML='';beginRun(sel.r||null);};$('pgo').focus();
     $('back').onclick=back;};
   draw();
@@ -276,8 +300,8 @@ function showPartner(back){
 function ascControl(){if(!META.asc.max)return'';const a=Math.min(META.asc.sel,META.asc.max);
   return`<div class="ascbar win"><b>Ascension</b><button class="btn sm" id="ascm" ${a<=0?'disabled':''} aria-label="Lower ascension">−</button><span class="asclv">${a}</span><button class="btn sm" id="ascp" ${a>=META.asc.max?'disabled':''} aria-label="Raise ascension">+</button>
     <span class="ascd">${a?`A${a}: ${esc(ASC[a-1])}${a>1?` <small>(plus everything below)</small>`:''}`:'No modifiers. Win a run to unlock the next level.'}</span></div>`;}
-function wireAsc(redraw){if($('ascm'))$('ascm').onclick=()=>{META.asc.sel=Math.max(0,Math.min(META.asc.sel,META.asc.max)-1);metaSave();redraw();};
-  if($('ascp'))$('ascp').onclick=()=>{META.asc.sel=Math.min(META.asc.max,META.asc.sel+1);metaSave();redraw();};}
+function wireAsc(redraw){if($('ascm'))$('ascm').onclick=()=>{META.asc.sel=Math.max(0,Math.min(META.asc.sel,META.asc.max)-1);metaSave();keepPlace(redraw);};
+  if($('ascp'))$('ascp').onclick=()=>{META.asc.sel=Math.min(META.asc.max,META.asc.sel+1);metaSave();keepPlace(redraw);};}
 
 // a little twinkle that drifts around a shiny Pokémon now and then
 function drawShinySparkle(s,t){const id=(s.pu&&s.pu.uid)||(s.cu&&s.cu.u&&s.cu.u.uid)||0,ph=(t*.9+id*.37)%2.4;if(ph>.7)return;

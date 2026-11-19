@@ -85,7 +85,7 @@ function showSettings(from,tab){
   const info=T.info?`<div class="sinfo">${T.info.map(([a,b])=>`<div><kbd>${a}</kbd><span>${b}</span></div>`).join('')}</div>`:'';
   const acts=T.acts?T.acts.filter(([id])=>id!=='o-del'||readSave()).map(([id,n])=>`<button class="mi opt danger" id="${id}"><span>${n}</span><b>›</b></button>`).join(''):'';
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="win setwin">
-    <div class="stabs" role="tablist">${SET_TABS.map(t=>`<button class="stab" role="tab" data-t="${t.id}" aria-selected="${t.id===setTab}">${t.n}</button>`).join('')}</div>
+    <div class="stabs" role="tablist" data-tabgroup><span class="padkey">LB</span>${SET_TABS.map(t=>`<button class="stab" role="tab" data-t="${t.id}" aria-selected="${t.id===setTab}">${t.n}</button>`).join('')}<span class="padkey">RB</span></div>
     <div class="sbody">${T.note?`<p class="snote">${T.note}</p>`:''}${rows}${acts}${info}</div>
     <div class="sfoot"><span class="lbl">‹ › or ← → change a value · settings save automatically</span><button class="btn" id="setclose">Back</button></div></div></div>`;
   ov.querySelectorAll('.stab').forEach(b=>b.onclick=()=>showSettings(null,b.dataset.t));
@@ -107,7 +107,7 @@ function closeSettings(){if(setFrom==='game'){ov.innerHTML='';if(paused)$('pause
 function showOptions(){showSettings('title','general');}
 
 /* ---------- keyboard menu navigation (arrow keys move between buttons in menus; the board stays mouse/controller) ---------- */
-const NAVSEL='button:not(:disabled):not([hidden]),.pick,.mode,.srow,.stab,[tabindex="0"]';
+const NAVSEL='button:not(:disabled):not([hidden]),.pick,.mode,.srow,.stab,[tabindex="0"],[data-relic],input[type="search"],input:not([type])';
 function menuRoot(){const sc=ov.querySelector('.screen');if(sc&&sc.offsetParent!==null)return ov;const pz=$('pause');if(pz&&!pz.hidden)return pz;return null;}
 function navMove(root,dx,dy){
   const els=[...root.querySelectorAll(NAVSEL)].filter(el=>{const b=el.getBoundingClientRect();return b.width>0&&b.height>0&&!el.closest('[hidden]');});if(!els.length)return;

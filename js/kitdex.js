@@ -27,7 +27,7 @@ function showKitDex(from){
   ov.innerHTML=`<div class="scrim"></div><div class="screen dexscreen"><div class="win dexwin">
     <div class="dexhead"><div><h2>Kit Dex</h2><div class="lbl">${known} / ${M.roots.length} lines discovered · numbers at 2★ with no items</div></div>
       <input class="dexfind" id="dexfind" type="search" placeholder="Find a Pokémon" value="${esc(dexQ)}" aria-label="Find a Pokémon"><button class="btn" id="dexclose">Close</button></div>
-    <div class="dextabs">${gens.map(g=>{const rs=M.roots.filter(r=>M.lines[r].region+1===g);return`<button class="dextab" data-g="${g}" aria-pressed="${g===dexGen}">Gen ${ROMAN[g-1]} <small>${rs.filter(dexKnown).length}/${rs.length}</small></button>`;}).join('')}</div>
+    <div class="dextabs" data-tabgroup>${gens.map(g=>{const rs=M.roots.filter(r=>M.lines[r].region+1===g);return`<button class="dextab" data-g="${g}" aria-pressed="${g===dexGen}">Gen ${ROMAN[g-1]} <small>${rs.filter(dexKnown).length}/${rs.length}</small></button>`;}).join('')}</div>
     <div class="dexlist" id="dexlist">${rows.map(r=>{const L=M.lines[r],ok=dexKnown(r);
       if(!ok)return`<div class="dexent unknown"><div class="dexpor">${L.mem.slice(0,3).map(d=>`<img src="${por(d)}" alt="">`).join('')}</div><div><div class="dexname">???</div><div class="sc">Buy this Pokémon to discover its kit.</div></div></div>`;
       const st=L.mem.map(d=>dexStage(d,r));const top=st.filter(s=>sigOf(s.d)).pop()||st[st.length-1];

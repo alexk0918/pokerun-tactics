@@ -538,6 +538,18 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 | Start | Continue or new game / battle / open chest |
 | Select | Menu (pauses the game) |
 
+**In menus** (title screen, settings, collection, hatchery, profile, rosters, partner, achievements, pause menu, every pick screen), a highlight shows where you are as soon as a screen opens:
+
+| Input | Action |
+|---|---|
+| D-pad | Move the highlight from button to button; long lists scroll to keep it in view. On a settings row, left / right changes its value |
+| A | Press the highlighted button (on a Pokémon tile: select or toggle it) |
+| B | Back |
+| LB / RB | Previous / next tab: settings sections, Kit Dex generations, collection costs |
+| Right stick | Scroll the list under the highlight (collection, rosters, partners, achievements, profile) |
+| Left stick | Free cursor; pushing it against the top or bottom of a list scrolls it |
+| Start | Confirm the screen's main action (start the run, continue from the roster, save a roster) |
+
 ## Project layout
 
 ```
