@@ -302,6 +302,7 @@ function setsDmgMul(src,tg,o){let m=1;
   if(battle.coral&&battle.coral.has(tg.c+','+tg.r)&&tg.team===0)m*=.85;
   return m;}
 function setsAfterHit(src,tg,o,d){
+  if(src.burnP&&o.auto&&!tg.dead&&Math.random()<src.burnP*10)addStatus(tg,'burn',1,src);
   if(tg.fx.crab&&o.auto&&!src.dead&&!tg.dead){tg.crabN=(tg.crabN||0)+1;if(tg.crabN%4===0){damage(tg,src,tg.maxHp*.08,{ab:1,cat:'phys',type:'Water',noCrit:1,refl:1});stun(src,.5);if(!SIM.on)pfx('Crab_Hammer_PMDO',src.x,src.y-12,{sc:.8,force:1});}}
   if(tg.tech==='bulk'&&(tg.bulkN||0)<20){tg.bulkN=(tg.bulkN||0)+1;tg.dmg+=.02;}
   if(src.yvelOn&&d>0)for(const a of alive(src.team))heal(a,d*.2/Math.max(1,alive(src.team).length),true);
@@ -355,6 +356,7 @@ function setsEnd(win){
   for(const c of units){if(c.team!==0||c.summon||!c.u)continue;const u=c.u;u.g=u.g||{};
     if(c.fx.shellGrow&&!c.dead){u.g.def=(u.g.def||0)+2;u.g.res=(u.g.res||0)+2;}
     if(win&&c.spotlight===1&&T('Showstoppers')>=4)u.fame=(u.fame||0)+1;}
+  for(const c of units)if(c.team===0&&c.sketchFrom&&c.u&&!c.summon&&c.u.sketch!==c.sketchFrom&&kitOf(c.sketchFrom).mv)run.sketchOffer={uid:c.u.uid,dex:c.sketchFrom};
   if(win&&T('Ranch')>=4)run.herd=(run.herd||0)+1;
   if(win&&T('Living Stone')>=4)run.sediment=Math.min(30,(run.sediment||0)+1);
   if(battle.kaijuGiant&&T('Kaiju')>=4)run.kaijuHp=(run.kaijuHp||0)+1;

@@ -113,7 +113,8 @@ kit({ids:[234,899],role:'Psyshield',cls:'Bruiser',cat:'phys',range:1,mana:[65,70
   staged(B.hit(1.15,{dash:1}),seq(B.hit(1.15,{dash:1}),B.shield(.15,{def:20}))));
 kit({ids:[235],role:'Sketch Artist',cls:'Trickster',cat:'phys',range:1,mana:65,pf:1,names:['Sketch'],mvType:'Normal'},
   {d:()=>`<b>Sketch:</b> at the start of battle it paints a copy of a random enemy's move and uses it for the rest of the fight (keeping its own stats and range).`,
-   begin(c){schedule(.1,()=>{const ops=foesOf(c).filter(f=>f.kit.sig);const t=ops.length?pick(ops):pick(foesOf(c));if(!t)return;c.kit=t.kit;c.mv=t.mv;c.maxMana=t.maxMana;c.pf=t.pf;c.cat=t.cat;if(!SIM.on)texts.push({x:c.x,y:c.y-36,txt:'Sketch: '+t.mv.n,col:'#ffd8a0',life:1.3,label:1});});},
+   begin(c){if(c.u&&c.u.sketch){const K=kitOf(c.u.sketch);c.kit=K;c.mv=K.mv;if(!SIM.on)texts.push({x:c.x,y:c.y-36,txt:'Sketch: '+K.mv.n,col:'#ffd8a0',life:1.3,label:1});return;}
+     schedule(.1,()=>{const ops=foesOf(c).filter(f=>f.kit.sig);const t=ops.length?pick(ops):pick(foesOf(c));if(!t)return;c.kit=t.kit;c.mv=t.mv;c.sketchFrom=t.dex;c.maxMana=t.maxMana;c.pf=t.pf;c.cat=t.cat;if(!SIM.on)texts.push({x:c.x,y:c.y-36,txt:'Sketch: '+t.mv.n,col:'#ffd8a0',life:1.3,label:1});});},
    cast(c,tg){hitAb(c,tg,1);}});
 kit({ids:[237],role:'Spinner',cls:'Bruiser',cat:'phys',range:1,mana:65,pf:1.1,names:['Triple Kick'],mvType:'Fighting',tail:()=>'<b>Intimidate.</b>'},
   {d:c=>`Spins on its head, kicking the target three times (${DT(c,.3)}, then 2× and 3× that), then whirls into every enemy within 1 hex for ${DT(c,.5)}.`,

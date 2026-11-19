@@ -167,7 +167,12 @@ function hexPath(g,x,y,rad,sq){g.beginPath();for(let i=0;i<6;i++){const a=Math.P
 
 /* ================= Sprites (loaded on demand) ================= */
 const SPR={}, LOADING={};
-function loadImg(src){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
+const IMG_TIMEOUT=10000;  // after this long, a picture that hasn't arrived is replaced by a substitute (and retried later)
+function loadImg(src,ms=IMG_TIMEOUT){return new Promise(res=>{const i=new Image();let done=0;const fin=v=>{if(!done){done=1;res(v);}};i.onload=()=>fin(i.naturalWidth?i:null);i.onerror=()=>fin(null);setTimeout(()=>fin(null),ms);i.src=src;});}
+const SUB_DEX=132; // Ditto stands in for any Pokémon whose sprite can't be loaded, like a Substitute
+function subSprite(dex,s){return ensure(SUB_DEX).then(b=>{if(!b||!b.m)return;s.m=b.m;s.img=b.img;s.top=b.top;s.k=b.k;if(!s.por)s.por=b.por;s.sub=1;
+  setTimeout(()=>retrySprite(dex),30000);});}
+function retrySprite(dex){const m=SM[dex];if(!m||!m.a.Idle)return;const sk=m.base?pad(m.base):pad(dex);loadImg(`assets/${sk}/${m.a.Idle[0]}.png`,20000).then(i=>{if(i&&SPR[dex]&&SPR[dex].sub){delete SPR[dex];delete LOADING[dex];ensure(dex);}else if(SPR[dex]&&SPR[dex].sub)setTimeout(()=>retrySprite(dex),60000);});}
 function ensure(dex){
   if(SPR[dex])return Promise.resolve(SPR[dex]);
   if(LOADING[dex])return LOADING[dex];
@@ -181,6 +186,8 @@ function ensure(dex){
     if(m&&s.img.Idle){try{const a=m.a.Idle,fw=a[1],fh=a[2];const c=document.createElement('canvas');c.width=fw;c.height=fh;const g=c.getContext('2d');g.drawImage(s.img.Idle,0,0,fw,fh,0,0,fw,fh);
       const d=g.getImageData(0,0,fw,fh).data;let top=fh/2;outer:for(let y=0;y<fh;y++)for(let x=0;x<fw;x++)if(d[(y*fw+x)*4+3]>10){top=y;break outer;}s.top=top-fh/2;}catch(e){s.top=-14;}}
     else if(m)s.m=null;
+    if(dex!==SUB_DEX&&((m&&!s.img.Idle)||(!m&&!s.por)))await subSprite(dex,s);
+    if(!s.por&&dex!==SUB_DEX){const b=SPR[SUB_DEX];if(b)s.por=b.por;}
     SPR[dex]=s;return s;
   })();
 }
@@ -292,7 +299,8 @@ function renderForest(bg){
 const ITEMIMG={};
 const iconOf=id=>`assets/items/${id}.png`;
 function loadItemImages(){const ids=new Set([...Object.values(COMP).map(c=>c.id),...Object.values(CRAFT).map(c=>c.id),...Object.keys(USE),...Object.keys(RELICS),...Object.keys(ENH),...Object.values(GEAR).map(g=>g.id),...Object.values(PLATES),...Object.values(NODES).map(n=>n.icon).filter(Boolean),...Array.from({length:64},(_,i)=>'badge-'+(i+1))]);
-  for(const id of ids){const i=new Image();i.src=iconOf(id);ITEMIMG[id]=i;}}
+  for(const id of ids){ITEMIMG[id]=iconImg(id);}}
+function iconImg(id){const i=new Image();i.onerror=()=>{if(!i.dataset.fb){i.dataset.fb=1;i.src=iconOf('poke-ball');}};setTimeout(()=>{if(!i.naturalWidth&&!i.dataset.fb){i.dataset.fb=1;i.src=iconOf('poke-ball');}},IMG_TIMEOUT);i.src=iconOf(id);return i;}
 const isComp=it=>it.k.length===1&&!!COMP[it.k];
 const isCraft=it=>!!CRAFT[it.k];
 const isUse=it=>!!USE[it.k];
@@ -335,7 +343,7 @@ function samplePool(keep=[]){if(MODE.gen)return;const ok=natAllowed(),okR=r=>!ok
   {const inPool=new Set(MODE.byCost.flat());for(const k in KIN){const rs=[...new Set(MODE.roots.filter(r=>MODE.lines[r].mem.some(d=>KIN[k].includes(d))))];
     if(!rs.some(r=>inPool.has(r)))continue;const top=(SETS[k].bp0||SETS[k].bp).slice(-1)[0];let have=rs.filter(r=>inPool.has(r)).length;
     for(const r of shuffle(rs))if(have<top&&!inPool.has(r)&&okR(r)){MODE.byCost[MODE.lines[r].cost-1].push(r);inPool.add(r);have++;}}}}
-function newRun(strat,keep=[]){
+function newRun(strat,keep=[]){if(typeof offPrioritize==='function'&&MODE)offPrioritize(Object.values(MODE.lines).flatMap(L=>L.mem));
   samplePool(keep);BENCH_N=9;
   run={strat:{id:'none',name:'',type:null,pts:[]},hp:100,maxHp:100,gold:5,level:2,xp:0,floor:1,streak:0,augs:[],augsAt:[],
     act:0,bossHist:[],board:{},bench:Array(BENCH_N).fill(null),shop:[],results:[],wins:0,boss:null,featured:[],
@@ -871,7 +879,7 @@ function shoot(u,tg,col,onHit,size=2){proj.push({x:u.x,y:u.y-10,tg,col,onHit,siz
 function hurt(tg,d,src){if(tg.dead)return;if(d>0){const e=Math.min(d,Math.max(0,tg.hp)+(tg.shield||0));tg.mTaken=(tg.mTaken||0)+e;if(src&&src!==tg&&typeof src==='object'&&'team'in src)src.mDmg=(src.mDmg||0)+e;}let left=d;const sb=tg.shield||0;if(tg.shield>0){const s=Math.min(tg.shield,left);tg.shield-=s;left-=s;}if(sb>0&&tg.shield<=0)shieldBroke(tg,sb);tg.hp-=left;checkHp(tg,src);}
 function shieldBroke(tg,sb){if(tg.woolShield)woolCheck(tg,sb);if(typeof setsShieldBroke==='function')setsShieldBroke(tg,sb);}
 function checkHp(tg,src){
-  if(tg.sitrus&&tg.sitrusN>0&&tg.hp>0&&tg.hp<tg.maxHp*.5){heal(tg,tg.maxHp*tg.sitrus);tg.sitrusN--;if(tg.fx.enigma){tg.def+=tg.fx.enigma;tg.res+=tg.fx.enigma;for(const o of alive(tg.team))if(o!==tg&&hdist(o,tg)<=1)heal(o,o.maxHp*.15);}}
+  if(tg.sitrus&&tg.sitrusN>0&&tg.hp>0&&tg.hp<tg.maxHp*.5){heal(tg,tg.maxHp*tg.sitrus);tg.sitrusN--;if(tg.fx.molt){cureStatus(tg);tg.airT=combatT+2;tg.target=null;if(!SIM.on)pfx('String_Shot_Ball',tg.x,tg.y-12,{sc:1.1,force:1});}if(tg.fx.enigma){tg.def+=tg.fx.enigma;tg.res+=tg.fx.enigma;for(const o of alive(tg.team))if(o!==tg&&hdist(o,tg)<=1)heal(o,o.maxHp*.15);}}
   if(tg.kee&&tg.hp>0&&tg.hp<tg.maxHp*.4){tg.def+=tg.kee;tg.res+=tg.kee;tg.kee=0;}
   if(tg.fx.lowDef&&!tg.lowDefOn&&lowHp(tg,.5)){tg.lowDefOn=1;tg.def+=tg.fx.lowDef;}
   if(tg.fx.lowAtk&&!tg.lowAtkOn&&lowHp(tg,.5)){tg.lowAtkOn=1;tg.atk*=1+tg.fx.lowAtk;}
@@ -1246,7 +1254,7 @@ function draw(t){
 function badgeTop(cu,s){const sp=SPR[s.dex];return s.y-6+(sp&&sp.m?sp.top*(s.sc||1)*sp.k:-20*(s.sc||1))-9;}
 function drawFormBadges(cu,s,t){
   const F=FORMS[cu.dex],x=Math.round(s.x),top=badgeTop(cu,s);
-  const icon=(id,yy,z=10)=>{const im=ITEMIMG[id]||(ITEMIMG[id]=Object.assign(new Image(),{src:iconOf(id)}));if(im.complete&&im.naturalWidth)drawIcon(im,x-z/2,Math.round(yy-z/2),z,z);};
+  const icon=(id,yy,z=10)=>{const im=ITEMIMG[id]||(ITEMIMG[id]=iconImg(id));if(im.complete&&im.naturalWidth)drawIcon(im,x-z/2,Math.round(yy-z/2),z,z);};
   // Mega: Key Stone badge with a rainbow ring
   if(cu.mega||(F&&F.kind==='mega')){const yy=top-4+Math.sin(t*3)*1;const cols=['#ff5d7a','#ffd34d','#7dff7a','#5ab8ff','#c98bff'];
     for(let i=0;i<5;i++){const a=t*2+i*1.2566;ctx.fillStyle=cols[i];ctx.fillRect(Math.round(x+Math.cos(a)*7)-1,Math.round(yy+Math.sin(a)*3)-1,2,2);}icon('key-stone',yy,10);}
@@ -1281,7 +1289,7 @@ function drawBar(s){
 function drawItems(s){
   const u=s.cu?s.cu.u:s.pu;if(!u||!u.items||!u.items.length)return;
   const n=u.items.length,z=11,x0=Math.round(s.x-(n*(z+1))/2),y=Math.round(s.y+3);
-  u.items.forEach((it,i)=>{const id=itemDef(it).id;if(!ITEMIMG[id]){const im0=new Image();im0.src=iconOf(id);ITEMIMG[id]=im0;}const im=ITEMIMG[id];const x=x0+i*(z+1);ctx.fillStyle=it.enh?'#2fb8a0':isCraft(it)?'#c9961d':'#1b2430';ctx.fillRect(x-1,y-1,z+2,z+2);ctx.fillStyle='#f7f6ee';ctx.fillRect(x,y,z,z);if(im&&im.complete&&im.naturalWidth)drawIcon(im,x,y,z,z);});
+  u.items.forEach((it,i)=>{const id=itemDef(it).id;if(!ITEMIMG[id])ITEMIMG[id]=iconImg(id);const im=ITEMIMG[id];const x=x0+i*(z+1);ctx.fillStyle=it.enh?'#2fb8a0':isCraft(it)?'#c9961d':'#1b2430';ctx.fillRect(x-1,y-1,z+2,z+2);ctx.fillStyle='#f7f6ee';ctx.fillRect(x,y,z,z);if(im&&im.complete&&im.naturalWidth)drawIcon(im,x,y,z,z);});
 }
 function star3(x,y,c){ctx.fillStyle='#1b2430';ctx.fillRect(x-2,y-1,5,3);ctx.fillRect(x-1,y-2,3,5);ctx.fillStyle=c;ctx.fillRect(x-1,y,3,1);ctx.fillRect(x,y-1,1,3);}
 
@@ -1788,13 +1796,20 @@ function showEnd(won){music(won?'theme':'menu');achCheck('end',{won});metaRunEnd
   L.set(88,'Packing the Treasure Bag…');
   loadItemImages();
   await Promise.race([Promise.all(Object.values(ITEMIMG).map(i=>i.complete?0:new Promise(r=>{i.addEventListener('load',r);i.addEventListener('error',r);}))),new Promise(r=>setTimeout(r,3000))]);
+  if(typeof offCore==='function')await offCore(L);
+  ensure(SUB_DEX);
   L.set(96,'Waking up the Pokémon…');
   setScenery('forest');
   showTitle();
   requestAnimationFrame(frame);
   L.done();
+  if(typeof offAll==='function')setTimeout(offAll,1500);
   }catch(e){console.error(e);L.set(got,'Something went wrong while loading. Check your connection and reload the page to try again.');}
 })();
+// pictures in menus: if one can't load, show a stand-in (Ditto's portrait for Pokémon, a Poké Ball for items)
+function imgFallback(src){if(/\/assets\/\d{4}\/(shiny\/)?portrait/.test(src)||/portrait\.png/.test(src))return por(SUB_DEX);if(src.includes('/assets/items/'))return iconOf('poke-ball');return null;}
+document.addEventListener('error',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||im.dataset.fb2)return;const fb=imgFallback(im.src);if(fb&&!im.src.endsWith(fb)){im.dataset.fb2=1;im.src=fb;}},true);
+setInterval(()=>{const now=performance.now();for(const im of document.querySelectorAll('img:not([data-fb2])')){if(im.complete){continue;}if(!im.dataset.t0){im.dataset.t0=now;continue;}if(now-im.dataset.t0>IMG_TIMEOUT){const fb=imgFallback(im.src);if(fb){im.dataset.fb2=1;im.src=fb;}}}},2000);
 // HTML icons: big hi-res item art is shrunk smoothly; small pixel art keeps crisp pixels.
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>64)im.style.imageRendering='auto';},true);
 // No browser right-click menu anywhere in the game (text fields keep it for copy/paste).

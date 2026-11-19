@@ -6,7 +6,7 @@
 function traitsOnStart(u,F,foes){
   if(u.decoy)return;
   // Titans: an opening stomp
-  if(F.titan){for(const o of foes)if(hdist(o,u)<=1){stun(o,F.titan);if(F.titanDmg)hurt(o,u.maxHp*F.titanDmg,u);}if(!SIM.on){ring(u.x,u.y-4,'#c9a46b');burst(u.x,u.y,'#b08a5a',18,1.2);}}
+  if(F.titan){for(const o of foes)if(hdist(o,u)<=1){stun(o,F.titan);if(F.titanDmg)hurt(o,u.maxHp*F.titanDmg,u);}if(F.titanPP)for(const o of foes)o.mana=Math.max(0,o.mana-F.titanPP);if(!SIM.on){ring(u.x,u.y-4,'#c9a46b');burst(u.x,u.y,'#b08a5a',18,1.2);}}
   // Sky Squadron: take off, then dive onto the farthest enemy
   if(F.sky){u.airT=combatT+1;u.busy=Math.max(u.busy,1.05);u.target=null;if(!SIM.on)burst(u.x,u.y-10,'#cfe8ff',14,1);
     schedule(1,()=>{if(u.dead||(mode!=='combat'&&!SIM.on))return;const t=skyTarget(u);if(!t)return;dashTo(u,t,true,.25);
@@ -39,6 +39,6 @@ function foxDecoy(u,p,casts){
 // Fae Folk: wishes land on random allies
 function wishLoop(side,p){
   const go=()=>{if(mode!=='combat'&&!SIM.on)return;const al=alive(side).filter(a=>!a.decoy);if(!al.length)return;const a=pick(al);
-    if(!SIM.on)burst(a.x,a.y-24,'#ffe9a8',8,.5);schedule(2,()=>{if(!a.dead){heal(a,a.maxHp*p);if(!SIM.on)pfx('Healing_Wish_Hit',a.x,a.y-14,{sc:.7,force:1});}});schedule(4,go);};
+    if(!SIM.on)burst(a.x,a.y-24,'#ffe9a8',8,.5);schedule(2,()=>{if(!a.dead){heal(a,a.maxHp*p);if(typeof tierAt==='function'&&tierAt(side,'Fae Folk')>=3)cureStatus(a);if(!SIM.on)pfx('Healing_Wish_Hit',a.x,a.y-14,{sc:.7,force:1});}});schedule(4,go);};
   schedule(4,go);
 }

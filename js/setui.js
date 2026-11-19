@@ -33,7 +33,13 @@ const FEATS=[
   {k:'myth',set:'Mythical',need:3,icon:'reveal-glass',n:'Mythical Event',v:()=>'A gift awaits',when:()=>run.mythReady,open:()=>showMythEvent()},
   {k:'lab',set:'Fossil',need:2,icon:'old-amber',n:'Revival Lab',v:()=>'Revive a fossil',when:()=>run.labReady,open:()=>showFossilLab()},
 ];
-function featsOpen(){if(!run)return[];return FEATS.filter(f=>featTier(f.set)>=f.need&&(!f.when||f.when()));}
+function featsOpen(){if(!run)return[];const out=FEATS.filter(f=>featTier(f.set)>=f.need&&(!f.when||f.when()));
+  const so=run.sketchOffer,su=so&&allOwned().find(u=>u.uid===so.uid);if(su)out.push({k:'sketch',set:'Smeargle',icon:'tm-normal',n:'Sketch',v:()=>`Keep ${kitOf(so.dex).mv.n}?`,open:()=>showSketch()});else if(so)run.sketchOffer=null;
+  return out;}
+function showSketch(){const so=run.sketchOffer,u=so&&allOwned().find(x=>x.uid===so.uid);if(!u)return;const K=kitOf(so.dex);
+  setMenu('Sketch',`${esc(nameOf(u))} sketched <b>${esc(K.mv.n)}</b> from ${esc(D[so.dex].n)}. Keep it for the rest of the run?${u.sketch?` It currently keeps <b>${esc(kitOf(u.sketch).mv.n)}</b>.`:''}`,
+    `<div class="setgrid">${optBtn('data-sk="1"',por(so.dex),'Keep '+esc(K.mv.n),'It uses this move every battle','',false)}${optBtn('data-sk="0"',porImg?null:null,'Keep sketching','A new random move each battle','',false)}</div>`,{icon:'tm-normal'});
+  ov.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{if(b.dataset.sk==='1')u.sketch=so.dex;else u.sketch=null;run.sketchOffer=null;sfx('click');ov.innerHTML='';renderUI();});}
 function setsModsHtml(){if(!run||SIM.on)return'';const fs=featsOpen();const blank=run.bag.map((it,i)=>({it,i})).filter(x=>isBadge(x.it)&&!badgeSet(x.it));
   let h='';if(fs.length||blank.length)h+=`<div class="featrow">${fs.map(f=>`<button class="featbtn" data-feat="${f.k}" ${mode==='plan'||f.k==='flight'?'':'disabled'}><img src="${iconOf(f.icon)}" alt=""><span><b>${f.n}</b><small>${esc(f.v())}</small></span></button>`).join('')}
     ${blank.map(x=>`<button class="featbtn" data-engrave="${x.i}"><img src="${iconOf(badgeIcon(''))}" alt=""><span><b>Engrave badge</b><small>Blank Guild Badge</small></span></button>`).join('')}</div>`;

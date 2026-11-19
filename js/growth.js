@@ -64,6 +64,10 @@ const GROWTH_NEW=[
     d:u=>`Every ally that faints in a battle it fights: +2% damage, forever. <span class="sc">(${u.gs||0} fallen · +${2*(u.gs||0)}%)</span>`},
   {ids:[83,10166,865],n:'Sharpened Leek',key:'leek',on:'critBattle',
     d:u=>`After every battle where it lands a critical hit: +1% crit chance and +2% crit damage, forever. <span class="sc">(${u.gs||0} sharpened)</span>`},
+  {ids:[235],n:'Sketch',key:'sketch',on:'none',
+    d:u=>`After a battle you can let it keep the move it sketched, for the rest of the run.${u.sketch?` <span class="sc">(Keeping: ${esc(kitOf(u.sketch).mv.n)} from ${esc(D[u.sketch].n)})</span>`:''}`},
+  {ids:[399,400],n:'Dam Builder',key:'dam',on:'battle',
+    d:u=>`After every battle it adds to its dam, forever. When battle starts, allies right behind it get a shield of 2% of its max HP per dam piece. <span class="sc">(${u.gs||0} pieces)</span>`},
   {ids:[95,208],n:'Pressure-Hardened',key:'press',on:'battle',per:{def:2},size:.7,
     d:u=>`After every battle: +2 Defense and +0.7% Size, forever. <span class="sc">(${u.gs||0} battles)</span>`},
 ];
@@ -133,6 +137,13 @@ function growthCombat(c){
 }
 // a battle-start pass for growth effects that touch other units
 function growthStart(c){
+  const G=c.u&&MODE&&growthOf(c.u);
+  if(G&&G.key==='dam'&&stacks(c)){const dir=c.team?-1:1;for(const a of alive(c.team))if(a!==c&&hdist(a,c)===1&&(a.r-c.r)*dir>0){a.shield+=c.maxHp*.02*stacks(c);if(!SIM.on)pfx('Protect',a.x,a.y-12,{sc:.6,force:1});}}
+  if(G&&G.key==='blubber'&&sizeOf(c)>=150)schedule(.5,()=>{if(c.dead)return;const foes=alive(1-c.team);if(!foes.length)return;
+    const t=foes.map(o=>[o,foes.filter(q=>hdist(q,o)<=1).length]).sort((a,b)=>b[1]-a[1])[0][0];dashTo(c,t,true,.35);
+    schedule(.37,()=>{if(c.dead)return;for(const o of alive(1-c.team))if(hdist(o,t)<=1){damage(c,o,c.maxHp*.06,{ab:1,cat:'phys',type:'Water',noCrit:1});knock(c,o);}
+      if(!SIM.on){pfx('Water_Spout_Splash',t.x,t.y-8,{sc:1.3,force:1});CINE.shake=Math.max(CINE.shake,.15);texts.push({x:c.x,y:c.y-44,txt:'Bounce!',col:'#7fc8ff',life:1,label:1});}});});
+  if(G&&G.key==='sketch')c.sketchy=1;
   if(c.berryShare){const a=alive(c.team).filter(o=>o!==c&&hdist(o,c)<=1).sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0];if(a){heal(a,a.maxHp*.1);if(!SIM.on)pfx('Heal_Block_Sparkle',a.x,a.y-14,{sc:.8,force:1});}}
   if(c.keystone){for(const o of alive(1-c.team))o.dmg*=.9;if(!SIM.on){texts.push({x:c.x,y:c.y-44,txt:'Odd Keystone!',col:'#b48cff',life:1.4,label:1});pfx('Grudge_Lights',c.x,c.y-16,{sc:1,force:1});}}
 }

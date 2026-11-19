@@ -416,7 +416,7 @@ Trait sets no longer get the +2 Crown augment (the +1 Heart and Crest stay), and
 
 **Size** is a continuous stat: everyone starts at 100%. Bigger Pokémon are drawn bigger (up to 180%) and get, each scaling smoothly with a cap: shorter stuns and slows (up to −40%), basic-attack splash onto enemies next to the target (up to 15%), a chance to resist knockback (up to 100%) and a soft taunt on nearby enemies. The catch: they lose dodge, and Heavy Slam–style moves hit big targets harder. Size comes from growth lines, Titans, Kaiju (+5% per cast, +25% going Giant), Leviathans in the water, Big Eaters and some capstones.
 
-31 lines **grow over the run**, each in a way that fits who they are, and none of them has a cap (past 12 projectiles, extra stacks make each one hit harder instead): Larvitar's Rock Slide gains a rock per 6 Rubble, Wailmer gains HP and Size together (Blubber), Gulpin and Snorlax eat what you **Feed** them, Aron eats iron (and spare item components), Beldum computes crits, Dreepy loads more darts, Falinks recruits troopers, Spiritomb gathers 108 souls, Tinkatink builds its hammer from scrap, Cufant's copper patinas, Mareep's wool regrows into a shield, Chansey lays Lucky Eggs you can give to allies, Nacli grows salt, Cubone keeps bones, Basculegion and Houndstone pay Last Respects, Sirfetch'd sharpens its leek and Onix hardens into Steelix, alongside the original thirteen (Magikarp, Abra, Mankey, Snorlax, Shuckle, Feebas, Pawniard, Honedge, Wishiwashi, Skwovet, Gimmighoul, Pikachu, Eevee).
+33 lines **grow over the run**, each in a way that fits who they are, and none of them has a cap (past 12 projectiles, extra stacks make each one hit harder instead): Larvitar's Rock Slide gains a rock per 6 Rubble, Wailmer gains HP and Size together (Blubber), Gulpin and Snorlax eat what you **Feed** them, Aron eats iron (and spare item components), Beldum computes crits, Dreepy loads more darts, Falinks recruits troopers, Spiritomb gathers 108 souls, Tinkatink builds its hammer from scrap, Cufant's copper patinas, Mareep's wool regrows into a shield, Chansey lays Lucky Eggs you can give to allies, Nacli grows salt, Cubone keeps bones, Basculegion and Houndstone pay Last Respects, Sirfetch'd sharpens its leek, Onix hardens into Steelix, Smeargle can keep a sketched move for the run and Bidoof builds a dam that shields the ally behind it (big Wailmer also open with a bounce), alongside the original thirteen (Magikarp, Abra, Mankey, Snorlax, Shuckle, Feebas, Pawniard, Honedge, Wishiwashi, Skwovet, Gimmighoul, Pikachu, Eevee).
 
 In a single-generation run, every enemy (trainers, wild packs, alphas, guardians) is a Pokémon from that generation: guest lines never appear as enemies, and a line that includes older Pokémon (Pichu → Pikachu in Gen II) always fields its member from that generation.
 
@@ -550,6 +550,17 @@ Settings › Audio has sliders for **Master**, **Music**, **Battle sounds** (mov
 ### Settings
 
 Settings are split into sections like PokéRogue's: General (battle speed, damage numbers, shop and bag behaviour), Display (board auto-fit, zoom speed, move effects, light rays), Audio (music and sound effects volume), Gamepad (cursor speed, stick dead zone, right-stick mode, button list), Controls (keyboard and mouse list) and Data (delete the saved run, forget Kit Dex discoveries, reset settings).
+
+### Playing offline
+
+The game is a Progressive Web App and runs fully offline in the browser:
+
+- **While the game loads**, the core pack (items, effects, sounds, tiles, the game's data and code) is saved on your device, so the page itself opens without a connection.
+- **In the background**, every Pokémon's sprites, portraits and shinies (about 200 MB) download and are saved too, with the Pokémon your current run can meet first. A small note at the bottom left shows progress ("Saving for offline play: 42%") and says "Ready to play offline" when it's done. If the connection drops, it pauses and picks up where it left off when you're back online.
+- **Your saves** (runs, unlocks, candy, achievements, settings) always live on this device, so a run started offline simply carries on when you reconnect; there is no separate cloud copy to sync. When you're back online the game updates itself to the newest version on the next load.
+- **Anything that still can't load** gets a stand-in after 10 seconds: a Pokémon whose sprite is missing shows up as Ditto (its own sprite is retried later and swaps in once it arrives), a missing portrait shows Ditto's portrait, and a missing item icon shows a Poké Ball.
+
+After adding or changing anything in `assets/`, run `python3 tools/manifest.py` to rebuild `asset-manifest.json`; the game re-downloads only the files whose content changed.
 
 ### Saving
 
