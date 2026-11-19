@@ -74,9 +74,10 @@ function musicForRun(){if(!run)return'menu';const a=actOf();
 
 /* ---------- sound effects: PMD samples in assets/sfx, decoded once and played from memory ---------- */
 const SFX_FILES=['Normal','Normal2','Fire','Fire2','Water','Water2','Grass','Grass2','Electric','Electric2','Ice','Ice2','Fighting','Fighting2','Poison','Poison2','Ground','Ground2','Flying','Flying2','Psychic','Psychic2','Bug','Bug2','Rock','Rock2','Ghost','Ghost2','Dragon','Dragon2','Dark','Dark2','Steel','Steel2','Fairy','Fairy2',
-  'hit','crit','miss','faint','buy','sell','reroll','level','star','evolve','win','lose','chest','treasure','pick','lock','coin','error','select','achieve'];
+  'hit','crit','miss','faint','buy','sell','reroll','level','star','evolve','win','lose','chest','treasure','pick','lock','coin','error','select','achieve',
+  'ok','back','click','tab','speak','heal','hatch','join','area','rankup'];
 // how loud each one sits in the mix (hits are frequent, so they're quiet)
-const SFX_VOL={hit:.35,crit:.55,miss:.4,faint:.6,select:.5,lock:.6,coin:.6,buy:.7,sell:.6,reroll:.6};
+const SFX_VOL={hit:.35,crit:.55,miss:.4,faint:.6,select:.42,lock:.6,coin:.6,buy:.7,sell:.6,reroll:.6,ok:.6,back:.6,click:.5,tab:.5,speak:.35,heal:.6,hatch:.7,join:.75,area:.7,rankup:.75};
 const SFXBUF={};
 function sfxLoad(){if(!AU.ctx||AU.sfxLoading)return;AU.sfxLoading=1;
   for(const k of SFX_FILES)fetch(`assets/sfx/${k}.mp3`).then(r=>r.arrayBuffer()).then(b=>AU.ctx.decodeAudioData(b)).then(buf=>{SFXBUF[k]=buf;}).catch(()=>{});}
@@ -84,7 +85,29 @@ function sfxLoad(){if(!AU.ctx||AU.sfxLoading)return;AU.sfxLoading=1;
 function sfxGate(k,gap){const t=performance.now();if((AU.last[k]||0)>t-gap)return false;AU.burst=AU.burst.filter(x=>x>t-150);if(AU.burst.length>=6)return false;AU.last[k]=t;AU.burst.push(t);return true;}
 // battle sounds (moves, hits, knockouts) and interface sounds have their own volume
 const BATTLE_SFX=new Set(['hit','crit','miss','faint']);
-function playBuf(k,vol=1,rate=1){const b=SFXBUF[k];if(!b)return;const c=AU.ctx,s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;s.connect(g);g.connect(BATTLE_SFX.has(k)||SFXBUF[k]&&/^[A-Z]/.test(k)?AU.sfx:AU.ui);s.start();}
+function playBuf(k,vol=1,rate=1){const b=SFXBUF[k];if(k!=='select'&&!BATTLE_SFX.has(k)&&!/^[A-Z]/.test(k))AU.uiAt=performance.now();if(!b)return;const c=AU.ctx,s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.playbackRate.value=rate;g.gain.value=vol;s.connect(g);g.connect(BATTLE_SFX.has(k)||SFXBUF[k]&&/^[A-Z]/.test(k)?AU.sfx:AU.ui);s.start();}
 function sfx(k,gap=40){if(!auOK()||!sfxGate(k,gap))return;playBuf(k,SFX_VOL[k]??.8,k==='hit'?.92+Math.random()*.16:1);}
 // each type has two PMD move sounds; one is picked at random
 function sfxMove(type){if(!auOK()||!(OPTS.sfxVol??.6))return;const t=SFXBUF[type]?type:'Normal';if(!sfxGate('mv:'+t,90))return;playBuf(Math.random()<.5?t:t+'2',.7);}
+
+/* ---------- PMD menu sounds for every menu, mouse, keyboard or controller ----------
+   Moving the cursor plays Select, pressing a button plays Confirm, Back/Close plays Cancel, tabs and
+   setting arrows play Click/Skip, and a disabled button buzzes. A button whose own action already made a
+   sound (Buy, Reroll, Lock...) doesn't add Confirm on top. */
+const UI_SEL='button,.pick,.mode,.srow,.stab,[data-relic],.ctile,.rt,.pt,.skin,[tabindex="0"]';
+let uiHover=null;
+function uiTarget(e){const el=e.target&&e.target.closest&&e.target.closest(UI_SEL);if(!el||el.closest('[hidden]'))return null;return el;}
+const isBack=el=>el.matches('[data-back],#back,#setclose,#dexclose,#sm-back,.back,#skip')||/^(Back|Close|Cancel)$/.test((el.textContent||'').trim());
+const isTab=el=>el.matches('.stab,[role="tab"],.mtabs button,.mside button,[data-tabgroup] button,.sarr,.srow');
+// hover with the mouse (once per element)
+addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const el=uiTarget(e);if(el===uiHover)return;uiHover=el;if(el&&!el.disabled&&el.matches(':not(:disabled)'))sfx('select',45);},true);
+// keyboard and controller: the cursor moving onto something
+// (not when a press just opened a new screen and the game put the cursor on its first button)
+addEventListener('focusin',e=>{const el=e.target;if(!el||!el.matches||!el.matches(UI_SEL)||el===uiHover)return;uiHover=el;if(AU.inClick||performance.now()-(AU.uiAt||0)<150)return;sfx('select',45);},true);
+// a press on something that can't be used
+addEventListener('pointerdown',e=>{const el=e.target&&e.target.closest&&e.target.closest('button:disabled,.pick[disabled]');if(el&&!el.closest('[hidden]'))sfx('error',120);},true);
+// a press: decided just after the button's own handler has run, so its own sound (Buy, Reroll...) wins
+addEventListener('click',e=>{const el=e.target&&e.target.closest&&e.target.closest(UI_SEL);if(!el||el.disabled)return;
+  AU.inClick=1;const t0=performance.now();
+  setTimeout(()=>{AU.inClick=0;if((AU.uiAt||0)>=t0)return;
+    sfx(isBack(el)?'back':isTab(el)?(el.matches('.sarr,.srow')?'click':'tab'):'ok',40);},0);},true);

@@ -1480,7 +1480,7 @@ function showInfoTip(html,e){$('tip').innerHTML=html;$('tip').classList.toggle('
 function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.width/1280;let x=(e.clientX-sr.left)/sc+18,y=(e.clientY-sr.top)/sc-40;
   tip.style.display='block';tip.classList.remove('wide');if(tip.offsetHeight>640)tip.classList.add('wide');const th=tip.offsetHeight,tw=tip.offsetWidth;if(x>1280-tw-6)x-=tw+24;x=Math.max(6,x);y=clamp(y,80,720-th-10);tip.style.left=x+'px';tip.style.top=y+'px';}
 function hideTip(){const t=$('tip');t.style.display='none';t.classList.remove('hascard');}
-let toastT=0;function toast(m){if(SIM.on)return;const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2600);}
+let toastT=0;function toast(m){if(SIM.on)return;sfx('speak',300);const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2600);}
 function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="banner win">${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</div>`;setTimeout(()=>{if(h.firstChild&&h.firstChild.textContent.startsWith(title))h.innerHTML='';},ms);}
 function showGameUI(on){['hud','traits','shop','bag','meter','feats'].forEach(id=>$(id).hidden=!on);if(!on)closePause();}
 function renderUI(){achState();
@@ -1738,7 +1738,7 @@ function showActClear(){
 async function startNextAct(){
   ov.innerHTML='';run.actClear=0;(run.hist=run.hist||[]).push(run.results.slice(1));run.act=actOf()+1;run.floor=1;run.results=[];run.carDone=[];run.hp=run.maxHp;run.centersOffered=0;run.lastCenterOffer=0;
   run.boss=pickBoss();planAct();perkRun('act');
-  if(!SIM.on){setScenery(actDef().bg);showGameUI(true);banner(actLabel(),`${actDef().name} · ${actDef().theme}`,2600);}
+  if(!SIM.on){setScenery(actDef().bg);showGameUI(true);sfx('area');banner(actLabel(),`${actDef().name} · ${actDef().theme}`,2600);}
   return startFloor();
 }
 function enterEndless(){run.endless=true;mode='plan';showGameUI(true);startNextAct();}

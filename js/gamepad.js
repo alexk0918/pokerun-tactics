@@ -69,7 +69,7 @@ function padTab(root,d){const g=root.querySelector('[data-tabgroup]');if(!g)retu
   const n=tabs[(i<0?0:i+d+tabs.length)%tabs.length];n.click();
   // the screen may have been redrawn: highlight the selected tab in the new one
   requestAnimationFrame(()=>{const g2=root.querySelector('[data-tabgroup]');if(!g2)return;const t=g2.querySelector('.on,[aria-selected="true"],[aria-pressed="true"]');if(t)padFocus(t);});
-  if(typeof sfx==='function')sfx('select');return true;}
+  return true;}
 // the scrollable list to move: the one holding the highlight, else the one under the cursor, else the screen's first
 function padScroller(root){const isS=e=>{if(!e||e===document.body)return false;const cs=getComputedStyle(e);return/(auto|scroll)/.test(cs.overflowY)&&e.scrollHeight>e.clientHeight+4;};
   const up=e=>{for(;e&&e!==root.parentElement;e=e.parentElement)if(isS(e))return e;return null;};
@@ -150,7 +150,7 @@ function padPoll(dt){
   // A: press = pointerdown (starts drags), release = pointerup + click
   // in a menu, A presses the highlighted button directly (it may sit in a scrolled list)
   const foc=menu&&!PAD.cur&&padFocusEl();
-  if(padEdge(gp,BTN.A)&&foc){PAD.aMenu=true;if(foc.tagName==='INPUT')foc.focus();else{foc.click();if(typeof sfx==='function'&&foc.matches('.ctile,.rt,.pt,.skin,.tscard *'))sfx('select');}}
+  if(padEdge(gp,BTN.A)&&foc){PAD.aMenu=true;if(foc.tagName==='INPUT')foc.focus();else{foc.click();}}
   else if(padEdge(gp,BTN.A)){PAD.aDown=true;PAD.downEl=padFire('pointerdown');}
   if(PAD.aMenu&&!padPressed(gp,BTN.A))PAD.aMenu=false;
   if(PAD.aDown&&!padPressed(gp,BTN.A)){PAD.aDown=false;const up=padFire('pointerup');

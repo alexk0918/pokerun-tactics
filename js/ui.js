@@ -66,7 +66,7 @@ const SET_TABS=[
     {k:'masterVol',n:'Master volume',slider:1,on:()=>auVolumes()},
     {k:'musVol',n:'Music',slider:1,on:()=>auVolumes()},
     {k:'sfxVol',n:'Battle sounds',d:'Moves, hits and knockouts',slider:1,on:()=>{auVolumes();sfx('hit',0);}},
-    {k:'uiVol',n:'Interface sounds',d:'Shop, menus, level-ups and fanfares',slider:1,on:()=>{auVolumes();sfx('select',0);}}]},
+    {k:'uiVol',n:'Interface sounds',d:'PMD menu sounds, the shop, level-ups and fanfares',slider:1,on:()=>{auVolumes();sfx('select',0);}}]},
   {id:'gamepad',n:'Gamepad',rows:[
     {k:'padSens',n:'Cursor speed',v:[.5,.75,1,1.25,1.5,2],l:['50%','75%','100%','125%','150%','200%']},
     {k:'padDZ',n:'Stick dead zone',v:[.1,.18,.26],l:['Small','Normal','Large']},

@@ -73,6 +73,7 @@ const lvlNeed=l=>100+25*(l-1);
 const LEVEL_REWARDS={5:{stump:'rock'},10:{stump:'leaf',title:'explorer'},15:{stump:'cushion'},20:{stump:'pokeball',title:'veteran'},30:{stump:'crystal',title:'master'},40:{stump:'gold',title:'legend'}};
 function metaLevel(){let up=0;while(META.xp>=lvlNeed(META.lvl)){META.xp-=lvlNeed(META.lvl);META.lvl++;up++;META.vouchers++;
     const R=LEVEL_REWARDS[META.lvl];if(R)grant(R);
+    if(metaOn()&&typeof sfx==='function')sfx('rankup',800);
     if(metaOn())popCard({icon:'exp-share',k:'Trainer level up',title:`Level ${META.lvl}`,text:`+1 egg voucher${R?' · '+rewardText(R):''}`});}
   return up;}
 function metaAct(a){if(!metaOn())return;META.vouchers++;META.xp+=Math.round(50*(1+.05*(run.asc||0)));metaLevel();metaSave();}
@@ -217,7 +218,7 @@ function showHatchery(back){back=back||showTitle;let busy=false;
   upd();
   // presses while an egg is hatching are ignored (the button stays put so a mashed A can't hit anything else)
   $('hatch').onclick=async()=>{if(busy||META.vouchers<1)return;busy=true;const hadFocus=document.activeElement===$('hatch');upd();
-    const E=$('egg');E.className='egg wobble';E.innerHTML=egg;$('rname').textContent='';sfx('select');
+    const E=$('egg');E.className='egg wobble';E.innerHTML=egg;$('rname').textContent='';sfx('hatch');
     let h=null;try{h=hatchEgg();}catch(e){console.error(e);}
     if(!h){busy=false;E.className='egg';upd();return;}
     // wait for the wobble and for the picture (shiny first, then the normal one), up to 5 seconds
@@ -226,7 +227,7 @@ function showHatchery(back){back=back||showTitle;let busy=false;
     if(!$('egg'))return; // left the screen meanwhile
     E.className='egg crack';E.innerHTML=`<div class="reveal ${h.tier}"><img src="${h.pic}" alt="${esc(lineName(h.r))}"></div>`;
     $('rname').innerHTML=`<b>${h.shiny?'★ Shiny ':''}${esc(lineName(h.r))}</b> · ${EGG[h.tier].n} · ${h.isNew?'New line unlocked!':'+10 candy'}`;
-    sfx(h.tier==='legendary'||h.shiny?'evolve':'treasure');busy=false;upd();
+    sfx(h.tier==='legendary'||h.shiny?'evolve':h.isNew?'join':'treasure');busy=false;upd();
     if(hadFocus&&!$('hatch').disabled){$('hatch').focus({preventScroll:true});if(typeof PAD!=='undefined'&&PAD.on)padPutCursorOn($('hatch'));}};
   $('back').onclick=back;
 }
