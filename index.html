@@ -705,6 +705,46 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 .padkey{display:none;align-self:center;font-size:11px;padding:1px 5px;border-radius:4px;background:#2b3a30;color:#fff;}body.pad .padkey{display:inline-block;}
 .stabs .padkey{margin:0 4px;}.rname{min-height:22px;font-size:14px;}.ptitle .btn{min-width:30px;}
 .padonly{display:none;}body.pad .padonly{display:inline;}
+.cardtog{display:flex;justify-content:center;align-items:center;gap:6px;margin:4px 0;}#cardtog[aria-pressed="true"]{background:#fff3c4;}
+.tiphint{font-size:13px;opacity:.9;}body.pad .mouseonly{display:none;}.padbar{font-size:13px;margin-top:6px;}.padbar.padonly{text-align:center;}body.pad .padbar.padonly{display:block;}
+/* controller button glyphs used in tips (Xbox colours) */
+.padkey.k-a,.padkey.k-b,.padkey.k-y{width:22px;height:22px;padding:0;border-radius:50%;text-align:center;line-height:22px;font-size:13px;font-weight:700;border:2px solid #1d2a22;vertical-align:middle;}
+.padkey.k-a{background:#3fae49;}.padkey.k-b{background:#d9443a;}.padkey.k-y{background:#e8b923;color:#1d2a22;}.padkey.k-s{font-size:12px;padding:2px 7px;vertical-align:middle;}
+.tiphint{font-size:15px;color:#fff;text-shadow:0 1px 0 #000;}.padbar{font-size:15px;color:#fff;text-shadow:0 1px 0 #000;margin:2px 0 6px;}.padbar .padkey{margin:0 3px 0 12px;}.padbar .padkey:first-child{margin-left:0;}
+
+/* ---------- loading screen ---------- */
+#loader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 38%,#2c5a3a 0%,#183526 45%,#0b1a12 100%);transition:opacity .5s ease;font-family:var(--label,'Pixelify Sans',sans-serif);color:#fff;}
+#loader.out{opacity:0;pointer-events:none;}
+.ld-hex{position:absolute;inset:-60px;opacity:.10;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28 0l28 16v32L28 64 0 48V16zM28 64v33' fill='none' stroke='%23cfe9b8' stroke-width='2'/%3E%3C/svg%3E");animation:ldpan 40s linear infinite;}
+@keyframes ldpan{to{transform:translate(56px,97px);}}
+.ld-flies i{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff6a8;box-shadow:0 0 10px 3px #fff27a88;opacity:0;animation:ldfly 7s ease-in-out infinite;}
+.ld-flies i:nth-child(1){left:12%;top:70%;animation-delay:0s}.ld-flies i:nth-child(2){left:26%;top:30%;animation-delay:1.2s}.ld-flies i:nth-child(3){left:44%;top:78%;animation-delay:2.4s}
+.ld-flies i:nth-child(4){left:62%;top:22%;animation-delay:.6s}.ld-flies i:nth-child(5){left:78%;top:64%;animation-delay:3.1s}.ld-flies i:nth-child(6){left:88%;top:36%;animation-delay:4.2s}
+.ld-flies i:nth-child(7){left:35%;top:55%;animation-delay:5s}.ld-flies i:nth-child(8){left:70%;top:85%;animation-delay:1.8s}
+@keyframes ldfly{0%,100%{opacity:0;transform:translate(0,0)}20%{opacity:.9}50%{opacity:.4;transform:translate(18px,-26px)}80%{opacity:.9;transform:translate(-10px,-48px)}}
+.ld-box{position:relative;display:flex;flex-direction:column;align-items:center;gap:22px;width:min(560px,90vw);margin-top:-6vh;}
+.ld-logo{display:flex;flex-direction:column;align-items:center;line-height:.9;text-shadow:0 4px 0 #0b1a12,0 0 24px #0008;animation:ldbob 3s ease-in-out infinite;}
+.ld-poke{font-size:clamp(44px,8vw,78px);font-weight:700;color:#ffd84a;-webkit-text-stroke:3px #2b3a30;paint-order:stroke fill;letter-spacing:1px;}
+.ld-tac{font-size:clamp(22px,3.6vw,34px);font-weight:700;color:#e9f4df;letter-spacing:10px;margin-top:4px;-webkit-text-stroke:2px #2b3a30;paint-order:stroke fill;}
+@keyframes ldbob{50%{transform:translateY(-6px)}}
+.ld-bar{width:100%;background:#f6f3ea;color:#1d2a22;border:3px solid #2b3a30;border-radius:12px;padding:10px 14px 9px;box-shadow:0 5px 0 #0b1a12aa;}
+.ld-lbl{display:flex;justify-content:space-between;font-size:13px;letter-spacing:1px;margin-bottom:5px;}.ld-lbl b{color:#a37a12;}
+.ld-track{height:14px;border-radius:7px;background:#3a4a40;border:2px solid #2b3a30;overflow:hidden;}
+.ld-fill{height:100%;width:0;background:linear-gradient(#7ee07a,#3fae49);box-shadow:inset 0 3px 0 #ffffff55;transition:background .3s;}
+.ld-fill.mid{background:linear-gradient(#ffe066,#e8b923);}.ld-fill.low{background:linear-gradient(#ff8a7a,#d9443a);}
+.ld-msg{margin-top:6px;font-size:14px;min-height:18px;}
+.ld-tip{display:flex;gap:10px;align-items:flex-start;width:100%;background:#1d2a22e6;border:3px solid #cfe9b8;border-radius:10px;padding:10px 14px;font-size:15px;line-height:1.35;min-height:56px;box-shadow:0 5px 0 #0b1a12aa;}
+.ld-tipk{flex:none;background:#ffd84a;color:#1d2a22;border-radius:5px;padding:1px 7px;font-size:12px;font-weight:700;margin-top:2px;}
+#ld-tip{transition:opacity .25s;}
+.ld-path{position:absolute;left:0;right:0;bottom:9vh;height:150px;}
+.ld-walker{position:absolute;bottom:0;left:-120px;width:120px;height:150px;animation:ldcross 14s linear infinite;}
+@keyframes ldcross{to{left:calc(100% + 40px)}}
+.ld-spr{position:absolute;left:50%;bottom:18px;transform:translateX(-50%) scale(3);transform-origin:50% 100%;image-rendering:pixelated;background-repeat:no-repeat;}
+@keyframes ldwalk{from{background-position:0 var(--ld-row)}to{background-position:var(--ld-sheet) var(--ld-row)}}
+.ld-shadow{position:absolute;left:50%;bottom:10px;width:56px;height:14px;margin-left:-28px;border-radius:50%;background:#0006;}
+.ld-pad{position:absolute;right:18px;bottom:16px;font-size:14px;background:#1d2a22e6;border:2px solid #cfe9b8;border-radius:8px;padding:5px 10px;}
+@media (prefers-reduced-motion:reduce){.ld-hex,.ld-flies i,.ld-logo,.ld-walker{animation:none}.ld-walker{left:50%;margin-left:-60px}}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -757,12 +797,50 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
   <div id="tip" class="win"></div>
   <div id="toast" class="win"></div>
   <div id="bannerhost"></div>
-  <div id="overlay"><div class="screen"><div class="loading" id="loadmsg">Loading Pokédex…</div></div></div>
+  <div id="overlay"><div class="screen"><div class="loading" id="loadmsg" hidden></div></div></div>
+  <!-- loading screen: drawn straight from the page so it shows before any script has loaded -->
+  <div id="loader" role="status" aria-live="polite">
+    <div class="ld-hex"></div><div class="ld-flies"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="ld-box">
+      <div class="ld-logo"><span class="ld-poke">PokéRun</span><span class="ld-tac">Tactics</span></div>
+      <div class="ld-bar"><div class="ld-lbl"><b>LOADING</b><span id="ld-pct">0%</span></div><div class="ld-track"><div class="ld-fill" id="ld-fill"></div></div><div class="ld-msg" id="ld-msg">Opening the guild doors…</div></div>
+      <div class="ld-tip"><span class="ld-tipk">TIP</span><span id="ld-tip"></span></div>
+    </div>
+    <div class="ld-path"><div class="ld-walker" id="ld-walker"><div class="ld-shadow"></div><div class="ld-spr" id="ld-spr"></div></div></div>
+    <div class="ld-pad" id="ld-pad" hidden>🎮 Controller ready</div>
+  </div>
+  <script>
+  (function(){
+    // a starter walks across while the game loads ([dex, frame width, frame height, frames, total duration in 1/60 s])
+    var W=[[25,32,40,4,36],[133,40,48,7,26],[1,40,40,6,24],[4,32,32,4,28],[7,32,32,4,40],[152,24,32,4,36],[155,24,32,4,28],[158,24,32,4,36],[252,32,32,4,32],[255,24,32,4,32],[258,32,40,6,30],[387,24,32,4,40],[390,32,48,7,34],[393,24,32,4,36]];
+    var w=W[Math.floor(Math.random()*W.length)],el=document.getElementById('ld-spr'),pad=('000'+w[0]).slice(-4);
+    el.style.width=w[1]+'px';el.style.height=w[2]+'px';el.style.backgroundImage='url(assets/'+pad+'/Walk.png)';
+    el.style.backgroundPosition='0 '+(-2*w[2])+'px';el.style.setProperty('--ld-sheet',(-w[1]*w[3])+'px');el.style.setProperty('--ld-row',(-2*w[2])+'px');
+    el.style.animation='ldwalk '+(w[4]/60).toFixed(2)+'s steps('+w[3]+') infinite';
+    var TIPS=['Three copies of a Pokémon combine into a 2★; three 2★ make a 3★.','Interest pays ₽1 for every ₽10 you hold, up to ₽5. Saving up pays off.',
+      'Win or lose streaks of 2 or more pay extra gold each floor.','Reach 2★ with a Pokémon in any run to unlock it for National Dex.',
+      'Each line earns candy when it wins battles. Spend it on shinies and training in Pokémon.','Egg vouchers come from achievements, act clears and trainer levels.',
+      'Right-click a Pokémon (RT on a controller) to open its menu.','Your expedition sets the rules for the whole run. Choose it carefully!',
+      'Front-row Pokémon take the hits. Put your tanks up front and your attackers behind.','Sets activate at 2, 4 or more Pokémon. Check the left panel for what you\'re close to.',
+      'Lock the shop to keep its Pokémon for next floor.','Winning a run unlocks the next Ascension level.','A shiny Pokémon sparkles on the board. 1 in 200 Pokémon you get is shiny!',
+      'Items combine: drop one component onto another Pokémon\'s component to craft a completed item.','Pick a partner to start every run with a favourite on your bench.'];
+    var tip=document.getElementById('ld-tip'),k=Math.floor(Math.random()*TIPS.length);
+    function next(){tip.style.opacity=0;setTimeout(function(){tip.textContent=TIPS[k++%TIPS.length];tip.style.opacity=1;},250);}
+    tip.textContent=TIPS[k++%TIPS.length];var tt=setInterval(next,4200);
+    var shown=0,target=0,fill=document.getElementById('ld-fill'),pct=document.getElementById('ld-pct'),msg=document.getElementById('ld-msg');
+    function tick(){shown+=(target-shown)*.18;if(target-shown<.2)shown=target;fill.style.width=shown+'%';pct.textContent=Math.round(shown)+'%';
+      fill.className='ld-fill'+(shown<30?' low':shown<60?' mid':'');if(window.LOAD&&!LOAD.gone)requestAnimationFrame(tick);}
+    requestAnimationFrame(tick);
+    window.LOAD={gone:false,set:function(p,m){target=Math.max(target,Math.min(100,p));if(m)msg.textContent=m;},
+      pad:function(){var e=document.getElementById('ld-pad');if(e)e.hidden=false;},
+      done:function(){var L=document.getElementById('loader');if(!L)return;LOAD.set(100,'Ready!');setTimeout(function(){L.classList.add('out');setTimeout(function(){LOAD.gone=true;clearInterval(tt);L.remove();},520);},280);}};
+  })();
+  </script>
 </div></div>
 
 <script src="js/data.js?v=21"></script>
 <script src="js/sets.js?v=22"></script>
-<script src="js/game.js?v=66"></script>
+<script src="js/game.js?v=67"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=7"></script>
@@ -786,12 +864,12 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 <script src="js/traits.js?v=2"></script>
 <script src="js/team.js?v=6"></script>
 <script src="js/achievements.js?v=2"></script>
-<script src="js/meta.js?v=6"></script>
+<script src="js/meta.js?v=10"></script>
 <script src="js/audio.js?v=14"></script>
 <script src="js/kitdex.js?v=5"></script>
 <script src="js/augments.js?v=12"></script>
 <script src="js/ui.js?v=17"></script>
 <script src="js/meter.js?v=1"></script>
-<script src="js/gamepad.js?v=21"></script>
+<script src="js/gamepad.js?v=23"></script>
 </body>
 </html>

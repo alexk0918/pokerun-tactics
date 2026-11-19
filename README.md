@@ -518,7 +518,7 @@ Runs save automatically in your browser. Continue from the main menu. Progressio
 
 ## Controller
 
-Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a browser that supports the Gamepad API:
+Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a browser that supports the Gamepad API. Press any button or move a stick (even on the loading screen) and the game switches to controller mode without a pop-up; it remembers this for next time, and moving the mouse switches back.
 
 | Input | Action |
 |---|---|
@@ -546,7 +546,7 @@ Plays with any standard gamepad (Xbox-style layouts such as the AYN Thor) in a b
 | A | Press the highlighted button (on a Pokémon tile: select or toggle it) |
 | B | Back |
 | LB / RB | Previous / next tab: settings sections, Kit Dex generations, collection costs |
-| Y | On Pokémon screens (roster editor, partner pick, collection): turn the unit card on or off. While it's on, the card follows the highlight from Pokémon to Pokémon until you press Y again |
+| Y | On Pokémon screens (roster editor, partner pick, collection): turn the unit card on or off (X works too, for Nintendo-style layouts; there's also a **Unit cards** button with a tip). While it's on, the card follows the highlight from Pokémon to Pokémon until you press Y again |
 | Right stick | Scroll the list under the highlight (collection, rosters, partners, achievements, profile) |
 | Left stick | Free cursor; pushing it against the top or bottom of a list scrolls it |
 | Start | Confirm the screen's main action (start the run, continue from the roster, save a roster) |

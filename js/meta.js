@@ -181,7 +181,7 @@ function showCollection(back){
     `<div class="cdet win"><h2>Your collection</h2><p>National Dex runs only use lines you've unlocked. Reach 2★ with a line in any run, or hatch it from an egg, to unlock it.</p>
       <p>Lines earn <i class="candy"></i> candy for every battle they win (and 5 for a 3★). Spend it here on shiny colours and training.</p><p>Pick a Pokémon to see its upgrades.</p></div>`;
   ov.innerHTML=`<div class="scrim"></div><div class="screen colscreen"><h1 class="h1">Pokémon collection</h1>
-    <p class="sub">${U.size} of ${all.length} lines unlocked · ${nSh} shinies · ${META.vouchers} egg voucher${META.vouchers===1?'':'s'}<span class="padonly"> · <span class="padkey">Y</span> card</span></p>
+    <p class="sub">${U.size} of ${all.length} lines unlocked · ${nSh} shinies · ${META.vouchers} egg voucher${META.vouchers===1?'':'s'}</p>${cardToggle()}
     <div class="cbar"><div class="seg">${[['all','All'],['unl','Unlocked'],['lock','Locked']].map(([k,l])=>`<button class="btn sm${S.f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div>
       <div class="seg" data-tabgroup><span class="padkey">LB</span>${[0,1,2,3,4,5].map(c=>`<button class="btn sm${S.c===c?' on':''}" data-c="${c}">${c?'₽'+c:'Any cost'}</button>`).join('')}<span class="padkey">RB</span></div>
       <input id="cq" type="search" placeholder="Search unlocked" value="${esc(S.q)}" aria-label="Search unlocked Pokémon"></div>
@@ -194,7 +194,7 @@ function showCollection(back){
   if($('cshiny'))$('cshiny').onclick=()=>{if(buyUpgrade(S.sel,'shiny')){sfx('evolve');keepPlace(()=>showCollection(back));}};
   if($('ctrain'))$('ctrain').onclick=()=>{if(buyUpgrade(S.sel,'train')){sfx('level');keepPlace(()=>showCollection(back));}};
   if($('cshow'))$('cshow').onclick=()=>{META.shinyOff[S.sel]=!META.shinyOff[S.sel];metaSave();keepPlace(()=>showCollection(back));};
-  $('chatch').onclick=()=>showHatchery(()=>showCollection(back));$('back').onclick=back;
+  $('chatch').onclick=()=>showHatchery(()=>showCollection(back));$('back').onclick=back;wireCards();
 }
 let hatchLog=[];
 const loadPic=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i.naturalWidth?src:null);i.onerror=()=>res(null);i.src=src;});
@@ -272,15 +272,17 @@ function editRoster(i,next,back){
       return`<div class="rcol"><h3>₽${k+1} <small class="${c[k]>=ROSTER_MIN[k]?'ok':'bad'}">${c[k]} (min ${ROSTER_MIN[k]})</small></h3><button class="btn sm" data-all="${k}">All</button><button class="btn sm" data-none="${k}">None</button>
         <div class="rtiles">${ls.map(r=>`<button class="rt${sel.has(r)?' on':''}" data-r="${r}" title="${esc(lineName(r))}">${porImg(r,shinyShown(r),'',lineName(r))}</button>`).join('')}</div></div>`;};
     ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Edit roster</h1>
-      <p class="sub"><input id="rname" value="${esc(name)}" maxlength="24" aria-label="Roster name"> · Click Pokémon to add or remove them. Each cost needs a minimum so the shop always has something to show.<span class="padonly"> <span class="padkey">Y</span> shows or hides the highlighted Pokémon's card.</span></p>
+      <p class="sub"><input id="rname" value="${esc(name)}" maxlength="24" aria-label="Roster name"> · Click Pokémon to add or remove them. Each cost needs a minimum so the shop always has something to show.</p>${cardToggle()}
+      <p class="padbar padonly"><span class="padkey k-a">A</span> add / remove <span class="padkey k-y">Y</span> unit card <span class="padkey k-s">R stick</span> scroll <span class="padkey k-s">Start</span> save <span class="padkey k-b">B</span> cancel</p>
       <div class="rcols">${[0,1,2,3,4].map(col).join('')}</div>
-      <div class="row"><button class="btn go" id="rsave" ${ok?'':'disabled'}>Save roster</button><button class="btn" id="back">Cancel</button></div></div>`;
+      <div class="row"><button class="btn go" id="rsave" ${ok?'':'disabled'}>Save roster</button><button class="btn" id="back">Cancel</button></div>
+</div>`;
     $('rname').oninput=e=>{name=e.target.value;};
     ov.querySelectorAll('.rt').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;sel.has(r)?sel.delete(r):sel.add(r);keepPlace(draw);});
     ov.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{for(const r of U)if(N.lines[r]&&N.lines[r].cost===+b.dataset.all+1)sel.add(r);keepPlace(draw);});
     ov.querySelectorAll('[data-none]').forEach(b=>b.onclick=()=>{for(const r of[...sel])if(N.lines[r]&&N.lines[r].cost===+b.dataset.none+1)sel.delete(r);keepPlace(draw);});
     $('rsave').onclick=()=>{const p={name:name.trim()||'Roster',lines:[...sel]};if(i>=0)R.presets[i]=p;else{R.presets.push(p);R.sel=R.presets.length-1;}metaSave();showRoster(next,back);};
-    $('back').onclick=()=>showRoster(next,back);};
+    $('back').onclick=()=>showRoster(next,back);wireCards();};
   draw();
 }
 // pick a ₽1–3 partner from your collection (it starts the run on your bench)
@@ -289,12 +291,12 @@ function partnerChoices(){const U=unlockedSet(),ok=MODE.gen?null:natAllowed();
 function showPartner(back){
   const ch=partnerChoices(),cur=META.partner[MODE.id];const sel={r:ch.includes(cur)?cur:0};
   const draw=()=>{ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Choose a partner</h1>
-    <p class="sub">Your partner starts the run on your bench at 1★. Pick any ₽1–3 line from your collection that this region has.<span class="padonly"> <span class="padkey">Y</span> shows or hides the highlighted Pokémon's card.</span></p>
+    <p class="sub">Your partner starts the run on your bench at 1★. Pick any ₽1–3 line from your collection that this region has.</p>${cardToggle()}
     <div class="pgrid"><button class="pt${!sel.r?' on':''}" data-r="0"><img src="${iconOf('poke-ball')}" alt=""><b>No partner</b></button>${ch.map(r=>`<button class="pt${sel.r===r?' on':''}" data-r="${r}">${porImg(r,shinyShown(r),'',lineName(r))}<b>${esc(lineName(r))}</b><span>${costChip(MODE.lines[r].cost)}${trainOf(r)?` · +${trainOf(r)*100}%`:''}</span></button>`).join('')}</div>
     <div class="row"><button class="btn go" id="pgo">Start run</button><button class="btn" id="back">Back</button></div></div>`;
     ov.querySelectorAll('.pt').forEach(b=>b.onclick=()=>{sel.r=+b.dataset.r;keepPlace(draw);});
     $('pgo').onclick=()=>{META.partner[MODE.id]=sel.r;metaSave();ov.innerHTML='';beginRun(sel.r||null);};$('pgo').focus();
-    $('back').onclick=back;};
+    $('back').onclick=back;wireCards();};
   draw();
 }
 function ascControl(){if(!META.asc.max)return'';const a=Math.min(META.asc.sel,META.asc.max);
@@ -320,3 +322,17 @@ function showLineCard(root,el){if(!root||!el)return;const M0=MODE,R0=run,bc=MODE
     const b=el.getBoundingClientRect();showTip(mkUnit(root),{clientX:b.right,clientY:b.top+b.height/2});
   }catch(e){console.error(e);hideTip();}
   finally{if(!R0){run=null;if(MODE===M0&&bc)MODE.byCost=bc;BENCH_N=9;}MODE=M0;}}
+
+/* ---------- the "Unit cards" toggle on Pokémon screens (button, Y / X on a controller) ----------
+   While it's on, the card follows the controller highlight, and a mouse hover shows it too. It stays on while you move
+   between Pokémon and screens until you turn it off. */
+let CARDS=false;
+const cardToggle=()=>`<div class="cardtog"><button class="btn sm" id="cardtog" aria-pressed="${CARDS}">Unit cards: ${CARDS?'On':'Off'}</button>
+  <span class="tiphint padonly">Tip: press <span class="padkey k-y">Y</span> to show or hide the highlighted Pokémon's card</span>
+  <span class="tiphint mouseonly">Tip: turn this on, then hover a Pokémon to see its card</span></div>`;
+function setCards(on){CARDS=on;if(typeof PAD!=='undefined'){PAD.card=on;PAD.cardEl=null;}if(!on)hideTip();
+  const b=$('cardtog');if(b){b.textContent=`Unit cards: ${on?'On':'Off'}`;b.setAttribute('aria-pressed',on);}}
+function wireCards(){const b=$('cardtog');if(b)b.onclick=()=>{setCards(!CARDS);if(typeof sfx==='function')sfx('select');};
+  ov.querySelectorAll('.rt[data-r],.pt[data-r],.ctile[data-r]').forEach(t=>{
+    t.addEventListener('pointerenter',e=>{if(CARDS&&e.pointerType!=='touch'&&!(typeof PAD!=='undefined'&&PAD.on)&&+t.dataset.r)showLineCard(+t.dataset.r,t);});
+    t.addEventListener('pointerleave',()=>{if(CARDS&&!(typeof PAD!=='undefined'&&PAD.on))hideTip();});});}

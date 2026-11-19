@@ -1742,18 +1742,31 @@ function showEnd(won){music(won?'theme':'menu');achCheck('end',{won});metaRunEnd
 }
 
 /* ================= Boot ================= */
+// the loading screen (index.html) shows progress as each part arrives
 (async()=>{
-  try{await Promise.all([document.fonts.load('16px PokeEmerald'),document.fonts.load('700 20px "Pixelify Sans"')]);}catch(e){}
-  const[dex,spr,kit,frm,trt]=await Promise.all([fetch('data/pokedex.json?v=10').then(r=>r.json()),fetch('data/sprites.json?v=10').then(r=>r.json()),fetch('data/kits.json?v=11').then(r=>r.json()),fetch('data/forms.json?v=8').then(r=>r.json()),fetch('data/traits.json?v=1').then(r=>r.json())]);
+  const L=window.LOAD||{set(){},done(){}};let got=4;
+  const step=(pr,w,m)=>pr.then(v=>{got+=w;L.set(got,m);return v;});
+  L.set(got,'Opening the guild doors…');
+  try{
+  const json=u=>fetch(u).then(r=>{if(!r.ok)throw new Error(u+' '+r.status);return r.json();});
+  const fonts=step(Promise.all([document.fonts.load('16px PokeEmerald'),document.fonts.load('700 20px "Pixelify Sans"')]).catch(()=>{}),8,'Polishing the pixels…');
+  const[dex,spr,kit,frm,trt]=await Promise.all([step(json('data/pokedex.json?v=10'),24,'Filling in the Pokédex…'),step(json('data/sprites.json?v=10'),12,'Sketching every Pokémon…'),
+    step(json('data/kits.json?v=11'),26,'Teaching everyone their moves…'),step(json('data/forms.json?v=8'),6,'Sorting out regional forms…'),step(json('data/traits.json?v=1'),6,'Recruiting the guilds…')]);
+  await fonts;
   KITS=kit.kits;MOVEDB=kit.moves;ABNAME=kit.abilities;TRAITS=trt;
   for(const d of dex){d.bst=d.s.reduce((a,b)=>a+b,0);D[d.id]=d;if(d.f)(KIDS[d.f]=KIDS[d.f]||[]).push(d.id);}
   ROOTS=dex.filter(d=>!d.f).map(d=>d.id);
   for(const k in spr)SM[+k]=spr[k];
   loadForms(frm);
+  L.set(88,'Packing the Treasure Bag…');
   loadItemImages();
+  await Promise.race([Promise.all(Object.values(ITEMIMG).map(i=>i.complete?0:new Promise(r=>{i.addEventListener('load',r);i.addEventListener('error',r);}))),new Promise(r=>setTimeout(r,3000))]);
+  L.set(96,'Waking up the Pokémon…');
   setScenery('forest');
   showTitle();
   requestAnimationFrame(frame);
+  L.done();
+  }catch(e){console.error(e);L.set(got,'Something went wrong while loading. Check your connection and reload the page to try again.');}
 })();
 // HTML icons: big hi-res item art is shrunk smoothly; small pixel art keeps crisp pixels.
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>64)im.style.imageRendering='auto';},true);

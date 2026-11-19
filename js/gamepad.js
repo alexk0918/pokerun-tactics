@@ -5,7 +5,7 @@
    B back / cancel · X reroll · Y level up · Start battle / open chest · Select menu · LB hide or show the shop · RB release Pokémon under cursor
    In menus: the D-pad moves a highlight from button to button (scrolling lists to keep it in view), A presses it, LB / RB switch tabs,
    the right stick scrolls the list under the highlight, and pushing the cursor against the edge of a list scrolls it too.
-   Y on a Pokémon screen (roster editor, partner pick, collection) turns its unit card on or off; while on, the card follows the highlight.
+   Y (or X) on a Pokémon screen (roster editor, partner pick, collection) turns unit cards on or off; while on, the card follows the highlight.
    Right stick zooms (up/down) and pans (left/right) the board · R3 resets the zoom · L3 battle speed. Cursor speed and dead zone live in Settings › Gamepad. */
 const PAD={on:false,x:640,y:360,prev:[],aDown:false,downEl:null,lastMove:0,repeat:{},el:null,hint:null,cur:false};
 const BTN={A:0,B:1,X:2,Y:3,LB:4,RB:5,LT:6,RT:7,SELECT:8,START:9,L3:10,R3:11,UP:12,DOWN:13,LEFT:14,RIGHT:15};
@@ -21,10 +21,12 @@ function padFire(type,extra={}){
   if(type==='pointermove')el.dispatchEvent(new MouseEvent('mousemove',init));
   return el;
 }
+// controller mode switches on silently (also during the loading screen) and is remembered for next time
 function padShow(on){
   if(PAD.on===on)return;PAD.on=on;
   PAD.el.hidden=!on;document.body.classList.toggle('pad',on);
-  if(on&&typeof toast==='function')toast('Controller connected. Stick or D-pad to move, A to select, hold A to drag.');
+  try{localStorage.setItem('pokerun-input',on?'pad':'mouse');}catch(e){}
+  if(on&&window.LOAD&&!LOAD.gone)LOAD.pad();
 }
 // the element under the controller cursor gets the same highlight as a mouse hover / keyboard focus
 let padHoverEl=null;
@@ -155,7 +157,8 @@ function padPoll(dt){
     if(PAD.downEl&&(PAD.downEl===up||PAD.downEl.contains(up)||up.contains(PAD.downEl))&&up!==cv)padClickAt(up);PAD.downEl=null;}
   if(padEdge(gp,BTN.B))padBack();
   if(padEdge(gp,BTN.X)&&!menu&&run&&mode==='plan'&&!paused)reroll();
-  if(padEdge(gp,BTN.Y)&&menu&&document.querySelector(CARDTILE)){PAD.card=!PAD.card;PAD.cardEl=null;if(!PAD.card)hideTip();if(typeof sfx==='function')sfx('select');}
+  // Y toggles unit cards (X too: on Nintendo-style layouts the button labelled Y reports as X)
+  if((padEdge(gp,BTN.Y)||padEdge(gp,BTN.X))&&menu&&document.querySelector(CARDTILE)){if(typeof setCards==='function')setCards(!PAD.card);else{PAD.card=!PAD.card;PAD.cardEl=null;if(!PAD.card)hideTip();}if(typeof sfx==='function')sfx('select');}
   else if(padEdge(gp,BTN.Y)&&!menu&&run&&mode==='plan'&&!paused)buyXP();
   padCards(menu);
   if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #m-continue, #overlay #m-new, #overlay #start, #overlay #again, #overlay #evgo, #overlay #pgo, #overlay #rgo, #overlay #rsave');if(s)s.click();else if(paused)closePause();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
@@ -170,14 +173,19 @@ function padPoll(dt){
   PAD.prev=gp.buttons.map(b=>b.pressed);
   padDraw();padHover();
 }
+// while the loading screen is up: notice the controller (any button or stick) without acting on anything yet
+function padWake(){const gp=navigator.getGamepads?[...navigator.getGamepads()].filter(Boolean).find(p=>p.connected&&p.buttons.length>=10):null;if(!gp)return;
+  if(gp.buttons.some(b=>b.pressed)||gp.axes.some(a=>Math.abs(a)>.4)){padShow(true);LOAD.pad();}PAD.prev=gp.buttons.map(b=>b.pressed);}
 function padInit(){
   PAD.el=document.createElement('div');PAD.el.id='padcursor';PAD.el.hidden=true;PAD.el.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2l15 9-6.5 1.5L15 20l-3 1.4-3.3-7.4L3 18z" fill="#fff" stroke="#24303d" stroke-width="2" stroke-linejoin="round"/></svg>';
   stage.appendChild(PAD.el);
-  addEventListener('gamepadconnected',()=>{});
+  // played with a controller last time: start in controller mode (moving the mouse switches back)
+  try{if(localStorage.getItem('pokerun-input')==='pad')padShow(true);}catch(e){}
+  addEventListener('gamepadconnected',()=>padShow(true));
   addEventListener('mousemove',e=>{if(PAD.on&&e.isTrusted)padShow(false);});
   addEventListener('touchstart',()=>{if(PAD.on)padShow(false);},{passive:true});
   let last=performance.now();
-  const loop=now=>{const dt=Math.min(.05,(now-last)/1000);last=now;try{padPoll(dt);}catch(e){console.error(e);}requestAnimationFrame(loop);};
+  const loop=now=>{const dt=Math.min(.05,(now-last)/1000);last=now;try{if(window.LOAD&&!LOAD.gone)padWake();else padPoll(dt);}catch(e){console.error(e);}requestAnimationFrame(loop);};
   requestAnimationFrame(loop);
 }
 padInit();
