@@ -5,6 +5,7 @@
    B back / cancel · X reroll · Y level up · Start battle / open chest · Select menu · LB hide or show the shop · RB release Pokémon under cursor
    In menus: the D-pad moves a highlight from button to button (scrolling lists to keep it in view), A presses it, LB / RB switch tabs,
    the right stick scrolls the list under the highlight, and pushing the cursor against the edge of a list scrolls it too.
+   Y on a Pokémon screen (roster editor, partner pick, collection) turns its unit card on or off; while on, the card follows the highlight.
    Right stick zooms (up/down) and pans (left/right) the board · R3 resets the zoom · L3 battle speed. Cursor speed and dead zone live in Settings › Gamepad. */
 const PAD={on:false,x:640,y:360,prev:[],aDown:false,downEl:null,lastMove:0,repeat:{},el:null,hint:null,cur:false};
 const BTN={A:0,B:1,X:2,Y:3,LB:4,RB:5,LT:6,RT:7,SELECT:8,START:9,L3:10,R3:11,UP:12,DOWN:13,LEFT:14,RIGHT:15};
@@ -50,6 +51,15 @@ function padMenuNav(root,dx,dy){
 function padDefault(root){const vis=e=>{const b=e.getBoundingClientRect();return b.width>0&&b.height>0&&!e.closest('[hidden]');};
   for(const q of['[data-autofocus]','.pt.on','.rpick.on','#pgo','.ctile.on'])for(const e of root.querySelectorAll(q))if(vis(e)&&!e.disabled)return e;
   return[...root.querySelectorAll(NAVSEL)].find(e=>vis(e)&&e.tagName!=='INPUT')||null;}
+// Y: unit cards on Pokémon tiles; the toggle stays on while you move between Pokémon until Y is pressed again
+const CARDTILE='.rt[data-r],.pt[data-r],.ctile[data-r]';
+function padCardTarget(){const f=!PAD.cur&&padFocusEl();if(f)return f.closest(CARDTILE);const p=padClient(),el=document.elementFromPoint(p.x,p.y);return el&&el.closest?el.closest(CARDTILE):null;}
+function padCards(menu){
+  if(!PAD.card||!menu){if(PAD.cardEl){PAD.cardEl=null;hideTip();}return;}
+  const t=padCardTarget(),r=t&&+t.dataset.r;
+  if(!t||!r){if(PAD.cardEl){PAD.cardEl=null;hideTip();}return;}
+  const b=t.getBoundingClientRect(),moved=!PAD.cardPos||Math.abs(PAD.cardPos-b.top)>3;
+  if(t!==PAD.cardEl||moved){PAD.cardEl=t;PAD.cardPos=b.top;showLineCard(r,t);}}
 // LB / RB: previous / next tab of the screen's tab group (settings sections, Kit Dex generations, collection costs)
 function padTab(root,d){const g=root.querySelector('[data-tabgroup]');if(!g)return false;
   const tabs=[...g.querySelectorAll('button:not(:disabled)')];if(!tabs.length)return true;
@@ -144,8 +154,10 @@ function padPoll(dt){
   if(PAD.aDown&&!padPressed(gp,BTN.A)){PAD.aDown=false;const up=padFire('pointerup');
     if(PAD.downEl&&(PAD.downEl===up||PAD.downEl.contains(up)||up.contains(PAD.downEl))&&up!==cv)padClickAt(up);PAD.downEl=null;}
   if(padEdge(gp,BTN.B))padBack();
-  if(padEdge(gp,BTN.X)&&run&&mode==='plan'&&!paused)reroll();
-  if(padEdge(gp,BTN.Y)&&run&&mode==='plan'&&!paused)buyXP();
+  if(padEdge(gp,BTN.X)&&!menu&&run&&mode==='plan'&&!paused)reroll();
+  if(padEdge(gp,BTN.Y)&&menu&&document.querySelector(CARDTILE)){PAD.card=!PAD.card;PAD.cardEl=null;if(!PAD.card)hideTip();if(typeof sfx==='function')sfx('select');}
+  else if(padEdge(gp,BTN.Y)&&!menu&&run&&mode==='plan'&&!paused)buyXP();
+  padCards(menu);
   if(padEdge(gp,BTN.START)){const s=document.querySelector('#overlay #m-continue, #overlay #m-new, #overlay #start, #overlay #again, #overlay #evgo, #overlay #pgo, #overlay #rgo, #overlay #rsave');if(s)s.click();else if(paused)closePause();else if(run&&mode==='loot')openChest();else if(run&&mode==='plan')startCombat();}
   if(padEdge(gp,BTN.SELECT)&&run&&!document.querySelector('#overlay .screen')){if(paused)closePause();else openPause();}
   if(menu&&(padEdge(gp,BTN.LB)||padEdge(gp,BTN.RB))){padTab(menu,padEdge(gp,BTN.LB)?-1:1);}
