@@ -551,6 +551,13 @@ Settings › Audio has sliders for **Master**, **Music**, **Battle sounds** (mov
 
 Settings are split into sections like PokéRogue's: General (battle speed, damage numbers, shop and bag behaviour), Display (board auto-fit, zoom speed, move effects, light rays), Audio (music and sound effects volume), Gamepad (cursor speed, stick dead zone, right-stick mode, button list), Controls (keyboard and mouse list) and Data (delete the saved run, forget Kit Dex discoveries, reset settings).
 
+### Cards, icons and dark mode
+Item, relic and augment cards follow a TFT-style layout: icon, name and tier up top, stats as icon chips, the effect in a short paragraph, and recipes or components in a footer. Hovering an item in your bag shows the same card as a compact tooltip.
+- **Stat icons** are the items that raise each stat in the main games (Protein for Attack, Calcium for Sp. Atk, Iron for Defense, Zinc for Sp. Def, HP Up, Carbos for Attack Speed, PP Up, Dire Hit for crits, and so on).
+- **Type icons** are the official Scarlet/Violet type symbols (assets/types).
+- **Prismatic augments** shimmer: a moving rainbow frame and a light sheen (still if your device has Reduce Motion on).
+- **Dark mode** covers every menu, card and tooltip. The game follows your device's light or dark setting by default; change it under Settings → Display → Theme (Match device / Light / Dark). `tools/darkcss.py` builds the dark colours from the stylesheet.
+
 ### Playing offline
 
 The game is a Progressive Web App and runs fully offline in the browser:

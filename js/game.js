@@ -1473,13 +1473,13 @@ function itemBody(it,compact){
 }
 // hovering a recipe in any item card shows the completed item
 addEventListener('pointermove',e=>{const r=e.target.closest&&e.target.closest('#overlay [data-craft]');if(r){showItemTip({k:r.dataset.craft,mut:[]},e);r.dataset.tipOn=1;}else if(e.target.closest&&e.target.closest('#overlay')&&document.querySelector('#overlay [data-tip-on]')){document.querySelectorAll('#overlay [data-tip-on]').forEach(x=>delete x.dataset.tipOn);hideTip();}});
-function showItemTip(it,e,head){const tip=$('tip');const t=itemTier(it);
-  tip.innerHTML=`${head?`<div class="lbl" style="color:#2f8f3a;margin-bottom:6px">${head}</div>`:''}<div class="top"><img src="${iconOf(itemDef(it).id)}" alt="" style="width:56px;height:56px"><div><div class="lbl">${t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?(it.enh?'Enhanced item':'Completed item'):t==='gim'?(GIMMICKS[gimOfItem(it)]||{n:'Gimmick item'}).n:t==='formi'?'Form item':'Consumable'}</div><h3 style="font-size:19px">${esc(itemName(it))}</h3></div></div><div class="ab">${itemBody(it)}</div>
-  <div class="lbl" style="margin-top:8px">${isEnh(it)?'Drag onto a completed item or a Pokémon holding one':isUse(it)?(USE[it.k].target?'Drag onto a Pokémon':'Click to use'):isComp(it)?'Drag onto a Pokémon or another component':isGim(it)?'Drag onto a Pokémon (own slot)':'Drag onto a Pokémon'}</div>`;placeTip(e);}
-function showInfoTip(html,e){$('tip').innerHTML=html;placeTip(e);}
+function showItemTip(it,e,head){const tip=$('tip');
+  const hint=isEnh(it)?'Drag onto a completed item or a Pokémon holding one':isUse(it)?(USE[it.k].target?'Drag onto a Pokémon':'Click to use'):isComp(it)?'Drag onto a Pokémon or another component':isGim(it)?'Drag onto a Pokémon (own slot)':'Drag onto a Pokémon';
+  tip.innerHTML=cardTip(it,head,hint);tip.classList.add('hascard');placeTip(e);}
+function showInfoTip(html,e){$('tip').innerHTML=html;$('tip').classList.toggle('hascard',html.includes('tipcard'));placeTip(e);}
 function placeTip(e){const tip=$('tip'),sr=stage.getBoundingClientRect(),sc=sr.width/1280;let x=(e.clientX-sr.left)/sc+18,y=(e.clientY-sr.top)/sc-40;
   tip.style.display='block';tip.classList.remove('wide');if(tip.offsetHeight>640)tip.classList.add('wide');const th=tip.offsetHeight,tw=tip.offsetWidth;if(x>1280-tw-6)x-=tw+24;x=Math.max(6,x);y=clamp(y,80,720-th-10);tip.style.left=x+'px';tip.style.top=y+'px';}
-function hideTip(){$('tip').style.display='none';}
+function hideTip(){const t=$('tip');t.style.display='none';t.classList.remove('hascard');}
 let toastT=0;function toast(m){if(SIM.on)return;const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2600);}
 function banner(title,sub,ms){const h=$('bannerhost');h.innerHTML=`<div class="banner win">${esc(title)}${sub?`<small>${esc(sub)}</small>`:''}</div>`;setTimeout(()=>{if(h.firstChild&&h.firstChild.textContent.startsWith(title))h.innerHTML='';},ms);}
 function showGameUI(on){['hud','traits','shop','bag','meter','feats'].forEach(id=>$(id).hidden=!on);if(!on)closePause();}
@@ -1574,8 +1574,13 @@ addEventListener('keydown',e=>{if(evoOpen||!run||paused||ov.innerHTML.trim())ret
   if(mode!=='plan')return;if(e.key==='d'||e.key==='D')reroll();if(e.key==='f'||e.key==='F')buyXP();if(e.key==='l'||e.key==='L')toggleLock();if(e.key===' '){e.preventDefault();startCombat();}});
 
 /* ================= Options & saving ================= */
-const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1,meterOpen:1,unsprited:0,masterVol:.8,musVol:.5,sfxVol:.6,uiVol:.7};
+const OPTS={speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shopOpen:1,bagOpen:1,shake:1,meterOpen:1,unsprited:0,masterVol:.8,musVol:.5,sfxVol:.6,uiVol:.7,theme:'system'};
 try{Object.assign(OPTS,JSON.parse(localStorage.getItem('pokerun.opts')||'{}'));}catch(e){}
+/* Light / dark theme: 'system' follows the device and changes with it */
+const darkMQ=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
+function applyTheme(){const t=OPTS.theme||'system',d=t==='dark'||(t==='system'&&darkMQ&&darkMQ.matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');}
+if(darkMQ){const f=()=>{if((OPTS.theme||'system')==='system')applyTheme();};darkMQ.addEventListener?darkMQ.addEventListener('change',f):darkMQ.addListener&&darkMQ.addListener(f);}
+applyTheme();
 function saveOpts(){try{localStorage.setItem('pokerun.opts',JSON.stringify(OPTS));}catch(e){}}
 const SAVEKEY='pokerun.save.v1';
 let saveT=0;
@@ -1675,11 +1680,7 @@ function showModes(){
 }
 const MODECOUNT={};
 function buildModeCount(id){const k=id+(OPTS.unsprited?'u':'');if(!MODECOUNT[k])MODECOUNT[k]=buildMode(id).roots.length;return MODECOUNT[k];}
-function itemCard(it,i,cls=''){const t=isRelicId(it)?'relic':itemTier(it);
-  const id=isRelicId(it)?it:itemDef(it).id,name=isRelicId(it)?RELICS[it].n:itemName(it);
-  const body=isRelicId(it)?`<p>${RELICS[it].d}</p>`:itemBody(it,true);
-  const tl=t==='gear'?'Set gear':t==='spc'?'Special item':t==='enh'?'Enhancer':t==='common'?'Component':t==='epic'?'Completed':t==='use'?'Consumable':t==='gim'?(GIMMICKS[gimOfItem(it)]||{n:'Gimmick'}).n:t==='formi'?'Form item':'Relic';
-  return`<button class="pick win item p-${t==='common'?'common':t} ${cls}" data-i="${i}"><div class="icon"><img src="${iconOf(id)}" alt=""></div><span class="tier ${t==='common'?'common':t}">${tl}</span><h2 style="font-size:20px">${esc(name)}</h2><div class="desc">${body}</div></button>`;}
+function itemCard(it,i,cls=''){return cardHtml(it,i,cls);}
 const isRelicId=x=>typeof x==='string'&&RELICS[x];
 function openChest(){achAdd('chests');if(!SIM.on){sfx('chest',300);setTimeout(()=>sfx('treasure',600),250);}
   if(mode!=='loot'||!run.loot||(chest&&chest.open))return;
@@ -1729,7 +1730,7 @@ function showActClear(){
   const rc=shuffle(Object.keys(RELICS).filter(r=>!run.relics.includes(r))).slice(0,3);const bdg=(run.badgesGot||0)<BADGE_RUN_MAX&&badgeReward(a);
   ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner prismatic">${actLabel(a).toUpperCase()} CLEARED</div><h1 class="h1">${esc(actDef(a).name)} cleared!</h1>
     <p class="sub">${esc(D[run.boss.dex].n)} steps aside. Your trainer rests up to full HP. Next: <b>${actLabel(a+1)} · ${esc(nx.name)}</b> (${esc(nx.theme)}).</p>
-    ${rc.length?`<p class="sub">Take a relic for the road${bdg?', or a Blank Guild Badge for a capstone':''}.</p><div class="picks">${rc.map((r,i)=>itemCard(r,i)).join('')}${bdg?`<button class="pick win item badgepick" data-badge="1"><div class="icon"><img src="${iconOf(badgeIcon(''))}" alt=""></div><span class="tier" style="background:#c9961d">Guild</span><h2>Blank Badge</h2><div class="desc"><p>Engrave it for one of your sets: its holder becomes a member and unlocks that set's capstone.</p></div></button>`:''}</div>`:''}
+    ${rc.length?`<p class="sub">Take a relic for the road${bdg?', or a Blank Guild Badge for a capstone':''}.</p><div class="picks">${rc.map((r,i)=>itemCard(r,i)).join('')}${bdg?`<button class="pick icard p-badge badgepick" data-badge="1" style="--tc:#c9961d"><div class="iband"></div><div class="ihead"><div class="iico"><img src="${iconOf(badgeIcon(''))}" alt="" style="image-rendering:auto"></div><div class="inm"><h2>Blank Badge</h2><div class="itier">Guild Badge</div></div></div><div class="idesc"><p>Engrave it for one of your sets. Its holder <b>joins that set</b> and unlocks the set's capstone.</p></div><div class="ifoot">1 per Pokémon · max 3 a run</div></button>`:''}</div>`:''}
     <button class="btn go" id="nextact" style="font-size:20px;padding:8px 26px">${rc.length?'Skip relic and continue':'Continue'}</button></div>`;
   ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{if(b.dataset.badge){startNextAct().then(()=>giveBlankBadge('A reward from the guardian'));return;}run.relics.push(rc[+b.dataset.i]);startNextAct();});
   $('nextact').onclick=()=>startNextAct();

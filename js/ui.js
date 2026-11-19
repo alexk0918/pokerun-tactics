@@ -56,6 +56,7 @@ const SET_TABS=[
     {k:'bagOpen',n:'Bag while planning',v:[1,0],l:['Shown','Hidden']},
     {k:'unsprited',n:'Enable non-sprited Pokémon',v:[0,1],l:['Off','On'],d:'Adds the evolution lines that don\'t have PMD sprites yet (they fight as round portrait tokens). Applies to new runs.'}]},
   {id:'display',n:'Display',rows:[
+    {k:'theme',n:'Theme',v:['system','light','dark'],l:['Match device','Light','Dark'],d:'Menus, cards and tooltips. Match device follows your phone or browser.',on:applyTheme},
     {k:'autoZoom',n:'Fit the board to the screen',v:[1,0],l:['On','Off'],d:'Zooms in on the field when the shop is hidden and during battles.'},
     {k:'zoomSpd',n:'Zoom speed',v:[.6,1,1.6],l:['Slow','Normal','Fast']},
     {k:'fx',n:'Move effects',v:[2,1],l:['Full','Reduced'],d:'Reduced plays fewer particles at once and drops status sparkles.'},
@@ -99,7 +100,7 @@ function showSettings(from,tab){
   const sure=(id,fn)=>{const b=$(id);if(!b)return;b.onclick=()=>{if(b.dataset.sure){fn();showSettings();toast('Done.');}else{b.dataset.sure=1;b.querySelector('span').textContent='Press again to confirm';}};};
   sure('o-del',()=>clearSave());
   sure('o-dex',()=>{DEXSEEN.clear();try{localStorage.removeItem(DEXKEY);}catch(e){}});
-  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shake:1,unsprited:0,masterVol:.8,musVol:.5,sfxVol:.6,uiVol:.7},keep);auVolumes();saveOpts();speed=1;});
+  sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shake:1,unsprited:0,masterVol:.8,musVol:.5,sfxVol:.6,uiVol:.7,theme:'system'},keep);auVolumes();applyTheme();saveOpts();speed=1;});
   $('setclose').onclick=closeSettings;
   const f=ov.querySelector(`.stab[aria-selected="true"]`);if(f)f.focus();
 }

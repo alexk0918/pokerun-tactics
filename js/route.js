@@ -310,7 +310,7 @@ function showKecleon(){
       <div class="kinfo"><span class="lbl">${kCardTag(s)}</span><b>${esc(kCardName(s))}</b></div><span class="kprice">${s.sold?'Sold':'₽'+s.price}</span></button>`).join('')}</div>
     <button class="btn go" id="kleave">Leave the shop</button></div>`;
   ov.querySelectorAll('.kcard').forEach(b=>{b.onclick=()=>kBuy(+b.dataset.k);
-    b.onpointermove=e=>{const s=K.stock[+b.dataset.k];if(s.t==='unit'){const u=mkUnit(s.root);u.mut=s.mut;showTip(u,e);}else if(s.t==='relic')showInfoTip(`<div class="top"><img src="${iconOf(s.id)}" alt="" style="width:48px;height:48px"><div><div class="lbl">Relic</div><h3 style="font-size:24px">${RELICS[s.id].n}</h3></div></div><div class="ab"><p>${RELICS[s.id].d}</p></div>`,e);else showItemTip(s.it,e);};
+    b.onpointermove=e=>{const s=K.stock[+b.dataset.k];if(s.t==='unit'){const u=mkUnit(s.root);u.mut=s.mut;showTip(u,e);}else if(s.t==='relic')showInfoTip(cardTip(s.id),e);else showItemTip(s.it,e);};
     b.onpointerleave=hideTip;});
   $('kleave').onclick=()=>{hideTip();finishNode();};
   saveRun();

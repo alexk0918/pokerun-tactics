@@ -220,10 +220,7 @@ function showAugment(){
   mode='augment';$('bannerhost').innerHTML='';hideTip();peekOff();
   if(!run.augOffer||run.augOffer.at!==effFloor(run.floor)){const t=rollAugTier();run.augOffer={at:effFloor(run.floor),tier:t,ids:rollAugChoices(t),rr:[0,0,0]};seenAug(run.augOffer.ids);}
   const O=run.augOffer,tier=O.tier,n=(run.augs||[]).length;
-  const card=(id,i)=>{const a=AUGMAP[id];if(!a)return'';
-    return`<div class="augcard tier-${tier}" data-i="${i}"><button class="augpick" data-pick="${i}"><div class="augic"><img src="${iconOf(a.icon)}" alt=""></div>
-      <span class="augtag t-${a.tag}">${AUGTAG[a.tag]}${a.set?' · '+esc(a.set):''}</span><h2>${esc(a.name)}</h2><p>${a.d}</p></button>
-      <button class="btn sm augrr" data-rr="${i}" ${O.rr[i]?'disabled':''}>${O.rr[i]?'Rerolled':'Reroll'}</button></div>`;};
+  const card=(id,i)=>{const a=AUGMAP[id];if(!a)return'';return augCardHtml(a,tier,i,O);};
   const mine=myAugs();
   ov.innerHTML=`<div class="scrim"></div><div class="screen augscreen"><div class="tierbanner ${tier}">${tier.toUpperCase()} AUGMENT · ${['FIRST','SECOND','THIRD','FOURTH','FIFTH'][n]||'#'+(n+1)} PICK</div>
     <h1 class="h1">Choose an augment</h1><p class="sub">Augments last for the rest of the run. Each card can be rerolled once.</p>
