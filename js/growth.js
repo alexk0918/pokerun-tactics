@@ -67,7 +67,7 @@ const GROWTH_NEW=[
   {ids:[235],n:'Sketch',key:'sketch',on:'none',
     d:u=>`After a battle you can let it keep the move it sketched, for the rest of the run.${u.sketch?` <span class="sc">(Keeping: ${esc(kitOf(u.sketch).mv.n)} from ${esc(D[u.sketch].n)})</span>`:''}`},
   {ids:[399,400],n:'Dam Builder',key:'dam',on:'battle',
-    d:u=>`After every battle it adds to its dam, forever. When battle starts, allies right behind it get a shield of 2% of its max HP per dam piece. <span class="sc">(${u.gs||0} pieces)</span>`},
+    d:u=>`After every battle it adds to its dam, forever. When battle starts, the allies right in front of it (toward the enemy) get a shield of 2% of its max HP per dam piece, so put it behind your tank. <span class="sc">(${u.gs||0} pieces)</span>`},
   {ids:[95,208],n:'Pressure-Hardened',key:'press',on:'battle',per:{def:2},size:.7,
     d:u=>`After every battle: +2 Defense and +0.7% Size, forever. <span class="sc">(${u.gs||0} battles)</span>`},
 ];
@@ -138,7 +138,7 @@ function growthCombat(c){
 // a battle-start pass for growth effects that touch other units
 function growthStart(c){
   const G=c.u&&MODE&&growthOf(c.u);
-  if(G&&G.key==='dam'&&stacks(c)){const dir=c.team?-1:1;for(const a of alive(c.team))if(a!==c&&hdist(a,c)===1&&(a.r-c.r)*dir>0){a.shield+=c.maxHp*.02*stacks(c);if(!SIM.on)pfx('Protect',a.x,a.y-12,{sc:.6,force:1});}}
+  if(G&&G.key==='dam'&&stacks(c)){const dir=c.team?-1:1;for(const a of alive(c.team))if(a!==c&&hdist(a,c)===1&&(a.r-c.r)*dir<0){a.shield+=c.maxHp*.02*stacks(c);if(!SIM.on)pfx('Protect',a.x,a.y-12,{sc:.6,force:1});}}
   if(G&&G.key==='blubber'&&sizeOf(c)>=150)schedule(.5,()=>{if(c.dead)return;const foes=alive(1-c.team);if(!foes.length)return;
     const t=foes.map(o=>[o,foes.filter(q=>hdist(q,o)<=1).length]).sort((a,b)=>b[1]-a[1])[0][0];dashTo(c,t,true,.35);
     schedule(.37,()=>{if(c.dead)return;for(const o of alive(1-c.team))if(hdist(o,t)<=1){damage(c,o,c.maxHp*.06,{ab:1,cat:'phys',type:'Water',noCrit:1});knock(c,o);}
