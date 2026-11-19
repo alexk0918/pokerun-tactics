@@ -158,7 +158,7 @@ function showEngraver(bi){
   ov.innerHTML=`<div class="scrim" id="bg-scrim"></div><div class="screen"><div class="win featwin"><h1 class="h1">Badge Engraver</h1>
     <p class="sub">Choose a set to engrave. The badge makes its holder a member, and that set's capstone needs one on the field.${ch.length?'':' You need at least 2 Pokémon of a badge set on the field: keep the badge and engrave it later from your bag.'}</p>
     <div class="setgrid">${ch.map(k=>`<button class="setopt" data-eng="${esc(k)}"><img src="${iconOf(badgeIcon(k))}" alt=""><b>${esc(k)}</b><span>${ct[k]||0} on the field · capstone at ${capOf(k)}</span></button>`).join('')}</div>
-    <div class="umacts"><button class="btn" id="bg-back">${ch.length?'Decide later':'Close'}</button></div></div></div>`;
+    <div class="umacts"><button class="btn" id="bg-back" data-back>${ch.length?'Decide later':'Close'}</button></div></div></div>`;
   const close=()=>{ov.innerHTML='';renderUI();};$('bg-back').onclick=close;$('bg-scrim').onclick=close;
   ov.querySelectorAll('[data-eng]').forEach(b=>b.onclick=()=>{it.k='badge:'+b.dataset.eng;if(!SIM.on){sfx('star',140);toast(`Engraved: ${b.dataset.eng} Badge. Give it to a Pokémon to make it a member.`);}close();});
   (ov.querySelector('.setopt')||$('bg-back')).focus();

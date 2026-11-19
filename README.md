@@ -362,32 +362,61 @@ Alolan, Galarian, Hisuian and Paldean forms are lines of their own, with their o
 - **Kinship sets** count different members rather than lines, so two Lycanroc forms from the same Rockruff line both count: Wolf Pack (Lycanroc forms), Dance Troupe (Oricorio styles), Cloak Society (Wormadam cloaks), Two Styles (Urshifu), Duet (Toxtricity), Eeveelutions, Tao Trio (a fused Kyurem counts as its partner too), Weather Trio, Island Guardians, Ruinous Treasures, Swords of Justice, Lake Guardians, Legendary Beasts, Ancient and Future Paradox Pokémon, and Ultra Beasts.
 - **Augments:** Regional Tour, Form Change, Fusion Reactor, Legendary Gathering and Pack Leader play into forms and kinship sets.
 
+Ten **legendary kinships** gather the legends into their own families, each with a capstone that needs every member: Legendary Birds (with the Galarian trio), Tower Duo, Eon Duo, Legendary Golems (the Regis), Creation Trio (with Arceus), Aura Trio, Light Trio, Galar Heroes, Crown of Galar and the Loyal Three. Older kinships (Eeveelutions, Tao Trio, Weather Trio, Lake Guardians, Legendary Beasts, Swords of Justice, Island Guardians, Paradox, Ultra Beasts…) gained capstones too.
+
 ### Trait sets
 
-Thirteen traits come from the Pokédex itself (body, weight, egg group and category), so they mix every type and generation. **Every evolution line belongs to at least one set besides its types and class:** lines the Pokédex traits leave out are placed by hand into the closest existing trait (Regieleki and Zacian with the Titans, Clamperl in Deep Sea, Greavard with the Phantasms…) or into one of eight sets made for them (Mythical, Garden, Ranch, Creepy Crawlies, Street Gang, Riverside, Dojo, Oddballs), plus the Forces of Nature kinship set (Tornadus, Thundurus, Landorus, Enamorus: moves +20% / +45%, and at 4 they arc to 2 more enemies for 25%). A line keeps its trait as it evolves (it comes from the form it grows into). When a Pokémon fits several, it gets the rarest: kinship, then lineage, then Fox Spirits, Nursery, Mouse Brigade, Fae Folk, Titans, Kaiju, Showstoppers, Phantasms, Team Rocket, Living Stone, Deep Sea and Sky Squadron.
+Every evolution line has one **home** set (a trait, a kinship or a lineage) besides its types and class. Each trait holds 6–25 lines and mixes roles and costs on purpose: at least three frontliners, three damage dealers and two supports, spread over ₽1 to ₽4–5, so any trait can be a whole team rather than five tanks. The homes come from an assignment that respects each Pokémon's theme (egg group, weight, habitat, abilities, lore) while meeting those rules.
 
-| Set | Who | Breakpoints | Effect |
-|---|---|---|---|
-| Titans | lines that grow to 150 kg+ | 2 / 4 | +25/60% max HP; each stomps at the start, stunning adjacent enemies (at 4 the stomp also deals 8% of the Titan's max HP) |
-| Sky Squadron | winged lines | 2 / 4 | Take off, then dive onto the farthest enemy and strike it; at 4 the dive stuns and they deal +20% damage |
-| Kaiju | Monster egg group | 2 / 4 | Grow with every cast; at 4 the third cast makes them giant |
-| Phantasms | Amorphous egg group | 2 / 4 | Melt into a puddle instead of fainting, reform with 35/60% HP; at 4 they dodge 25% once reformed |
-| Living Stone | Mineral egg group | 2 / 4 | A stone shield (12/30% max HP) that rebuilds every 4s; at 4, no crits while it holds |
-| Showstoppers | Human-Like egg group | 2 / 4 | The top member takes the Spotlight (bonus damage and speed; its casts give the team PP); two at 4 |
-| Deep Sea | Water 2 / Water 3 egg groups | 2 / 4 | Bonus damage to enemies below half HP; at 4, finish off anything below 15% |
-| Fae Folk | Fairy egg group | 2 / 4 | Every 4s a random ally makes a Wish and heals 10/22% |
-| Mouse Brigade | mice and other rodents | 2 / 4 | Faster for every other rodent; at 4, knockouts find cheese (₽1) |
-| Fox Spirits | the Fox Pokémon | 2 / 3 | Each conjures a decoy illusion that draws attacks |
-| Nursery | lines that hatch from a baby | 1 / 2 / 3 | Half damage next to an ally; survivors grow stronger over the run; cheer adjacent allies at 3 |
-| Team Rocket | Team Rocket's Pokémon | 2 / 4 | Knockouts can steal ₽1; at 4, fainting Rocket Pokémon blast off in an explosion |
-| Mythical | Mew, Celebi, Jirachi, Deoxys, Darkrai, Shaymin, Victini, Meloetta, Genesect, Diancie, Hoopa, Magearna, Marshadow, Zeraora, Pecharunt | 1 / 2 / 3 | +15/25/40% max HP and damage; at 2 they start with +30 PP; at 3 your whole team deals +10% damage |
-| Garden | flower and plant lines (Oddish, Sunkern, Petilil, Bounsweet, Calyrex…) | 2 / 4 / 6 | Every 3s each heals its most injured nearby ally for 4/6/9% of its max HP; +15/25% max HP at 4/6 |
-| Ranch | farm and field animals (Tauros, Miltank, Ponyta, Wooloo, Lechonk, Cyclizar…) | 2 / 4 / 6 | +4/7/10% damage and +4/7/10 Defense for every other Ranch Pokémon; a 15% shield at 6 |
-| Creepy Crawlies | bugs (Paras, Pineco, Heracross, Joltik, Nymble…) | 2 / 4 / 6 | The first drop below half HP sheds their skin: heal 20/30/45%; +15/30% Attack Speed at 4/6 |
-| Street Gang | city strays (Poochyena, Zigzagoon, Glameow, Purrloin, Lillipup, Yamper…) | 2 / 4 / 6 | +20/35/55% damage to enemies below half HP; +10/20% Attack Speed at 4/6 |
-| Riverside | river and pond lines (Psyduck, Poliwag, Wooper, Lotad, Buizel, Tadbulb…) | 2 / 4 | Dodge 15/25% of basic attacks; at 4 they restore 1.5% max HP per second |
-| Dojo | martial artists (Mankey, Scraggy, Darumaka, Passimian, Hisuian Sneasel) | 2 / 4 | +15/30% crit chance and +20/40% crit damage; at 4 knockouts heal 15% |
-| Oddballs | one-of-a-kind oddities (Ditto, Unown, Smeargle, Kecleon, Dunsparce, Type: Null…) | 2 / 4 | Each battle, each rolls a random bonus (+30% damage, +30% Attack Speed, +40% max HP or +40 PP); two rolls at 4 |
+Each set has a signature playstyle, and several open a **feature** once you reach a breakpoint: a button appears on the right of the board (Rocket HQ, Wish Well, Daycare, Garden Plots, Dojo, Roulette, Flight Plan, Mythical Event, Revival Lab) and some put things on the board itself (water lanes, garden plots, the Daycare, the Star, Roulette spins, the gang's Lock-On mark). Features never sit there before you unlock them.
+
+**Capstones** (the top breakpoint) are meant to be rare. Most trait capstones need a **Guild Badge** for that set on the field; small trait sets, kinships and lineages need that many *different* real members instead (augments and badges can't fill those). Until the gate is met the set stops one tier short and the board says what's missing.
+
+| Set | Lines | Breakpoints | Capstone needs | Playstyle |
+|---|---|---|---|---|
+| Team Rocket | 21 (Alolan Persian, Arbok, Dugtrio, Dustox, Perrserker, Persian…) | 2 / 4 / 6 / 7 | a Guild Badge | Knockouts (and lost rounds at 4) earn Loot to spend at **Rocket HQ**; at 6 fallen Rockets blast off and HQ can Steal; capstone **Giovanni's Gambit** cashes all Loot in for a jackpot |
+| Titans | 25 (Alolan Golem, Camerupt, Golem, Scolipede, Gigalith, Golurk…) | 2 / 4 / 6 / 8 | a Guild Badge | +HP and Size, an opening stomp; they grow mid-fight at 4 and drain PP at 6; capstone **Colossus** makes the biggest Titan huge and shield the team |
+| Leviathans | 12 (Clodsire, Sharpedo, Dewgong, Seismitoad, Kingdra, Wailord…) | 2 / 3 / 4 / 5 | a Guild Badge | Flood **water lanes** in their columns, grow +4% Size every 2s in the water; waves down the lane at 4; capstone **Leviathan Rising** |
+| Sky Squadron | 23 (Chatot, Corviknight, Delibird, Farfetch’d, Fearow, Noctowl…) | 2 / 4 / 6 / 7 | a Guild Badge | Take off and dive onto your **Flight Plan** target (back line, carry or healer); re-dive on knockouts at 6; capstone **Air Raid** |
+| Swarm | 15 (Araquanid, Beedrill, Butterfree, Kricketune, Ledian, Masquerain…) | 2 / 4 / 5 / 6 | a Guild Badge | Attack Speed for every Swarm member still standing; stinging clouds at 4; **Attack Order** bees at 5; capstone **Queen's Call** |
+| Creepy Crawlies | 16 (Ariados, Forretress, Illumise, Lokix, Parasect, Spidops…) | 2 / 4 / 5 / 6 | a Guild Badge | Shed skin below half HP; cocoon and cure at 5; capstone **Metamorphosis** evolves a fainting Crawly mid-battle |
+| Kaiju | 17 (Alolan Marowak, Exploud, Abomasnow, Drednaw, Galarian Slowking, Heliolisk…) | 2 / 3 / 4 / 5 | a Guild Badge | +HP and damage and +5% Size per cast; Giant on the third cast; a roar at 4; capstone **King of the Monsters** |
+| Phantasms | 25 (Banette, Castform, Magcargo, Pincurchin, Reuniclus, Alcremie…) | 2 / 4 / 5 / 6 | a Guild Badge | Melt into a puddle instead of fainting and reform; toxic slime at 5; capstone **Ooze Tide** splits off a copy |
+| Living Stone | 23 (Alolan Dugtrio, Shedinja, Aegislash, Electrode, Ferrothorn, Garbodor…) | 2 / 4 / 5 / 6 | a Guild Badge | A stone shell that rebuilds; no crits on it at 4; it shatters into enemies at 5; capstone **Sediment** grows it every win |
+| Showstoppers | 21 (Gothitelle, Medicham, Sableye, Spinda, Volbeat, Alakazam…) | 2 / 4 / 5 / 6 | a Guild Badge | You pick the **Star** (unit menu); an Understudy at 4 who takes over at 5; capstone **Standing Ovation**: encores and Fame |
+| Deep Sea | 19 (Lanturn, Lumineon, Luvdisc, Palafin, Seaking, Wishiwashi…) | 2 / 4 / 5 / 6 | a Guild Badge | Bonus damage to wounded enemies, executes at 4, defenses crumble under pressure at 5; capstone **The Abyss** |
+| Reef | 12 (Corsola, Wugtrio, Crabominable, Crawdaunt, Kingler, Barbaracle…) | 2 / 3 / 4 / 5 | a Guild Badge | Defenses and reflected basic-attack damage; shells thicken every battle at 3; Crab Hammer counters at 4; capstone **Coral Reef** |
+| Riverside | 6 (Ludicolo, Quagsire, Bellibolt, Floatzel, Politoed, Golduck) | 2 / 3 / 4 | that many different lines | Dodge and regen; with 4 different lines, **Flash Flood** swamps the field |
+| Fae Folk | 19 (Aromatisse, Breloom, Cherrim, Delcatty, Granbull, Jumpluff…) | 2 / 4 / 5 / 6 | a Guild Badge | Wishes heal allies; wins add Wishes to the **Wish Well** (rerolls, HP, items, Pokémon); capstone **Jirachi's Wish** |
+| Mouse Brigade | 17 (Alolan Raticate, Alolan Sandslash, Bibarel, Dedenne, Emolga, Furret…) | 2 / 4 / 5 / 6 | a Guild Badge | Attack Speed per rodent; cheese ₽ on knockouts; healing cheese at 5; capstone **Maushold** calls in Tandemaus |
+| Fox Spirits | 5 (Thievul, Alolan Ninetales, Hisuian Zoroark, Ninetales, Zoroark) | 2 / 3 / 4 | that many different lines | Decoy illusions; Zorua/Zoroark disguise as your strongest at 3; with 4 different foxes, **Nine Tails** |
+| Nursery | 14 (Azumarill, Chimecho, Clefable, Hitmontop, Jynx, Sudowoodo…) | 1 / 2 / 3 / 4 | a Guild Badge | Babies are sheltered by allies; the **Daycare** grows benched Pokémon and lays Eggs; capstone **Proud Parents** |
+| Garden | 14 (Bellossom, Eldegoss, Shiftry, Sunflora, Arboliva, Hisuian Lilligant…) | 2 / 4 / 5 / 6 | a Guild Badge | Healing pulses and **Garden Plots** you plant on the board that grow Seed → Sprout → Bloom; capstone **Harvest** |
+| Ranch | 15 (Linoone, Mightyena, Ampharos, Dubwool, Manectric, Donphan…) | 2 / 4 / 5 / 6 | a Guild Badge | Damage and Defense per herd member; **Stampede** at 5; capstone **Roundup** grows the herd every win |
+| Street Gang | 16 (Liepard, Meowstic, Mr. Mime, Purugly, Absol, Ambipom…) | 2 / 4 / 5 / 6 | a Guild Badge | Bonus damage to wounded enemies; the gang **marks** one enemy at 4 and steals its strength at 5; capstone **Run the Streets** |
+| Dojo | 7 (Darmanitan, Galarian Darmanitan, Scrafty, Annihilape, Passimian, Sirfetch’d…) | 2 / 3 / 4 | that many different lines | Crits, **belts** earned from knockouts, techniques from the **Dojo** menu at 3; with 4 different lines, **Grandmaster** |
+| Mythical | 15 (Celebi, Darkrai, Deoxys, Diancie, Genesect, Hoopa…) | 1 / 2 / 3 | that many different lines | +HP and damage; with 3 different Mythicals, a **Mythical Event** gift once per Act |
+| Oddballs | 12 (Ditto, Smeargle, Unown, Kecleon, Rotom, Dudunsparce…) | 2 / 4 / 5 | a Guild Badge | **Roulette** spins before every battle (re-spin for ₽1); capstone **Mystery Gift** adds exotic prizes |
+| Big Eaters | 21 (Diggersby, Greedent, Pyukumuku, Swalot, Dachsbun, Grumpig…) | 2 / 4 / 5 / 6 | a Guild Badge | **Feed** them bench Pokémon for permanent role-based gains shared with the other eaters; **Food Coma** at 5; capstone **Bottomless** |
+
+### Guild Badges
+
+The Guild Badge is the "spatula": a real gym-badge item that makes its holder a member of one set and unlocks that set's capstone. A **Blank Badge** is engraved for any badge-capstone set you have 2+ Pokémon of (Badge Engraver menu; you can also keep it and engrave later from the bag). One badge per Pokémon, at most 3 badges a run and 2 per set. They are never sold and never drop as normal items:
+
+| Source | Odds |
+|---|---|
+| Act I guardian reward | 10% that a Blank Badge is one of the choices |
+| Act II guardian reward | 50% that it is one of the choices |
+| Guild Hall event | sometimes appears; ₽15, or trade in a 2★ Pokémon |
+| Guild Membership augment | prismatic offers only |
+
+Trait sets no longer get the +2 Crown augment (the +1 Heart and Crest stay), and trait-set augments are only offered once 2+ of that set are on the field.
+
+### Size and growth
+
+**Size** is a continuous stat: everyone starts at 100%. Bigger Pokémon are drawn bigger (up to 180%) and get, each scaling smoothly with a cap: shorter stuns and slows (up to −40%), basic-attack splash onto enemies next to the target (up to 15%), a chance to resist knockback (up to 100%) and a soft taunt on nearby enemies. The catch: they lose dodge, and Heavy Slam–style moves hit big targets harder. Size comes from growth lines, Titans, Kaiju (+5% per cast, +25% going Giant), Leviathans in the water, Big Eaters and some capstones.
+
+31 lines **grow over the run**, each in a way that fits who they are, and none of them has a cap (past 12 projectiles, extra stacks make each one hit harder instead): Larvitar's Rock Slide gains a rock per 6 Rubble, Wailmer gains HP and Size together (Blubber), Gulpin and Snorlax eat what you **Feed** them, Aron eats iron (and spare item components), Beldum computes crits, Dreepy loads more darts, Falinks recruits troopers, Spiritomb gathers 108 souls, Tinkatink builds its hammer from scrap, Cufant's copper patinas, Mareep's wool regrows into a shield, Chansey lays Lucky Eggs you can give to allies, Nacli grows salt, Cubone keeps bones, Basculegion and Houndstone pay Last Respects, Sirfetch'd sharpens its leek and Onix hardens into Steelix, alongside the original thirteen (Magikarp, Abra, Mankey, Snorlax, Shuckle, Feebas, Pawniard, Honedge, Wishiwashi, Skwovet, Gimmighoul, Pikachu, Eevee).
 
 In a single-generation run, every enemy (trainers, wild packs, alphas, guardians) is a Pokémon from that generation: guest lines never appear as enemies, and a line that includes older Pokémon (Pichu → Pikachu in Gen II) always fields its member from that generation.
 
@@ -436,6 +465,8 @@ Every run opens with a choice of **3 expeditions** (each card can be rerolled on
 - **Cloning Lab:** ₽1 and ₽2 Pokémon need only 2 copies to reach 2★.
 
 ### Progression
+
+The roster editor groups Pokémon into collapsible sections by trait (or by cost or type), each with Enable all / Disable all, a search box and Expand all / Collapse all; folded sections are remembered.
 
 Everything here is saved in your browser across runs (simulated runs never touch it). Title screen: **Pokémon**, **Hatchery**, **Profile**, **Achievements**.
 

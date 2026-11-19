@@ -48,7 +48,7 @@ function featAnnounce(){if(!run||SIM.on)return;run.featSeen=run.featSeen||[];for
 /* ---------- shared menu shell ---------- */
 function setMenu(title,sub,body,opts={}){
   ov.innerHTML=`<div class="scrim" id="sm-scrim"></div><div class="screen"><div class="win featwin ${opts.cls||''}">${opts.icon?`<img class="setwin-ico" src="${iconOf(opts.icon)}" alt="">`:''}<h1 class="h1">${title}</h1><p class="sub">${sub}</p>${body}
-    <div class="umacts">${opts.extra||''}<button class="btn" id="sm-back">Close</button></div></div></div>`;
+    <div class="umacts">${opts.extra||''}<button class="btn" id="sm-back" data-back>Close</button></div></div></div>`;
   const close=()=>{ov.innerHTML='';renderUI();};$('sm-back').onclick=close;$('sm-scrim').onclick=close;
   const first=ov.querySelector('.setopt:not([disabled]),.featopt:not([disabled])')||$('sm-back');first.focus();
   return close;}
@@ -92,7 +92,7 @@ function showJirachi(q=''){const U=typeof unlockedSet==='function'?unlockedSet()
   const list=roots.filter(r=>!q||D[r].n.toLowerCase().includes(q.toLowerCase())||D[MODE.lines[r].mem.slice(-1)[0]].n.toLowerCase().includes(q.toLowerCase())).slice(0,60);
   ov.innerHTML=`<div class="scrim" id="jr-scrim"></div><div class="screen"><div class="win featwin"><h1 class="h1">Jirachi's Wish</h1><p class="sub">Make a wish: this Pokémon joins your bench at 2★.</p>
     <input id="jr-q" class="search" type="search" placeholder="Search Pokémon" value="${esc(q)}"><div class="setgrid jr">${list.map(r=>`<button class="setopt" data-jr="${r}"><img src="${por(r)}" alt=""><b>${esc(D[r].n)}</b><span>₽${MODE.lines[r].cost}</span></button>`).join('')}</div>
-    <div class="umacts"><button class="btn" id="jr-back">Back</button></div></div></div>`;
+    <div class="umacts"><button class="btn" id="jr-back" data-back>Back</button></div></div></div>`;
   $('jr-back').onclick=()=>showWishWell();$('jr-scrim').onclick=()=>showWishWell();
   $('jr-q').oninput=e=>{const v=e.target.value;clearTimeout(showJirachi.t);showJirachi.t=setTimeout(()=>{showJirachi(v);const i=$('jr-q');i.focus();i.setSelectionRange(v.length,v.length);},220);};
   ov.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>{if((run.wishes||0)<8)return;const r=+b.dataset.jr;run.wishes-=8;run.jirachiDone=1;if(typeof gainUnit==='function')gainUnit(r,2);else addCopy(r);sfx('achieve');banner('Your wish came true!',`${D[r].n} joined at 2★`,2400);ov.innerHTML='';renderUI();});

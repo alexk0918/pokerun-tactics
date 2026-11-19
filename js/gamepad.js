@@ -113,7 +113,7 @@ function padRepeat(gp,i,now){ // edge + auto-repeat for D-pad
 function padClickAt(el){const b=el&&el.closest&&el.closest('button, .pick, .mode, .card');if(b&&!b.disabled)b.click();}
 function padBack(){
   if(cancelCarry())return;
-  const back=document.querySelector('#overlay #back, #overlay #skip, #overlay #setclose, #overlay #dexclose');if(back){back.click();return;}
+  const back=document.querySelector('#overlay #back, #overlay #skip, #overlay #setclose, #overlay #dexclose, #overlay [data-back]');if(back){back.click();return;}
   if(paused){closePause();return;}
   hideTip();
 }

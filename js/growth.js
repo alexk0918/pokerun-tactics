@@ -169,7 +169,7 @@ function showFeedMenu(eater){
     <p class="sub">Pick something from your bench${items.length?' or bag':''}. It's eaten for good, and you get no ₽ back.</p>
     <div class="feedgrid">${food.map(o=>`<button class="feedopt" data-food="${o.uid}"><img src="${porImg(o)}" alt=""><span>${esc(nameOf(o))} ${'★'.repeat(o.star)}</span><b>₽${feedValue(o)}</b></button>`).join('')||'<p class="sub">Your bench is empty.</p>'}
     ${items.map(x=>`<button class="feedopt" data-feedit="${x.i}"><img src="${iconOf(itemDef(x.it).id)}" alt=""><span>${esc(itemName(x.it))}</span><b>+5 iron</b></button>`).join('')}</div>
-    <div class="umacts"><button class="btn" id="fd-back">Back</button></div></div></div>`;
+    <div class="umacts"><button class="btn" id="fd-back" data-back>Back</button></div></div></div>`;
   const close=()=>{ov.innerHTML='';renderUI();};
   $('fd-back').onclick=close;$('fd-scrim').onclick=close;
   ov.querySelectorAll('[data-food]').forEach(b=>b.onclick=()=>{const o=allOwned().find(x=>x.uid===+b.dataset.food);if(o)feedUnit(eater,o);close();});
@@ -182,7 +182,7 @@ function showEggMenu(hen){
   ov.innerHTML=`<div class="scrim" id="eg-scrim"></div><div class="screen"><div class="win feedwin"><h1 class="h1">Give a Lucky Egg</h1>
     <p class="sub">${esc(nameOf(hen))} holds ${hen.eggs||0} egg${hen.eggs===1?'':'s'}. The ally you pick gains +3% max HP for the rest of the run.</p>
     <div class="feedgrid">${al.map(o=>`<button class="feedopt" data-egg="${o.uid}"><img src="${porImg(o)}" alt=""><span>${esc(nameOf(o))}</span><b>+${Math.round(((o.g&&o.g.hpP)||0)*100)}%</b></button>`).join('')}</div>
-    <div class="umacts"><button class="btn" id="eg-back">Back</button></div></div></div>`;
+    <div class="umacts"><button class="btn" id="eg-back" data-back>Back</button></div></div></div>`;
   const close=()=>{ov.innerHTML='';renderUI();};
   $('eg-back').onclick=close;$('eg-scrim').onclick=close;
   ov.querySelectorAll('[data-egg]').forEach(b=>b.onclick=()=>{const o=allOwned().find(x=>x.uid===+b.dataset.egg);if(o&&hen.eggs>0){hen.eggs--;o.g=o.g||{};o.g.hpP=(o.g.hpP||0)+.03;if(!SIM.on){sfx('star',120);toast(`${nameOf(o)} ate a Lucky Egg: +3% max HP for the run!`);}}close();});

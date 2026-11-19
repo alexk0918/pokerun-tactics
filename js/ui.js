@@ -38,7 +38,7 @@ $('p-set').onclick=()=>{$('pause').hidden=true;showSettings('game');};
 $('p-quit').onclick=()=>{const b=$('p-quit');if(!b.dataset.sure){b.dataset.sure=1;b.textContent='Press again to quit';setTimeout(()=>{b.dataset.sure='';b.textContent='Quit to title';},2500);return;}
   b.dataset.sure='';b.textContent='Quit to title';closePause();if(mode==='combat'||mode==='result'){units=[];proj=[];}saveRun();setTimeout(showTitle,160);};
 addEventListener('keydown',e=>{
-  if(e.key==='Escape'){if(!run)return;if(cancelCarry()){e.preventDefault();return;}if(ov.innerHTML.trim()&&!paused)return;if($('setclose')){$('setclose').click();return;}if($('dexclose')&&paused){closeKitDex();return;}
+  if(e.key==='Escape'){if(!run)return;if(cancelCarry()){e.preventDefault();return;}{const db=ov.querySelector('[data-back]');if(db){e.preventDefault();db.click();return;}}if(ov.innerHTML.trim()&&!paused)return;if($('setclose')){$('setclose').click();return;}if($('dexclose')&&paused){closeKitDex();return;}
     e.preventDefault();if(paused)closePause();else openPause();return;}
   if(paused||!run||evoOpen||ov.innerHTML.trim())return;
   if(e.key==='Tab'){e.preventDefault();toggleShop();}
