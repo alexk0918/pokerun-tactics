@@ -17,7 +17,7 @@ async function offManifest(){if(OFF.man)return OFF.man;
   return null;}
 // fetch one file into the pack (only if it's new or changed)
 async function offGet(cache,[path,size,h]){const have=offHave();if(have[path]===h)return true;
-  try{const r=await fetch(path,{cache:have[path]?'reload':'default'});if(!r.ok)return false;await cache.put(path,r);have[path]=h;OFF.got+=size;offSave();return true;}catch(e){return false;}}
+  try{const r=await fetch(path,{cache:have[path]?'reload':'default',headers:{'x-pack':'1'}});if(!r.ok)return false;await cache.put(path,r);have[path]=h;OFF.got+=size;offSave();return true;}catch(e){return false;}}
 async function offRun(list,cache,conc,onStep){let i=0,ok=0;const work=async()=>{while(i<list.length){const e=list[i++];if(await offGet(cache,e))ok++;OFF.done++;onStep&&onStep();}};
   await Promise.all(Array.from({length:conc},work));return ok;}
 /* during the loading screen: the core pack and the game's own files */
@@ -29,14 +29,15 @@ async function offCore(L){if(!offOK())return;try{if(navigator.storage&&navigator
     await Promise.all(shell.map(u=>fetch(u).then(r=>r.ok&&app.put(u,r)).catch(()=>0)));}catch(e){}
   if(!need.length||!navigator.onLine)return;
   const total=need.length;let n=0;const t0=performance.now();
-  await Promise.race([offRun(need,cache,8,()=>{n++;if(L)L.set(88+Math.round(8*n/total),`Packing for offline play… ${Math.round(100*n/total)}%`);}),new Promise(r=>setTimeout(r,45000))]);
+  need.sort((a,b)=>(a[0].includes('portrait')?1:0)-(b[0].includes('portrait')?1:0));
+  await Promise.race([offRun(need,cache,16,()=>{n++;if(L)L.set(88+Math.round(8*n/total),`Packing for offline play… ${Math.round(100*n/total)}%`);}),new Promise(r=>setTimeout(r,45000))]);
 }
 /* in the background: every Pokémon (and the music), current run first */
 function offAll(){if(!offOK()||OFF.state==='running')return;OFF.state='running';(async()=>{
   const man=await offManifest();if(!man){OFF.state='idle';return;}const cache=await caches.open(OFF.PACK);const have=offHave();
   // if the browser cleared the cache, forget what we thought we had
   try{const keys=new Set((await cache.keys()).map(r=>decodeURI(new URL(r.url).pathname)));const base=decodeURI(new URL('.',location.href).pathname);for(const k in have)if(!keys.has(base+k)){delete have[k];}offSave();}catch(e){}
-  const all=[];for(const d in man.dex)for(const e of man.dex[d])all.push(e);for(const e of man.music)all.push(e);for(const e of man.core)all.push(e);
+  const all=[];for(const d in man.dex)for(const e of man.dex[d])if(e[0].includes('portrait'))all.push(e);for(const d in man.dex)for(const e of man.dex[d])if(!e[0].includes('portrait'))all.push(e);for(const e of man.music)all.push(e);for(const e of man.core)all.push(e);
   OFF.total=all.length;OFF.bytes=all.reduce((a,e)=>a+e[1],0);OFF.got=all.filter(e=>have[e[0]]===e[2]).reduce((a,e)=>a+e[1],0);
   OFF.done=all.filter(e=>have[e[0]]===e[2]).length;offPill();
   const pending=()=>{const out=[];for(const d of OFF.pri)for(const e of(man.dex[d]||[]))if(have[e[0]]!==e[2])out.push(e);

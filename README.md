@@ -555,7 +555,7 @@ Settings are split into sections like PokéRogue's: General (battle speed, damag
 
 The game is a Progressive Web App and runs fully offline in the browser:
 
-- **While the game loads**, the core pack (items, effects, sounds, tiles, the game's data and code) is saved on your device, so the page itself opens without a connection.
+- **While the game loads** (the first time only), the core pack is saved on your device: items, effects, sounds, tiles, the game's data and code, and every Pokémon's portrait. After that, the page opens without a connection and menus show portraits instantly.
 - **In the background**, every Pokémon's sprites, portraits and shinies (about 200 MB) download and are saved too, with the Pokémon your current run can meet first. A small note at the bottom left shows progress ("Saving for offline play: 42%") and says "Ready to play offline" when it's done. If the connection drops, it pauses and picks up where it left off when you're back online.
 - **Your saves** (runs, unlocks, candy, achievements, settings) always live on this device, so a run started offline simply carries on when you reconnect; there is no separate cloud copy to sync. When you're back online the game updates itself to the newest version on the next load.
 - **Anything that still can't load** gets a stand-in after 10 seconds: a Pokémon whose sprite is missing shows up as Ditto (its own sprite is retried later and swaps in once it arrives), a missing portrait shows Ditto's portrait, and a missing item icon shows a Poké Ball.
