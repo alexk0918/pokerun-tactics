@@ -77,6 +77,7 @@ function originOf(dex){
     const c=new Set(TRAITS[base]||[]);
     if(anc.some(a=>PARTNER_IDS.includes(a)))c.add('Partner');if(anc.some(a=>FOSSIL_IDS.includes(a)))c.add('Fossil');if(anc.some(a=>PSEUDO_IDS.includes(a)))c.add('Pseudo');
     for(const st in STYLE_ABIL)if(STYLE_ABIL[st].some(a=>abs.includes(a)))c.add(st);
+    for(const k in EXTRA_ORIGIN)if([dex,base,...anc].some(a=>EXTRA_ORIGIN[k].includes(+a)))c.add(k);
     o=ORIGIN_ORDER.find(k=>c.has(k)&&SETS[k])||null;}
   return ORIGINC[dex]=o;
 }

@@ -17,6 +17,14 @@ function traitsOnStart(u,F,foes){
   if(F.mouse){const n=units.filter(a=>a!==u&&!a.dead&&!a.decoy&&a.team===u.team&&a.fx.mouse).length;u.as*=1+F.mouse*n;}
   // Nursery: cheer on adjacent allies
   if(F.cheer)for(const a of units)if(a!==u&&!a.dead&&a.team===u.team&&hdist(a,u)<=1)a.dmg+=F.cheer;
+  // Garden: every 3s, heal the most injured ally within 2 hexes
+  if(F.bloom)every(u,3,()=>{const a=units.filter(o=>!o.dead&&!o.decoy&&o.team===u.team&&hdist(o,u)<=2&&o.hp<o.maxHp).sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0];
+    if(a){heal(a,u.maxHp*F.bloom);if(!SIM.on)burst(a.x,a.y-16,'#f7b6d2',8,.6);}});
+  // Ranch: stronger for every other Ranch Pokémon on the field
+  if(F.herd){const n=units.filter(a=>a!==u&&!a.dead&&!a.decoy&&a.team===u.team&&a.fx.herd).length;u.dmg+=F.herd*n;u.def+=(F.herdDef||0)*n;}
+  // Oddballs: a random bonus (two at 4)
+  if(F.odd)for(let i=0;i<F.odd;i++){const r=Math.floor(Math.random()*4);if(r===0)u.dmg+=.3;else if(r===1)u.as*=1.3;else if(r===2){u.maxHp*=1.4;u.hp*=1.4;}else u.mana=Math.min(u.maxMana||u.mana+40,u.mana+40);
+    if(!SIM.on)texts.push({x:u.x,y:u.y-36-i*12,txt:['Power!','Speed!','Bulk!','PP!'][r],col:'#ffb3f0',life:1.2,label:1});}
   // Fox Spirits: an illusion decoy
   if(F.fox)foxDecoy(u,F.fox);
   // Showstoppers: once per side, the top member(s) by HP take the Spotlight

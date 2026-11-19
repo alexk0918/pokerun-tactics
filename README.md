@@ -364,7 +364,7 @@ Alolan, Galarian, Hisuian and Paldean forms are lines of their own, with their o
 
 ### Trait sets
 
-Thirteen traits come from the Pokédex itself (body, weight, egg group and category), so they mix every type and generation. A line keeps its trait as it evolves (it comes from the form it grows into). When a Pokémon fits several, it gets the rarest: kinship, then lineage, then Fox Spirits, Nursery, Mouse Brigade, Fae Folk, Titans, Kaiju, Showstoppers, Phantasms, Team Rocket, Living Stone, Deep Sea and Sky Squadron.
+Thirteen traits come from the Pokédex itself (body, weight, egg group and category), so they mix every type and generation. **Every evolution line belongs to at least one set besides its types and class:** lines the Pokédex traits leave out are placed by hand into the closest existing trait (Regieleki and Zacian with the Titans, Clamperl in Deep Sea, Greavard with the Phantasms…) or into one of eight sets made for them (Mythical, Garden, Ranch, Creepy Crawlies, Street Gang, Riverside, Dojo, Oddballs), plus the Forces of Nature kinship set (Tornadus, Thundurus, Landorus, Enamorus: moves +20% / +45%, and at 4 they arc to 2 more enemies for 25%). A line keeps its trait as it evolves (it comes from the form it grows into). When a Pokémon fits several, it gets the rarest: kinship, then lineage, then Fox Spirits, Nursery, Mouse Brigade, Fae Folk, Titans, Kaiju, Showstoppers, Phantasms, Team Rocket, Living Stone, Deep Sea and Sky Squadron.
 
 | Set | Who | Breakpoints | Effect |
 |---|---|---|---|
@@ -380,6 +380,14 @@ Thirteen traits come from the Pokédex itself (body, weight, egg group and categ
 | Fox Spirits | the Fox Pokémon | 2 / 3 | Each conjures a decoy illusion that draws attacks |
 | Nursery | lines that hatch from a baby | 1 / 2 / 3 | Half damage next to an ally; survivors grow stronger over the run; cheer adjacent allies at 3 |
 | Team Rocket | Team Rocket's Pokémon | 2 / 4 | Knockouts can steal ₽1; at 4, fainting Rocket Pokémon blast off in an explosion |
+| Mythical | Mew, Celebi, Jirachi, Deoxys, Darkrai, Shaymin, Victini, Meloetta, Genesect, Diancie, Hoopa, Magearna, Marshadow, Zeraora, Pecharunt | 1 / 2 / 3 | +15/25/40% max HP and damage; at 2 they start with +30 PP; at 3 your whole team deals +10% damage |
+| Garden | flower and plant lines (Oddish, Sunkern, Petilil, Bounsweet, Calyrex…) | 2 / 4 / 6 | Every 3s each heals its most injured nearby ally for 4/6/9% of its max HP; +15/25% max HP at 4/6 |
+| Ranch | farm and field animals (Tauros, Miltank, Ponyta, Wooloo, Lechonk, Cyclizar…) | 2 / 4 / 6 | +4/7/10% damage and +4/7/10 Defense for every other Ranch Pokémon; a 15% shield at 6 |
+| Creepy Crawlies | bugs (Paras, Pineco, Heracross, Joltik, Nymble…) | 2 / 4 / 6 | The first drop below half HP sheds their skin: heal 20/30/45%; +15/30% Attack Speed at 4/6 |
+| Street Gang | city strays (Poochyena, Zigzagoon, Glameow, Purrloin, Lillipup, Yamper…) | 2 / 4 / 6 | +20/35/55% damage to enemies below half HP; +10/20% Attack Speed at 4/6 |
+| Riverside | river and pond lines (Psyduck, Poliwag, Wooper, Lotad, Buizel, Tadbulb…) | 2 / 4 | Dodge 15/25% of basic attacks; at 4 they restore 1.5% max HP per second |
+| Dojo | martial artists (Mankey, Scraggy, Darumaka, Passimian, Hisuian Sneasel) | 2 / 4 | +15/30% crit chance and +20/40% crit damage; at 4 knockouts heal 15% |
+| Oddballs | one-of-a-kind oddities (Ditto, Unown, Smeargle, Kecleon, Dunsparce, Type: Null…) | 2 / 4 | Each battle, each rolls a random bonus (+30% damage, +30% Attack Speed, +40% max HP or +40 PP); two rolls at 4 |
 
 In a single-generation run, every enemy (trainers, wild packs, alphas, guardians) is a Pokémon from that generation: guest lines never appear as enemies, and a line that includes older Pokémon (Pichu → Pikachu in Gen II) always fields its member from that generation.
 

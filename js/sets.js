@@ -70,6 +70,16 @@ const SETS={
   'Fox Spirits':{cat:'style',trait:1,bp:[2,3],m:[{fox:.25},{fox:.4}],d:'<b>Illusion:</b> when battle starts, each Fox Pokémon conjures a decoy of itself with 25% / 40% of its max HP that draws enemy attacks.'},
   Nursery:{cat:'style',trait:1,bp:[1,2,3],m:[{nursery:1},{nursery:1,grow:1},{nursery:1,grow:1,cheer:.1}],d:'<b>Daycare:</b> lines that hatch from a baby Pokémon (Pichu, Cleffa, Riolu, Munchlax…) take half damage while an ally stands next to them. At 2, each one that survives a battle grows a little stronger for the run (+10 HP, +1 Attack and Sp. Atk). At 3, they cheer on adjacent allies (+10% damage).'},
   'Team Rocket':{cat:'style',trait:1,bp:[2,4],m:[{rocket:.5},{rocket:1,blast:.15}],d:'<b>Prepare for trouble:</b> Team Rocket\'s Pokémon have a 50% / 100% chance to steal ₽1 on each knockout (up to ₽3 a battle). At 4, a Rocket Pokémon that faints blasts off in an explosion for 15% of its max HP to adjacent enemies.'},
+  /* added so every Pokémon line belongs to at least one set besides its types and class */
+  Garden:{cat:'style',trait:1,bp:[2,4,6],m:[{bloom:.04},{bloom:.06,hpP:.15},{bloom:.09,hpP:.25}],d:'<b>Pollinate:</b> every 3 seconds, each Garden Pokémon heals its most injured ally within 2 hexes for 4% / 6% / 9% of its own max HP. At 4, Garden Pokémon gain +15% max HP (+25% at 6).'},
+  Ranch:{cat:'style',trait:1,bp:[2,4,6],m:[{herd:.04,herdDef:4},{herd:.07,herdDef:7},{herd:.1,herdDef:10,shieldP:.15}],d:'<b>Herd:</b> Ranch Pokémon gain +4% / +7% / +10% damage and +4 / +7 / +10 Defense for every other Ranch Pokémon on the field. At 6, they also start each battle with a shield of 15% max HP.'},
+  'Creepy Crawlies':{cat:'style',trait:1,bp:[2,4,6],m:[{sitrus:.2},{sitrus:.3,as:.15},{sitrus:.45,as:.3}],d:'<b>Molting:</b> the first time a Creepy Crawly drops below half HP, it sheds its skin and heals 20% / 30% / 45% of its max HP. At 4, they gain +15% Attack Speed (+30% at 6).'},
+  'Street Gang':{cat:'style',trait:1,bp:[2,4,6],m:[{execute:.2},{execute:.35,as:.1},{execute:.55,as:.2}],d:'<b>Gang Up:</b> Street Gang Pokémon deal +20% / +35% / +55% damage to enemies below half HP. At 4, they gain +10% Attack Speed (+20% at 6).'},
+  Riverside:{cat:'style',trait:1,bp:[2,4],m:[{dodge:.15},{dodge:.25,regen:.015}],d:'<b>Slippery:</b> Riverside Pokémon dodge 15% / 25% of basic attacks. At 4, they also restore 1.5% max HP per second.'},
+  Dojo:{cat:'style',trait:1,bp:[2,4],m:[{crit:.15,critD:.2},{crit:.3,critD:.4,killHeal:.15}],d:'<b>Discipline:</b> Dojo Pokémon gain +15% / +30% crit chance, and their critical hits deal +20% / +40% damage. At 4, each knockout heals them for 15% of their max HP.'},
+  Mythical:{cat:'style',trait:1,bp:[1,2,3],m:[{hpP:.15,dmg:.15},{hpP:.25,dmg:.25,mana:30},{hpP:.4,dmg:.4,mana:30}],t:[{},{},{dmg:.1}],d:'<b>Mythic Aura:</b> Mythical Pokémon gain +15% / +25% / +40% max HP and damage. At 2, they start with +30 PP. At 3, your whole team deals +10% damage.'},
+  Oddballs:{cat:'style',trait:1,bp:[2,4],m:[{odd:1},{odd:2}],d:'<b>Unpredictable:</b> at the start of every battle, each Oddball rolls a random bonus: +30% damage, +30% Attack Speed, +40% max HP or +40 PP. At 4, it rolls two (a repeat doubles up).'},
+  'Forces of Nature':{cat:'style',kin:1,bp:[2,4],m:[{ab:.2},{ab:.45,lightChain:.25}],d:'<b>Stormbringers:</b> Tornadus, Thundurus, Landorus and Enamorus\' moves deal +20% / +45% damage. With all four, their moves also arc to the 2 nearest other enemies for 25% of the damage.'},
   Partner:{cat:'style',bp:[2,3],m:[{hpP:.1,dmg:.1,friend:1},{hpP:.2,dmg:.2,friend:2}],d:'<b>Friendship:</b> starters, Pikachu and Eevee gain +10% / +20% max HP and damage. Each battle a Partner Pokémon fights while this is active, it gains 1 Friendship (2 at 3), forever: +1.5% max HP and damage per point, up to 20. At 10 Friendship it <b>hangs on for you</b>, surviving its first fainting blow each battle. At 2, you also receive the Partner Ribbon, gear for one Partner Pokémon.'},
   Fossil:{cat:'style',bp:[2,3],m:[{revive:.3},{revive:.5}],d:'<b>Ancient Power:</b> the first time a Fossil Pokémon faints, it revives with 30% / 50% HP. At 2, you receive the Ancient Amber, gear that makes its Fossil wearer come back even stronger.'},
   Pseudo:{cat:'style',bp:[2,3],m:[{hpP:.15,dmg:.1},{hpP:.25,dmg:.2}],d:'<b>Apex:</b> pseudo-legendary lines gain +15% / +25% max HP and +10% / +20% damage. At 2, you receive the Apex Fang: whoever wears it becomes the Apex, with +35% max HP, damage and Attack Speed. At 3, the fang turns Radiant (+60%).'},
@@ -83,7 +93,7 @@ const STYLECOL='#24303d';
 const KIN={
   'Wolf Pack':[745,10126,10152],'Dance Troupe':[741,10123,10124,10125],'Cloak Society':[413,10004,10005],'Two Styles':[892,10191],'Duet':[849,10184],
   'Eeveelutions':[134,135,136,196,197,470,471,700],'Tao Trio':[643,644,646,10022,10023],'Weather Trio':[382,383,384],'Island Guardians':[785,786,787,788],
-  'Ruinous Treasures':[1001,1002,1003,1004],'Swords of Justice':[638,639,640,647],'Lake Guardians':[480,481,482],'Legendary Beasts':[243,244,245],
+  'Ruinous Treasures':[1001,1002,1003,1004],'Forces of Nature':[641,642,645,905],'Swords of Justice':[638,639,640,647],'Lake Guardians':[480,481,482],'Legendary Beasts':[243,244,245],
   'Ancient':[984,985,986,987,988,989,1005,1009,1020,1021],'Future':[990,991,992,993,994,995,1006,1010,1022,1023],'Ultra Beast':[793,794,795,796,797,798,799,803,804,805,806],
 };
 // a fused Kyurem counts as the Tao member it absorbed too
@@ -97,10 +107,22 @@ const STYLE_ABIL={
 };
 // every Pokémon has its types, its class and at most ONE other set (its origin). When several fit, the first one here wins:
 // kinship and lineage first, then the rarer Pokédex traits, then the weather and Intimidator abilities
-const ORIGIN_ORDER=['Partner','Fossil','Pseudo','Fox Spirits','Nursery','Mouse Brigade','Fae Folk','Titans','Kaiju','Showstoppers','Phantasms','Team Rocket','Living Stone','Deep Sea','Sky Squadron'];
+const ORIGIN_ORDER=['Partner','Fossil','Pseudo','Fox Spirits','Nursery','Mouse Brigade','Fae Folk','Titans','Kaiju','Showstoppers','Phantasms','Team Rocket','Living Stone','Deep Sea','Sky Squadron','Mythical','Garden','Ranch','Creepy Crawlies','Street Gang','Riverside','Dojo','Oddballs'];
 const PARTNER_IDS=[1,4,7,152,155,158,252,255,258,387,390,393,495,498,501,650,653,656,722,725,728,810,813,816,906,909,912,25,172,133];
 const FOSSIL_IDS=[138,140,142,345,347,408,410,564,566,696,698,880,881,882,883];
 const PSEUDO_IDS=[147,246,371,374,443,633,704,782,885,996];
+// hand-picked homes for lines the Pokédex traits leave without a set (by line root or form id); every line has one
+const EXTRA_ORIGIN={
+  Garden:[43,102,114,191,273,511,548,556,753,761,829,898,928,951],
+  Ranch:[77,84,128,231,234,241,585,659,672,831,915,967,10250,10251,10252],
+  'Creepy Crawlies':[46,127,167,204,213,214,540,588,595,632,736,850,917,919],
+  'Street Gang':[190,261,263,309,335,403,431,434,506,509,551,676,677,835,10174],
+  Riverside:[54,60,194,270,418,535,751,938],
+  Dojo:[56,554,559,766,10176,10235],
+  Mythical:[151,251,385,386,491,492,494,648,649,719,720,801,802,807,1025],
+  Oddballs:[132,201,206,235,287,325,352,631,772,775,875],
+  Kaiju:[29],Titans:[888,894],Phantasms:[359,517,897,971],'Deep Sea':[86,366,690,771],'Living Stone':[324,529,843,1024],
+  'Fae Folk':[488,764,1014,1015,1017,10162],'Team Rocket':[10105]};
 
 /* ---------- Ability passives (real Pokémon abilities) ----------
    Each Pokémon uses the first of its abilities that has an entry here. */
