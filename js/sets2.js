@@ -168,7 +168,7 @@ function showEngraver(bi){
 const GATED={};
 function capGate(ct,raw,list){for(const k in GATED)delete GATED[k];
   for(const k in ct){const S=SETS[k],cap=CAPS[k];if(!S||!cap)continue;const top=capOf(k);if(ct[k]<top)continue;
-    if(cap==='badge'){const has=list.some(u=>u&&u.items&&u.items.some(it=>isBadge(it)&&badgeSet(it)===k))||(run&&run.strat&&run.strat.id==='index:'+k);if(!has){ct[k]=top-1;GATED[k]='badge';}}
+    if(cap==='badge'){const has=list.some(u=>u&&u.items&&u.items.some(it=>isBadge(it)&&badgeSet(it)===k));if(!has){ct[k]=top-1;GATED[k]='badge';}}
     else if((raw[k]||0)<top){ct[k]=top-1;GATED[k]='pool';}}}
 
 /* ================= Battle ================= */

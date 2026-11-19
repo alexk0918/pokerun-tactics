@@ -241,7 +241,12 @@ function hash(x,y,s){let h=(x*374761393+y*668265263+s*982451653)|0;h=(h^(h>>>13)
 function vnoise(x,y,sc,s){const X=Math.floor(x/sc),Y=Math.floor(y/sc),fx=x/sc-X,fy=y/sc-Y;const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);
   const a=hash(X,Y,s),b=hash(X+1,Y,s),c=hash(X,Y+1,s),d=hash(X+1,Y+1,s);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
 const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
-const BGM={x:400,y:280};// forest margin drawn around the arena so panning never shows the void
+const BGM={x:400,y:280};const SWAY=[];
+// wind: a gentle sway with slow gusts rolling across the forest
+function drawSway(t){if(!SWAY.length)return;const gust=.6+.4*Math.max(0,Math.sin(t*.23))*Math.sin(t*.9);
+  const v0=s2w(0,0),v1=s2w(W,H);
+  for(const w of SWAY){if(w.x>v1.x+4||w.x+w.S<v0.x-4||w.y>v1.y+4||w.y+w.S<v0.y-4)continue;const k=w.k*(.8+w.s/30),a=Math.sin(t*1.35+w.ph+w.x*.012)*k*(1+gust),top=Math.round(w.S*.55);
+    ctx.drawImage(w.img,0,0,w.S,top,w.x+Math.round(a*1.4),w.y,w.S,top);ctx.drawImage(w.img,0,top,w.S,w.S-top,w.x+Math.round(a*.6),w.y+top,w.S,w.S-top);}}// forest margin drawn around the arena so panning never shows the void
 function renderForest(bg){
   const P=BGPAL[bg]||BGPAL.forest,MX=BGM.x,MY=BGM.y,TW=W+2*MX,TH=H+2*MY;
   const c=document.createElement('canvas');c.width=TW;c.height=TH;const g=c.getContext('2d');
@@ -269,13 +274,16 @@ function renderForest(bg){
     const s=rnd(13,23)+(d>1.3?3:0);if(trees.some(t=>Math.hypot(t.x-x,(t.y-y)*1.4)<(t.s+s)*.62))continue;trees.push({x,y,s});}
   for(let i=0;i<46;i++){const a=rnd(0,Math.PI*2),d=rnd(.97,1.06);trees.push({x:CX+Math.cos(a)*RX*d,y:CY+Math.sin(a)*RY*d,s:rnd(6,9),bush:1});}
   trees.sort((a,b)=>a.y-b.y);
-  const circ=(cx,cy,r,col)=>{g.fillStyle=col;for(let dy=-r;dy<=r;dy++){const w=Math.floor(Math.sqrt(r*r-dy*dy));g.fillRect(Math.round(cx-w),Math.round(cy+dy),2*w+1,1);}};
-  const C=P.can;
+  const C=P.can;SWAY.length=0;
+  // canopies go on their own little canvases so the wind can sway them every frame (trunks and shadows stay baked in)
   for(const t of trees){const{x,y,s}=t;g.fillStyle='rgba(10,20,10,.35)';g.beginPath();g.ellipse(x+3,y+1,s*.95,s*.38,0,0,7);g.fill();let cy=y-s*.55;
     if(!t.bush&&P.trunk){px(x-2,y-9,5,10,P.trunk[0]);px(x+1,y-9,2,10,P.trunk[1]);cy=y-9-s*.6;}else if(!t.bush)cy=y-s*.7;
-    circ(x,cy,s,C[0]);for(let k=0;k<5;k++){const a=k/5*Math.PI*2+hash(x|0,y|0,k);circ(x+Math.cos(a)*s*.62,cy+Math.sin(a)*s*.5,Math.round(s*.45),C[0]);}
-    circ(x-s*.12,cy-s*.12,Math.round(s*.82),C[1]);circ(x-s*.28,cy-s*.3,Math.round(s*.55),C[2]);circ(x-s*.4,cy-s*.45,Math.round(s*.26),C[3]);
-    for(let k=0;k<6;k++)px(x+rnd(-s*.6,s*.3),cy+rnd(-s*.7,0),1,1,C[4]);}
+    const S=Math.ceil(s*2.6)+4,cv2=document.createElement('canvas');cv2.width=S;cv2.height=S;const h=cv2.getContext('2d'),ox=S/2,oy=S/2;
+    const circ=(cx,cy2,r,col)=>{h.fillStyle=col;for(let dy=-r;dy<=r;dy++){const w=Math.floor(Math.sqrt(r*r-dy*dy));h.fillRect(Math.round(cx-w),Math.round(cy2+dy),2*w+1,1);}};
+    circ(ox,oy,s,C[0]);for(let k=0;k<5;k++){const a=k/5*Math.PI*2+hash(x|0,y|0,k);circ(ox+Math.cos(a)*s*.62,oy+Math.sin(a)*s*.5,Math.round(s*.45),C[0]);}
+    circ(ox-s*.12,oy-s*.12,Math.round(s*.82),C[1]);circ(ox-s*.28,oy-s*.3,Math.round(s*.55),C[2]);circ(ox-s*.4,oy-s*.45,Math.round(s*.26),C[3]);
+    for(let k=0;k<6;k++){h.fillStyle=C[4];h.fillRect(Math.round(ox+rnd(-s*.6,s*.3)),Math.round(oy+rnd(-s*.7,0)),1,1);}
+    SWAY.push({x:Math.round(x-ox),y:Math.round(cy-oy),S,img:cv2,ph:hash(x|0,y|0,9)*6.28,k:t.bush?.5:1,s});}
   const vg=g.createRadialGradient(CX,CY-10,80,CX,CY,380);vg.addColorStop(0,P.glow);vg.addColorStop(.55,'rgba(0,0,0,0)');vg.addColorStop(1,P.edge);g.fillStyle=vg;g.fillRect(-MX,-MY,TW,TH);
   return c;
 }
@@ -992,6 +1000,7 @@ function useMove(u,tg,pow=1,free=false){
       if(i===n-1){afterMove(u,mv,dealt);if(G&&G.after)G.after();}});
     if(!SIM.on)for(const t of ts)burst(t.x,t.y-10,col,u.kit.aoe?12:14,1);};
   if(!SIM.on&&u.range>1&&!u.kit.aoe)shoot(u,tg,col,go,3);else go();
+  if(!free&&!SIM.on&&!(u.kit&&u.kit.sig)){castFlourish(u);u.mvFx={sh:null,until:combatT+1.2,seen:new Set()};}
   if(!free&&!SIM.on){texts.push({x:u.x,y:u.y-34,txt:G&&G.name?G.name:mv.n,col:G&&G.col?G.col:'#ffffff',life:G&&G.big?1.8:1.1,label:1,big:G&&G.big});if(G&&G.big)for(const t of targets())burst(t.x,t.y-10,G.col,30,1.6);}
   else if(free&&!SIM.on)texts.push({x:u.x,y:u.y-34,txt:mv.n,col:'#ffe9a8',life:.8,label:1});
 }
@@ -1181,7 +1190,7 @@ const starScale=s=>1+(s-1)*.08;
 function draw(t){
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=(BGPAL[BGKEY]||BGPAL.forest).void;ctx.fillRect(0,0,cv.width,cv.height);
   {const z=CAM.z*2*RES,sk=cineShake(1/60);ctx.setTransform(z,0,0,z,RES*(2*(CAM.ax-CAM.cx*CAM.z)+sk.x),RES*(2*(CAM.ay-CAM.cy*CAM.z)+sk.y));}ctx.imageSmoothingEnabled=false;
-  if(BG)ctx.drawImage(BG,-BGM.x,-BGM.y);else{ctx.fillStyle='#13201a';ctx.fillRect(0,0,W,H);}
+  if(BG){ctx.drawImage(BG,-BGM.x,-BGM.y);if(OPTS.fx!==0)drawSway(t);else drawSway(0);}else{ctx.fillStyle='#13201a';ctx.fillRect(0,0,W,H);}
   ctx.save();ctx.globalCompositeOperation='screen';
   if(OPTS.rays)for(let i=0;i<3;i++){const x=150+i*150+Math.sin(t*.3+i)*8;ctx.fillStyle=`rgba(255,240,190,${.035+.015*Math.sin(t*.7+i*2)})`;ctx.beginPath();ctx.moveTo(x,-10);ctx.lineTo(x+40,-10);ctx.lineTo(x+150,H);ctx.lineTo(x+90,H);ctx.closePath();ctx.fill();}
   ctx.restore();
@@ -1489,6 +1498,7 @@ function renderUI(){achState();
     return`<div class="trait ${ti?'t'+ti+' m-'+medalOf(k,ti):'off'}" data-trait="${k}"><div class="hex"><span class="in" style="background:${setColor(k)}">${k.replace(/ /g,'').slice(0,3).toUpperCase()}</span></div><div><div class="nm">${k}</div><div class="bp">${S.bp.map(b=>n>=b?`<b>${b}</b>`:b).join(' › ')}</div></div><div class="ct">${n}</div></div>`;};
   $('traits').innerHTML=keys.length?shown.map(tr1).join('')+(keys.length>MAXT?`<div class="more" data-more="1">+${keys.length-MAXT} more sets</div>`:'')
     :`<div class="hint">Place Pokémon on the field to activate sets: types, classes and traits.</div>`;
+  {const prev=renderUI.tiers,now={};for(const k of keys)now[k]=tierOf(k,ct[k]);if(prev&&mode==='plan'){let up=0;for(const k of shown)if((now[k]||0)>(prev[k]||0)){up=1;const el=[...$('traits').querySelectorAll('[data-trait]')].find(e=>e.dataset.trait===k);if(el)el.classList.add('pop');}if(up&&!SIM.on)sfx('star',110);}renderUI.tiers=now;}
   const s=run.strat,inc=incomePreview();
   let st0='';try{st0=s.show?s.show():'';}catch(e){}let mh=`<div class="mod mini" title="${esc(s.pts.join(' '))}"><div class="k">Expedition</div><div class="v">${esc(s.name)}${st0?` <span class="sc">· ${esc(st0)}</span>`:''}</div></div>`;
   for(const x of run.augs||[]){const a=AUGMAP[x.id];if(a)mh+=`<div class="mod mini ${x.tier}" title="${esc(a.d)}"><div class="k">${x.tier} augment</div><div class="v">${esc(a.name)}</div></div>`;}

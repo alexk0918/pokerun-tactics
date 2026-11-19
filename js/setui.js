@@ -185,12 +185,12 @@ function setsDrawOver(t,list){if(!run)return;
 function setsBoardTap(e){if(!PLANT.on||mode!=='plan'||!run)return false;const p=toInternal(e);const h=hexAtPoint(p.x,p.y);if(!h||h.r<4)return false;plantAt(h.c,h.r);return true;}
 
 /* ---------- Guild Hall event and guardian badges ---------- */
-if(typeof EVENTS!=='undefined')EVENTS.guild={n:'A Guild Hall',img:()=>iconOf(badgeIcon('')),need:()=>(run.badgesGot||0)<BADGE_RUN_MAX&&Math.random()<.6,
+if(typeof EVENTS!=='undefined')EVENTS.guild={n:'A Guild Hall',img:()=>iconOf(badgeIcon('')),need:()=>(run.badgesGot||0)<BADGE_RUN_MAX&&Math.random()<.35,
   txt:'A hall full of trainers trading badges. A Wigglytuff at the counter waves you over: the guild will engrave a badge for your team, for a price.',
-  opts:[{t:'Buy a Blank Badge',d:'Pay ₽12.',cost:12,fn:()=>{run.gold-=12;giveBlankBadge('Bought at the Guild Hall');return'The guildmaster presses a blank badge into your hand.';}},
+  opts:[{t:'Buy a Blank Badge',d:'Pay ₽15.',cost:15,fn:()=>{run.gold-=15;giveBlankBadge('Bought at the Guild Hall');return'The guildmaster presses a blank badge into your hand.';}},
     {t:'Trade a 2★ Pokémon',d:'Give up your cheapest 2★ Pokémon for a Blank Badge.',ok:()=>allOwned().some(u=>u.star===2),fn:()=>{const u=allOwned().filter(x=>x.star===2).sort((a,b)=>lineOf(a).cost-lineOf(b).cost)[0];if(u){for(const it of u.items)run.bag.push(it);removeUnit(u);}giveBlankBadge('Traded at the Guild Hall');return`${u?nameOf(u):'Your Pokémon'} joins the guild. You get a blank badge in return.`;}},
     {t:'Just look around',d:'Leave with nothing.',fn:()=>'You admire the trophy case and head back out.'}]};
-function badgeReward(a){return a>=1||Math.random()<.2;}
+function badgeReward(a){return Math.random()<(a>=1?.5:.1);}
 
 function renderFeats(){const el=$('feats');if(!el)return;const show=run&&!SIM.on&&['plan','loot'].includes(mode);el.hidden=!show;if(!show)return;el.innerHTML=setsModsHtml();featAnnounce();}
 $('feats')&&$('feats').addEventListener('click',e=>{if(featClick(e))e.stopPropagation();});

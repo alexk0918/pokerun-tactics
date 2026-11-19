@@ -574,6 +574,24 @@ b.s-atk,b.s-spa,b.s-hp,b.s-def,b.s-true{font-weight:normal;}
 .rct{font-family:var(--label);font-size:15px;padding:0 6px;border-radius:5px;} .rct.all{background:#3a7a3a;} .rct.some{background:#8a6a1d;} .rct.none{background:#5a3030;}
 .rsec .rtiles{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;} .rsec .rt{position:relative;}
 .rt .rcost{position:absolute;right:1px;bottom:0;font-size:10px;font-family:var(--label);padding:0 3px;border-radius:4px;background:#000a;color:#fff;}
+/* little touches: menus bounce in, buttons press, sets pop when they tier up */
+.screen>.h1{animation:titleIn .35s cubic-bezier(.2,1.4,.4,1);}
+.screen>.sub{animation:fadeUp .35s ease-out .05s both;}
+.btn{transition:transform .1s,box-shadow .1s,filter .1s;}
+.btn:not(:disabled):hover{transform:translateY(-1px);filter:brightness(1.04);}
+.btn:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink);}
+.btn.padfocus:not(:disabled),.btn:focus-visible:not(:disabled){animation:nudge 1.1s ease-in-out infinite;}
+.card:not(:disabled){transition:transform .12s,box-shadow .12s;} .card:not(:disabled):hover{transform:translateY(-3px);}
+.trait.pop{animation:traitPop .7s cubic-bezier(.2,1.6,.4,1);}
+.trait.pop .hex{animation:hexSpin .7s ease-out;}
+.hpbar>div,#xpbar>div{transition:width .45s ease-out;}
+.pick:not(:disabled){transition:transform .14s,box-shadow .14s;} .pick:not(:disabled):hover,.pick.padfocus{transform:translateY(-4px);}
+@keyframes titleIn{from{transform:translateY(-12px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+@keyframes fadeUp{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+@keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes traitPop{0%{transform:scale(1)}30%{transform:scale(1.12);filter:brightness(1.5)}100%{transform:scale(1)}}
+@keyframes hexSpin{from{transform:rotate(-90deg) scale(.6)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.screen>.h1,.screen>.sub,.trait.pop,.btn.padfocus,.btn:focus-visible,.featbtn,.featwin,.rsec{animation:none!important;}}
 /* set features: menus and side-panel buttons */
 .featwin{width:min(760px,94vw);max-height:86vh;overflow:auto;padding:16px 20px;position:relative;animation:winIn .22s cubic-bezier(.2,1.3,.4,1);}
 .featwin .h1{margin:0 0 4px;} .featwin .sub{margin:0 0 12px;}
@@ -894,11 +912,11 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 <script src="js/data.js?v=21"></script>
 <script src="js/sets.js?v=24"></script>
 <script src="js/homes.js?v=1"></script>
-<script src="js/game.js?v=69"></script>
+<script src="js/game.js?v=70"></script>
 <script src="js/fx_manifest.js?v=3"></script>
 <script src="js/fx.js?v=6"></script>
 <script src="js/status.js?v=7"></script>
-<script src="js/cine.js?v=10"></script>
+<script src="js/cine.js?v=11"></script>
 <script src="js/forms.js?v=18"></script>
 <script src="js/route.js?v=126"></script>
 <script src="js/carousel.js?v=11"></script>
@@ -914,18 +932,18 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 <script src="js/kits_forms.js?v=4"></script>
 <script src="js/kits_gen9.js?v=3"></script>
 <script src="js/kits_alt.js?v=3"></script>
-<script src="js/growth.js?v=1"></script>
-<script src="js/sets2.js?v=1"></script>
+<script src="js/growth.js?v=2"></script>
+<script src="js/sets2.js?v=2"></script>
 <script src="js/fusion.js?v=11"></script>
 <script src="js/traits.js?v=4"></script>
 <script src="js/team.js?v=6"></script>
 <script src="js/achievements.js?v=2"></script>
-<script src="js/meta.js?v=10"></script>
+<script src="js/meta.js?v=11"></script>
 <script src="js/audio.js?v=14"></script>
 <script src="js/kitdex.js?v=5"></script>
 <script src="js/augments.js?v=13"></script>
 <script src="js/ui.js?v=18"></script>
-<script src="js/setui.js?v=1"></script>
+<script src="js/setui.js?v=2"></script>
 <script src="js/meter.js?v=1"></script>
 <script src="js/gamepad.js?v=23"></script>
 </body>

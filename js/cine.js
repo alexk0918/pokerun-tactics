@@ -12,12 +12,18 @@ function moveSheet(name){if(name in MVFX)return MVFX[name];const N=String(name).
   const c=[N+'_Hit',N+'_Front',N,N+'_Hit_Front',N+'_Ranger',N+'_Explosion',N+'_Shot'].find(k=>FXM[k]&&FXM[k][2]===1);return MVFX[name]=c||null;}
 const fitSc=n=>{const m=FXM[n];return m?Math.max(.3,Math.min(1.3,52/m[1])):1;};
 // called when a signature move goes off
-function moveFxCast(u){if(SIM.on)return;const K=u.kit;const name=K.sig&&K.sig.names?K.sig.names[Math.min(K.si,K.sig.names.length-1)]:u.mv.n;const sh=moveSheet(name);
-  u.mvFx=null;if(!sh)return;
+// every move gets a charge-up on the caster and a shockwave under what it hits, in the move's type colour
+const WAVECOL={Blue:'Blue',Green:'Green',Pink:'Pink',Purple:'Purple',Red:'Pink',White:'White',Yellow:'Yellow',Black:'Purple',Brown:'Yellow'};
+function castFlourish(u){if(SIM.on||OPTS.fx<1)return;const fam=colFamily(tcol(u)),cin=CIRC[fam]||'White';
+  pfx('Circle_Small_'+cin+'_In',u.x,u.y-14,{sc:1,force:1,add:1});pfx('Circle_'+cin+'_Out',u.x,u.y-2,{sc:.55,sy:.5,alpha:.8,back:1,force:1});
+  if((u.pf||1)>=1.2||u.boss)CINE.shake=Math.max(CINE.shake,.12);}
+function hitFlourish(src,tg){if(SIM.on||OPTS.fx<1)return;const fam=colFamily(tcol(src)),w=WAVECOL[fam]||'White';pfx('Wave_Circle_'+w,tg.x,tg.y-2,{sc:.55,sy:.45,alpha:.85,back:1});}
+function moveFxCast(u){if(SIM.on)return;castFlourish(u);const K=u.kit;const name=K.sig&&K.sig.names?K.sig.names[Math.min(K.si,K.sig.names.length-1)]:u.mv.n;const sh=moveSheet(name);
+  u.mvFx={sh:null,until:combatT+1.2,seen:new Set()};if(!sh)return;
   if(K.type==='heal'||K.type==='guard'||K.sig.selfFx){pfx(sh,u.x,u.y-14,{sc:fitSc(sh),force:1});return;}
   u.mvFx={sh,until:combatT+1.2,seen:new Set()};}
 // called from damage() for every move hit
-function moveFxHit(src,tg){const m=src.mvFx;if(!m||combatT>m.until||m.seen.has(tg))return;m.seen.add(tg);if(m.seen.size>4)return;pfx(m.sh,tg.x,tg.y-12,{sc:fitSc(m.sh),force:1});}
+function moveFxHit(src,tg){const m=src.mvFx;if(!m||combatT>m.until||m.seen.has(tg))return;m.seen.add(tg);if(m.seen.size>4)return;hitFlourish(src,tg);if(m.sh)pfx(m.sh,tg.x,tg.y-12,{sc:fitSc(m.sh),force:1});}
 
 /* ---------- 2) legendary cinematics ---------- */
 // col: signature colour · charge: sheets behind the caster · impact: sheets on each target · self: played on the caster instead
