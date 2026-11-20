@@ -454,12 +454,12 @@ function setColor(k){const S=SETS[k];if(!S)return'#55606a';if(S.cat==='type')ret
 /* ---------- scouting (shop pity) ----------
    Once you've put real investment into a set, shop slots can be steered toward it.
    Unlocks from floor 4 for any set with 3+ different lines and ₽8+ of units. */
-const SCOUT={minFloor:3,minLines:3,minGold:6,base:.15,perGold:.02,perMiss:.12,cap:.6};
+const SCOUT={minFloor:3,minLines:3,minGold:6,base:.08,perGold:.01,perMiss:0,cap:.3};
 // the National Dex pool is ~7x bigger than one generation's, so scouting starts sooner and stronger there
-const SCOUT_BIG={minFloor:2,minLines:2,minGold:5,base:.25,perGold:.02,perMiss:.15,cap:.65};
+const SCOUT_BIG={minFloor:2,minLines:2,minGold:5,base:.14,perGold:.012,perMiss:0,cap:.4};
 function scoutCfg(){return MODE&&MODE.roots.length>200?SCOUT_BIG:SCOUT;}
 // weighted pick for scouted slots: lines in both focus sets are favoured
-function scoutPick(cand,focus){const w=cand.map(r=>{const ls=lineSets(r);let x=1;if(focus.length>1&&focus.every(k=>ls.includes(k)))x*=2;return x;});
+function scoutPick(cand,focus){const own=ownedCopies();const w=cand.map(r=>{const ls=lineSets(r);let x=copiesLeft(r,own);if(focus.length>1&&focus.every(k=>ls.includes(k)))x*=2;return x;});
   let t=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<cand.length;i++){t-=w[i];if(t<=0)return cand[i];}return cand[cand.length-1];}
 function investment(){const inv={},lines={};
   for(const u of allOwned()){const w=lineOf(u).cost*Math.pow(3,u.star-1);for(const k of setsOf(u.dex,u.root)){inv[k]=(inv[k]||0)+w;(lines[k]=lines[k]||new Set()).add(u.root);}}
@@ -499,7 +499,17 @@ function rollCostFor(odds){let x=Math.random(),c=0;while(c<4&&x>=odds[c]){x-=odd
   for(let d=0;d<5;d++){for(const cc of[c-d,c+d])if(cc>=0&&cc<5&&odds[cc]>0&&MODE.byCost[cc].length)return cc+1;}return 1;}
 // once you own a 3★ of a line it stops showing up in the shop (it can't go any higher)
 function maxedRoots(){return new Set(allOwned().filter(u=>u.star>=3).map(u=>u.root));}
-function shopPool(cost){const all=MODE.byCost[cost-1],mx=maxedRoots();if(!mx.size)return all;const p=all.filter(r=>!mx.has(r));return p.length?p:all;}
+/* Limited copies (like TFT): each line has a fixed number of copies by cost. Copies you own (a 2★ is 3, a 3★ is 9)
+   and copies already showing in the shop are out of the pool; selling puts them back. The shop picks lines in
+   proportion to the copies left, so the more of a line you hold, the rarer it gets. */
+const COPIES=[22,20,17,10,9];
+function ownedCopies(){const n={};for(const u of allOwned())n[u.root]=(n[u.root]||0)+Math.pow(3,(u.star||1)-1);return n;}
+function copiesLeft(r,own,extra=0){const c=MODE.lines[r].cost;return Math.max(0,COPIES[c-1]-((own||ownedCopies())[r]||0)-extra);}
+function shopPool(cost){const all=MODE.byCost[cost-1],mx=maxedRoots(),own=ownedCopies();const p=all.filter(r=>!mx.has(r)&&copiesLeft(r,own)>0);return p.length?p:all;}
+// pick from a list in proportion to copies left (minus what this shop already shows)
+function poolPick(list){const own=ownedCopies(),inShop={};for(const r of run.shop||[])if(r)inShop[r]=(inShop[r]||0)+1;
+  const w=list.map(r=>copiesLeft(r,own,inShop[r]||0)),t=w.reduce((a,b)=>a+b,0);if(!t)return pick(list);
+  let x=Math.random()*t;for(let i=0;i<list.length;i++){x-=w[i];if(x<=0)return list[i];}return list[list.length-1];}
 function rollShop(first){
   const o=shopOdds(first),sc=first?{focus:[],p:0}:scoutState();
   run.shop=[];run.scouted=[];let hit=false;
@@ -508,7 +518,7 @@ function rollShop(first){
       const costs=[cost,...[1,2,3,4,5].filter(c=>c!==cost&&o[c-1]>0).sort((a,b)=>Math.abs(a-cost)-Math.abs(b-cost))];
       for(const c of costs){const cand=shopPool(c).filter(x=>lineSets(x).some(k=>sc.focus.includes(k)));if(cand.length){r=scoutPick(cand,sc.focus);break;}}
       if(r){run.scouted[i]=true;hit=true;}}
-    run.shop.push(r||pick(shopPool(cost)));}
+    run.shop.push(r||poolPick(shopPool(cost)));}
   if(first&&run.featured[0])run.shop[0]=run.featured[0];
   if(sc.focus.length)run.pity=hit?0:(run.pity||0)+1;
   if(!first||!run.featured[0])perkRun('shop');
@@ -597,21 +607,26 @@ function craftInBag(i,j){const a=run.bag[i],b=run.bag[j];if(a&&b&&i!==j&&(isEnh(
   const c=combineItems(a,b);run.bag=run.bag.filter((_,k)=>k!==i&&k!==j);run.bag.push(c);if(!SIM.on)toast(`Crafted ${itemName(c)}!`);renderUI();return true;}
 
 /* ---------- enemies ---------- */
+/* Base difficulty: enemies get a little tougher across each act (HP and attack both: +0% on floor 1 to +4% at the
+   guardian), on top of the regular floor scaling. Together with smaller chests (fewer items) this makes a run
+   harder, mostly later on: a set-focused test bot clears Act I about 50% of the time (was 57%) and Act II about 8% (was 25%). */
+const DIFF={lo:1,up:.04};
+const diffMul=f=>{const p=clamp(((f||1)-1)/(FLOORS-1),0,1);return DIFF.lo+DIFF.up*p;};
 function buildEnemy(f){
   const kind=floorKind(f),nk=nodeK(f),hard=nk==='challenge',big=nk==='alpha'||nk==='timeattack',nd=(run.nodes&&run.nodes[f])||{},list=[];
   // F: difficulty on the old 15-floor scale; IF: the real floor count, for items (you get one chest per floor, so enemies match that)
   const A=actOf(),F=dFloor(f),IF=effFloor(f),em=endlessMul();
   if(kind==='wild'&&!A){
     const n=[2,2,3][f-1]+(hard?1:0);const pool=foePool([...MODE.byCost[0],...MODE.byCost[1]]).filter(r=>SM[r]),tp=foePool([...MODE.byCostAll[0],...MODE.byCostAll[1]]).filter(r=>SM[r]&&inTheme(r));
-    for(let i=0;i<n;i++)list.push({u:mkFoe(pick(tp.length&&Math.random()<.7?tp:pool),1),mult:(.5+f*.07)*(hard?1.15:1)});
+    for(let i=0;i<n;i++)list.push({u:mkFoe(pick(tp.length&&Math.random()<.7?tp:pool),1),mult:(.5+f*.07)*(hard?1.15:1)*1.04});
   }else{
     // later acts: wild floors are packs of themed wild Pokémon; trainers field more Pokémon, more stars and more items
     let n=(kind==='wild'?2+f+A:ECOUNT[kind==='boss'?15:oldF(f)]+Math.min(3,A))+(hard?1:0);if(big)n=Math.max(2,n-3);if(nk==='endurance')n=Math.max(2,n-2);n=Math.min(10,n);
-    const p2=clamp((F-3)*.065+(kind==='elite'?.12:0)+(hard?.15:0),0,.85),p3=clamp((F-12)*.022,0,.55);
-    const mult=(1.14+(Math.min(F,60)-4)*.03+(kind==='elite'?.06:0)+(hard?.08:0))*em*(ACTSCALE[Math.min(A,ACTSCALE.length-1)])*(nk==='endurance'?.92:1)*(hasRelic('town-map')?.9:1);
+    const p2=clamp((F-3)*.07+.04+(kind==='elite'?.12:0)+(hard?.15:0),0,.88),p3=clamp((F-11)*.024,0,.6);
+    const mult=(1.14+(Math.min(F,60)-4)*.03+(kind==='elite'?.06:0)+(hard?.08:0))*em*(ACTSCALE[Math.min(A,ACTSCALE.length-1)])*(nk==='endurance'?.92:1)*(hasRelic('town-map')?.9:1)*diffMul(f);
     if(big){let a;if(nd.force&&lineRootOf(nd.force)&&(!MODE.gen||D[nd.force].g===MODE.gen)){a=mkUnit(lineRootOf(nd.force),2);a.dex=nd.force;}else a=bigEnemy(f);
       a[nk==='alpha'?'alpha':'tgt']=1;if(nk==='alpha')a.items=[{k:randCraft(),mut:[]},{k:randCraft(),mut:[]}];list.push({u:a,mult,big:1});}
-    if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=Array.from({length:Math.min(3,2+A)},()=>({k:randCraft(),mut:[]}));list.push({u:b,mult:(hasRelic('town-map')?.9:1)*BOSSCALE[Math.min(A,BOSSCALE.length-1)]*em,boss:1});}
+    if(kind==='boss'){const b=mkUnit(run.boss.root,1);b.dex=run.boss.dex;b.items=Array.from({length:Math.min(3,2+A)},()=>({k:randCraft(),mut:[]}));list.push({u:b,mult:(hasRelic('town-map')?.9:1)*BOSSCALE[Math.min(A,BOSSCALE.length-1)]*em*diffMul(FLOORS),boss:1});}
     const o=LVODDS[enemyLv(F)];
     for(let i=0;i<n;i++){const root=themedRoot(rollCostFor(o));const x=Math.random();const u=mkFoe(root,x<p3?3:x<p3+p2?2:1);
       const pi=clamp((IF-4)*.06+(kind==='elite'?.12:0),0,.85);if(Math.random()<pi)u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((IF-11)*.1,0,.6))u.items.push({k:randCraft(),mut:[]});if(Math.random()<clamp((IF-24)*.06,0,.5))u.items.push({k:randCraft(),mut:[]});
@@ -1098,27 +1113,45 @@ function afterResult(win){
   chest={x:hexXY(3,2).x,y:hexXY(3,2).y,t:0,open:false,kind:run.pendingRelic?'relic':'item',tier:chestTier()};
   renderUI();
 }
+/* Chests come in tiers (like TFT's orbs):
+   - Common (regular wins): gold, and about half the time one random component. No choosing.
+   - Consolation (a loss): gold only.
+   - Silver (Challenge, timed and endurance floors played well): pick 1 of 3, mostly components, sometimes completed items.
+   - Gold (rivals, alphas): pick 1 of 3 completed items, often a type Plate.
+   Rare items (Mega Stones and other gimmick items, form items) come mostly from Silver and Gold chests. */
+function lootKindOf(lost){if(lost)return'lost';const q=lootQuality(true);if(floorKind(run.floor)==='elite'||q>=2)return'gold';if(q>=1)return'silver';return'common';}
+const chestGold=kind=>kind==='lost'?3+actOf():kind==='common'?2+actOf():0;
+const CHEST={p:.45,dry:2};
+function rollCommon(){
+  // a component about half the time; never three empty chests in a row (two with the Dowsing Machine: always)
+  run.lootDry=run.lootDry||0;const get=hasRelic('dowsing-machine')||run.lootDry>=CHEST.dry||Math.random()<CHEST.p;
+  if(!get){run.lootDry++;return[];}run.lootDry=0;const f=oldF(run.floor);
+  if(gimList().length&&Math.random()<.2){const g=gimLootItem();if(g)return[g];}
+  {const fi=ownedFormItems().filter(x=>!run.bag.some(b=>b.k==='form:'+x)&&!allOwned().some(u=>u.formItem===x||u.items.some(i=>i.k==='form:'+x)));if(fi.length&&Math.random()<.08)return[{k:'form:'+pick(fi),mut:[]}];}
+  if(Math.random()<.12)return[{k:pick(USE_COMMON),mut:[]}];
+  return[mkComp(randComp(),rollMut(.12+f*.01))];}
 function rollLoot(lost){
-  const q=lootQuality(!lost),f=oldF(run.floor),n=3+(hasRelic('dowsing-machine')?1:0)+(q>=1?1:0),elite=(floorKind(run.floor)==='elite'||q>=2)&&!lost,out=[];
-  // regular chests hold components only; completed items come from better chests
-  const pCraft=elite?1:q===1&&!lost?.6:0,pUse=.15;
+  const kind=lootKindOf(lost);run.lootKind=kind;run.lootGold=chestGold(kind);
+  if(kind==='lost')return[];if(kind==='common')return rollCommon();
+  const f=oldF(run.floor),gold=kind==='gold',n=3+(hasRelic('dowsing-machine')?1:0),out=[];
+  const pCraft=gold?1:.3;
   for(let i=0;i<n;i++){const x=Math.random();
-    if(x<pCraft)out.push({k:randCraft(),mut:rollMut(.3+f*.015+q*.1)});
-    else if(x<pCraft+pUse&&!elite)out.push({k:pick(USE_COMMON),mut:[]});
+    if(x<pCraft)out.push({k:randCraft(),mut:rollMut(.3+f*.015+(gold?.1:0))});
+    else if(x<pCraft+.12)out.push({k:pick(USE_COMMON),mut:[]});
     else out.push(mkComp(randComp(),rollMut(.12+f*.01)));}
   if(hasRelic('super-rod')&&!out.some(isCraft))out[0]={k:randCraft(),mut:rollMut(.3)};
-  // better chests (rival, alpha, challenge) can hold an Eject Pack
-  if(!lost&&(elite||q>=1)&&Math.random()<.45)out[out.length-1]={k:'eject-pack',mut:[]};
-  // rival chests often hold a type Plate (an emblem)
-  if(!lost&&elite&&Math.random()<.5)out[0]=rollPlate();
-  if(gimList().length&&Math.random()<Math.max(...gimList().map(g=>({dmax:.4,mega:.5,zmove:.35,tera:.35}[g])))*(lost?.6:1)){const g=gimLootItem();if(g)out[out.length-1]=g;}
+  if(Math.random()<.4)out[out.length-1]={k:'eject-pack',mut:[]};
+  if(gold&&Math.random()<.5)out[0]=rollPlate();
+  if(gimList().length&&Math.random()<Math.max(...gimList().map(g=>({dmax:.55,mega:.65,zmove:.5,tera:.5}[g])))){const g=gimLootItem();if(g)out[out.length-1]=g;}
   if(run.megaPity&&gimOn('mega')){const g=gimLootItem('mega');if(g){out[0]=g;run.megaPity=0;}}
-  {const fi=ownedFormItems().filter(x=>!run.bag.some(b=>b.k==='form:'+x)&&!allOwned().some(u=>u.formItem===x||u.items.some(i=>i.k==='form:'+x)));if(fi.length&&Math.random()<.15)out[1]={k:'form:'+pick(fi),mut:[]};}
+  {const fi=ownedFormItems().filter(x=>!run.bag.some(b=>b.k==='form:'+x)&&!allOwned().some(u=>u.formItem===x||u.items.some(i=>i.k==='form:'+x)));if(fi.length&&Math.random()<.25)out[1]={k:'form:'+pick(fi),mut:[]};}
   return out;
 }
 function takeLoot(i){
   if(mode!=='loot')return false;
-  if(i<0){run.gold+=2;}else{const it=run.loot[i];if(!it)return false;
+  // common and consolation chests: everything inside is yours
+  if(run.lootKind==='common'||run.lootKind==='lost'){run.gold+=run.lootGold||0;for(const it of run.loot||[]){if(run.bag.length<BAGMAX)run.bag.push(it);else run.gold+=2;}}
+  else if(i<0){run.gold+=2;}else{const it=run.loot[i];if(!it)return false;
     if(isUse(it)&&!USE[it.k].target){run.bag.push(it);}else run.bag.push(it);
     if(run.bag.length>BAGMAX){run.bag.pop();toast('Your bag is full.');return false;}}
   run.loot=null;
@@ -1525,7 +1558,7 @@ function renderUI(){achState();
   $('mods').innerHTML=mh;renderFeats();
   const plan=mode==='plan',owned=new Set(allOwned().filter(u=>u.star<3).map(u=>u.root));
   $('cards').innerHTML=run.shop.map((r,i)=>{if(!r)return`<div class="card empty" aria-hidden="true"></div>`;const L=MODE.lines[r];const G=growthOf({root:r});
-    return`<button class="card c${L.cost}${run.gold<priceOf(r)?' poor':''}${owned.has(r)?' owned':''}" data-i="${i}" ${plan?'':'disabled'} aria-label="Buy ${esc(D[r].n)} for ${priceOf(r)}"><div class="band"><span class="name">${kitOf(r).sig?'<span class="sigstar" title="Signature kit">✦</span>':''}${esc(D[r].n)}</span><span class="cost">₽${priceOf(r)}</span></div>
+    return`<button class="card c${L.cost}${run.gold<priceOf(r)?' poor':''}${owned.has(r)?' owned':''}" data-i="${i}" ${plan?'':'disabled'} aria-label="Buy ${esc(D[r].n)} for ${priceOf(r)}"><div class="band"><span class="name">${kitOf(r).sig?'<span class="sigstar" title="Signature kit">✦</span>':''}${esc(D[r].n)}</span><span class="cost">₽${priceOf(r)}</span></div><span class="copies" title="Copies of this line left in the pool">${copiesLeft(r)} left</span>
       <div class="body"><span class="porwrap"><img class="por" src="${por(r)}" alt="">${run.scouted&&run.scouted[i]?'<span class="pbadge scouted" title="Scouted for your sets">Scout</span>':G?'<span class="pbadge grows" title="Grows stronger over the run">Grows</span>':''}</span><div class="info"><span class="role" style="color:${CLASSCOL[roleOf(r)]}">${kitOf(r).role||roleOf(r)} · ${moveName(r)}</span><div class="chips">${typeChips(r)}${(()=>{const st=kitOf(r).styles,sh=st.slice(0,3);return sh.map(setChip).join('')+(st.length>3?`<span class="chip more" title="${esc(st.slice(3).join(', '))}">+${st.length-3}</span>`:'');})()}${MODE.gen?'':chip(REGIONS[L.region],REGCOL[L.region])}</div></div></div></button>`;}).join('');
   $('minicards').innerHTML=run.shop.map((r,i)=>r?`<button class="mcard c${MODE.lines[r].cost}" data-i="${i}" aria-label="${esc(D[r].n)}, ₽${MODE.lines[r].cost}. Show the shop"><img src="${por(r)}" alt="">₽${MODE.lines[r].cost}</button>`:`<span class="mcard empty"><img alt="" src="data:," style="visibility:hidden"></span>`).join('');
   renderGimBtn();
@@ -1536,7 +1569,7 @@ function renderUI(){achState();
   $('fight').disabled=!plan;$('fight').textContent=mode==='combat'?'Battling…':mode==='loot'?(chest&&chest.open?'Back to chest':'Open chest'):'Battle!';
   if(mode==='loot')$('fight').disabled=false;
   // bag
-  $('bagct').textContent=`${run.bag.length}/${BAGMAX}`;
+  $('bagct').textContent=`${run.bag.length}/${BAGMAX}`;{const sb=$('swapbtn');if(sb){sb.hidden=mode!=='plan';if(!sb.onclick)sb.onclick=()=>showSwapShop();}}
   let sl='';for(let i=0;i<BAGMAX;i++){const it=run.bag[i];sl+=it?`<button class="slot t-${{epic:'epic',use:'use',gim:'gim',formi:'relic',enh:'enh',spc:'spc',gear:'gear'}[itemTier(it)]||'common'}${it.enh?' enhd':''}" data-i="${i}" aria-label="${esc(itemName(it))}"><img src="${iconOf(itemDef(it).id)}" alt="">${it.mut&&it.mut.length?'<i class="mutdot"></i>':''}</button>`:`<div class="slot empty"></div>`;}
   $('slots').innerHTML=sl;
 }
@@ -1692,8 +1725,15 @@ function openChest(){achAdd('chests');if(!SIM.on){sfx('chest',300);setTimeout(()
 const lootRerollCost=()=>2+(run.lootRolls||0);
 function showLootPicks(){
   if(mode!=='loot'||!run.loot)return;hideTip();lootPeek(false);
-  const cost=lootRerollCost();
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${run.results[run.floor]==='win'?'Treasure!':'Consolation chest'}</h1><p class="sub">Choose one item. Two components on the same Pokémon combine into a completed item.</p>
+  const cost=lootRerollCost(),K=run.lootKind||'silver';
+  if(K==='common'||K==='lost'){
+    const goldCard=`<div class="pick icard p-coin" style="--tc:#d9a520;cursor:default"><div class="iband"></div><div class="ihead"><div class="iico"><img src="${iconOf('nugget')}" alt=""></div><div class="inm"><h2>₽${run.lootGold}</h2><div class="itier">Poké Dollars</div></div></div><div class="idesc"><p>${K==='lost'?'A little something for the road.':'Found in the chest.'}</p></div></div>`;
+    ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${K==='lost'?'Consolation chest':'Chest'}</h1><p class="sub">${run.loot.length?'Everything inside is yours.':K==='lost'?'Losing still pays a little.':'No item this time. Rivals and special floors have bigger chests.'}</p>
+      <div class="picks">${goldCard}${run.loot.map((it,i)=>itemCard(it,i,'nopick')).join('')}</div>
+      <div class="lootacts"><button class="btn" id="lootteam">View team</button><button class="btn primary" id="collect">Collect</button></div></div>`;
+    $('collect').onclick=()=>chooseLoot(0);$('lootteam').onclick=()=>{hideTip();ov.innerHTML='';lootPeek(true);};
+    requestAnimationFrame(()=>{const c=$('collect');if(c)c.focus();});return;}
+  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${K==='gold'?'Gold chest!':'Silver chest!'}</h1><p class="sub">Choose one item. Two components on the same Pokémon combine into a completed item.</p>
     <div class="picks">${run.loot.map((it,i)=>itemCard(it,i)).join('')}</div>
     <div class="lootacts"><button class="btn" id="lootteam">View team</button><button class="btn" id="lootroll" ${run.gold<cost?'disabled':''}>Reroll items ₽${cost}</button><button class="btn skip" id="skip">Skip and take ₽2</button></div></div>`;
   ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>chooseLoot(+b.dataset.i));

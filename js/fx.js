@@ -91,7 +91,7 @@ function statusFx(u,dt){if(u.dead||OPTS.fx<2)return;u.sfxT=(u.sfxT||0)-dt;
 /* a chest from PMD treasure boxes: brown (floor), purple (alpha or challenge), white/silver (act boss) */
 const BOXIMG={};
 function boxImg(t){return BOXIMG[t]||(BOXIMG[t]=Object.assign(new Image(),{src:'assets/items/box-'+t+'.png'}));}
-function chestTier(){const fk=floorKind(run.floor),nk=typeof nodeK==='function'?nodeK(run.floor):'';return fk==='elite'||fk==='boss'?'silver':(nk==='alpha'||nk==='challenge'||run.pendingRelic)?'rare':'normal';}
+function chestTier(){if(run.lootKind)return run.lootKind==='gold'?'silver':run.lootKind==='silver'?'rare':'normal';const fk=floorKind(run.floor),nk=typeof nodeK==='function'?nodeK(run.floor):'';return fk==='elite'||fk==='boss'?'silver':(nk==='alpha'||nk==='challenge'||run.pendingRelic)?'rare':'normal';}
 function drawPmdChest(c,t){
   const im=boxImg(c.tier||'normal'),sc=c.tier==='silver'?2.4:c.tier==='rare'?2.2:2,x=Math.round(c.x),bob=c.open?0:-Math.abs(Math.sin(t*3))*2,y=Math.round(c.y-6+bob);
   ctx.fillStyle='rgba(10,30,10,.35)';ctx.beginPath();ctx.ellipse(x,c.y+3,11*sc/2,3.5,0,0,7);ctx.fill();

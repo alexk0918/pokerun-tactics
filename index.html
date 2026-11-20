@@ -991,6 +991,19 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 @keyframes prismX{to{background-position:300% 0;}}
 @keyframes sheen{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
 @media (prefers-reduced-motion:reduce){.icard.prism,.icard.prism .iband,.icard.prism .itier,.icard.prism::after{animation:none!important;}}
+
+/* Croagunk's Swap Shop */
+#bag{position:relative;}
+.swapbtn{position:absolute;top:5px;right:60px;display:flex;align-items:center;gap:4px;padding:1px 8px 1px 3px;min-height:0;font-size:14px;z-index:2;}
+.swapbtn img{width:20px;height:20px;border-radius:50%;image-rendering:pixelated;background:var(--chipbg);}
+.keeper{display:flex;align-items:flex-end;gap:12px;margin:2px 0 10px;}
+.kpor{width:80px;height:80px;image-rendering:pixelated;border:3px solid var(--edge);border-radius:12px;background:var(--chipbg);flex:none;}
+.kbubble{position:relative;background:var(--cardbg);border:3px solid var(--edge);border-radius:12px;padding:8px 12px;font-size:17px;line-height:1.3;}
+.kbubble::before{content:'';position:absolute;left:-11px;bottom:14px;border:8px solid transparent;border-right-color:var(--edge);}
+.swapprices{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-family:var(--label);font-size:14px;}
+.swapprices span{background:var(--chipbg);border-radius:999px;padding:2px 10px;}
+.swapwin .setgrid{max-height:46vh;overflow:auto;}
+.card .copies{position:absolute;right:8px;bottom:6px;font-family:var(--label);font-size:12px;color:var(--muted);background:var(--chipbg);border-radius:999px;padding:0 7px;pointer-events:none;}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1018,7 +1031,7 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
     <div class="win hudbtns"><button class="btn-speed" id="gimbtn" hidden title="Choose who uses your gimmick"></button><button class="btn-speed" id="speed" aria-pressed="false" title="Battle speed">x2</button><button class="btn-speed" id="menubtn" title="Menu (Esc)" aria-haspopup="dialog"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Menu</button></div>
   </div>
   <div id="traits" hidden></div>
-  <div id="bag" class="win" hidden><button class="baghead" id="bagtog" aria-expanded="true"><span class="lbl">Bag</span><span class="lbl" id="bagct">0/10</span><span class="caret" aria-hidden="true"></span></button><div class="slots" id="slots"></div><div class="baghint" id="baghint">Drag items onto a Pokémon</div></div>
+  <div id="bag" class="win" hidden><button class="baghead" id="bagtog" aria-expanded="true"><span class="lbl">Bag</span><span class="lbl" id="bagct">0/10</span><span class="caret" aria-hidden="true"></span></button><div class="slots" id="slots"></div><div class="baghint" id="baghint">Drag items onto a Pokémon</div><button class="btn sm swapbtn" id="swapbtn" title="Croagunk's Swap Shop: trade an item for a random one"><img src="assets/0453/portrait.png" alt="">Swap</button></div>
   <div id="meter" class="win" hidden><button class="baghead" id="mtog" aria-expanded="true"><span class="lbl" id="mlbl">Battle meter</span><span class="caret" aria-hidden="true"></span></button>
     <div class="mbody"><div class="mtabs"><button data-mtab="dmg">Damage</button><button data-mtab="heal">Healing</button><button data-mtab="taken">Taken</button></div>
     <div class="mside"><button data-mside="0">Your team</button><button data-mside="1">Enemies</button></div><div id="mrows"></div></div></div>
@@ -1085,14 +1098,15 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
   </script>
 </div></div>
 
-<script src="js/data.js?v=21"></script>
+<script src="js/data.js?v=22"></script>
 <script src="js/offline.js?v=4"></script>
 <script src="js/sets.js?v=24"></script>
 <script src="js/homes.js?v=1"></script>
-<script src="js/game.js?v=75"></script>
+<script src="js/game.js?v=76"></script>
 <script src="js/cards.js?v=1"></script>
+<script src="js/swap.js?v=2"></script>
 <script src="js/fx_manifest.js?v=3"></script>
-<script src="js/fx.js?v=6"></script>
+<script src="js/fx.js?v=7"></script>
 <script src="js/status.js?v=7"></script>
 <script src="js/cine.js?v=11"></script>
 <script src="js/forms.js?v=18"></script>
@@ -1111,7 +1125,7 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 <script src="js/kits_gen9.js?v=3"></script>
 <script src="js/kits_alt.js?v=3"></script>
 <script src="js/growth.js?v=5"></script>
-<script src="js/sets2.js?v=4"></script>
+<script src="js/sets2.js?v=5"></script>
 <script src="js/fusion.js?v=11"></script>
 <script src="js/traits.js?v=5"></script>
 <script src="js/team.js?v=7"></script>
@@ -1121,7 +1135,7 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 <script src="js/kitdex.js?v=5"></script>
 <script src="js/augments.js?v=15"></script>
 <script src="js/ui.js?v=21"></script>
-<script src="js/setui.js?v=4"></script>
+<script src="js/setui.js?v=5"></script>
 <script src="js/meter.js?v=1"></script>
 <script src="js/gamepad.js?v=25"></script>
 </body>

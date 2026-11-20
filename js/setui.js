@@ -61,17 +61,19 @@ function setMenu(title,sub,body,opts={}){
 const optBtn=(attr,icon,title,sub,cost,dis)=>`<button class="setopt" ${attr} ${dis?'disabled':''}>${icon?`<img src="${icon}" alt="">`:''}<b>${title}</b><span>${sub}</span>${cost?`<em>${cost}</em>`:''}</button>`;
 
 /* ---------- Rocket HQ ---------- */
-function hqStock(){const T=featTier('Team Rocket');if(run.hq&&run.hq.T===T)return run.hq;
-  const s=[{id:'cash',n:'Launder the take',d:'+₽3',c:5},{id:'reroll',n:'Rigged shop',d:'2 free rerolls',c:4},{id:'xp',n:'Training montage',d:'+4 XP',c:6}];
-  if(T>=2)s.push({id:'comp',n:'Hot goods',d:'A random item component',c:8});
-  s.push({id:'copy',n:'Cloning machine',d:'A copy of a bench Pokémon',c:12});
-  if(T>=3&&(run.lastFoes||[]).length)s.push({id:'steal',n:'Steal',d:'A Pokémon from your last opponent',c:15});
-  run.hq={T,s:s.map(x=>({...x,sold:0}))};return run.hq;}
+// three random deals each floor, from a catalog that grows with the Rocket tier
+const HQ_DEALS=[{id:'cash',n:'Launder the take',d:'+₽3',c:5},{id:'reroll',n:'Rigged shop',d:'2 free rerolls',c:4},{id:'xp',n:'Training montage',d:'+4 XP',c:6},
+  {id:'copy',n:'Cloning machine',d:'A copy of a random bench Pokémon',c:12},{id:'grunt',n:'Recruit',d:'A random ₽2 or ₽3 Pokémon',c:7,t:1},
+  {id:'comp',n:'Hot goods',d:'A random item component',c:8,t:2},{id:'swap',n:'Fence it',d:'A free Swap Shop trade (next one)',c:5,t:2},
+  {id:'steal',n:'Steal',d:'A Pokémon from your last opponent',c:15,t:3},{id:'craft',n:'Heist',d:'A random completed item',c:18,t:3}];
+function hqStock(){const T=featTier('Team Rocket');if(run.hq&&run.hq.T===T&&run.hq.f===run.floor+'/'+actOf())return run.hq;
+  const cat=HQ_DEALS.filter(x=>(x.t||1)<=T&&!(x.id==='steal'&&!(run.lastFoes||[]).length));
+  run.hq={T,f:run.floor+'/'+actOf(),s:shuffle(cat.slice()).slice(0,3).map(x=>({...x,sold:0}))};return run.hq;}
 function showRocketHQ(){const H=hqStock(),T=featTier('Team Rocket'),L=run.rloot||0;
   const vault=T>=4&&!run.vaultDone;
   const body=`<div class="setgrid">${H.s.map((x,i)=>optBtn(`data-hq="${i}"`,null,x.n,x.d,x.sold?'Sold':`${x.c} Loot`,x.sold||L<x.c)).join('')}
     ${vault?optBtn('data-vault="1"',iconOf('relic-gold'),'Giovanni\'s Gambit',`Cash in all ${L} Loot: ₽${Math.floor(L/3)}${L>=40?', a 2★ ₽4 or ₽5 Pokémon':''}${L>=60?' and a relic':''}`,'Once per run',L<10):''}</div>`;
-  const close=setMenu('Rocket HQ',`You have <b>${L} Loot</b>. Earn more from Rocket knockouts${T>=2?' and lost rounds':''}. Stock changes each round.`,body,{cls:'rocketwin',icon:'big-nugget'});
+  const close=setMenu('Rocket HQ',`You have <b>${L} Loot</b>. Earn more from Rocket knockouts${T>=2?' and lost rounds':''}. Three new deals every floor.`,body,{cls:'rocketwin',icon:'big-nugget'});
   ov.querySelectorAll('[data-hq]').forEach(b=>b.onclick=()=>{const x=H.s[+b.dataset.hq];if(x.sold||(run.rloot||0)<x.c)return;run.rloot-=x.c;x.sold=1;hqBuy(x.id);sfx('buy');showRocketHQ();});
   const v=ov.querySelector('[data-vault]');if(v)v.onclick=()=>{const L2=run.rloot||0;run.vaultDone=1;run.rloot=0;run.gold+=Math.floor(L2/3);let msg=`+₽${Math.floor(L2/3)}`;
     if(L2>=40){const pool=[...MODE.byCost[3],...MODE.byCost[4]];const r=pick(pool);if(r&&typeof gainUnit==='function'){gainUnit(r,2);msg+=`, ${D[r].n} 2★`;}}
@@ -81,28 +83,36 @@ function hqBuy(id){
   if(id==='cash')run.gold+=3;else if(id==='reroll')run.freeRerolls=(run.freeRerolls||0)+2;else if(id==='xp')gainXP(4);
   else if(id==='comp'){if(run.bag.length<BAGMAX)run.bag.push({k:randComp(),mut:[]});}
   else if(id==='copy'){const b=run.bench.filter(Boolean);const u=b.length?pick(b):pick(allOwned());if(u&&!addCopy(u.root))toast('Your bench is full.');}
+  else if(id==='grunt'){const r=pick([...MODE.byCost[1],...MODE.byCost[2]]);if(r&&!addCopy(r))toast('Your bench is full.');}
+  else if(id==='swap'){run.freeSwap=(run.freeSwap||0)+1;}
+  else if(id==='craft'){if(run.bag.length<BAGMAX)run.bag.push({k:randCraft(),mut:[]});else toast('Your bag is full.');}
   else if(id==='steal'){const r=pick(run.lastFoes);if(r&&!addCopy(r))toast('Your bench is full.');else if(r)toast(`Stolen: ${D[r].n}!`);}
   renderUI();}
 
 /* ---------- Wish Well ---------- */
+// three random wishes each floor
+const WISHES=[{id:'reroll',n:'Shooting star',d:'3 free rerolls',c:2},{id:'heal',n:'Healing wish',d:'+8 HP',c:3},{id:'item',n:'Wishing star',d:'A random completed item',c:4},
+  {id:'unit',n:'Lucky wish',d:'A random ₽4 Pokémon',c:6},{id:'comp',n:'Falling star',d:'A random component',c:2},{id:'xp',n:'Wish upon a star',d:'+5 XP',c:3},{id:'gold',n:'Star Piece',d:'+₽4',c:2}];
+function wishOffers(){if(!run.wishOff||run.wishOff.f!==run.floor+'/'+actOf())run.wishOff={f:run.floor+'/'+actOf(),ids:shuffle(WISHES.map(w=>w.id)).slice(0,3)};return run.wishOff.ids.map(id=>WISHES.find(w=>w.id===id));}
 function showWishWell(){const W=run.wishes||0,T=featTier('Fae Folk');
-  const offers=[{id:'reroll',n:'Shooting star',d:'3 free rerolls',c:2},{id:'heal',n:'Healing wish',d:'+8 HP',c:3},{id:'item',n:'Wishing star',d:'A random completed item',c:4},{id:'unit',n:'Lucky wish',d:'A random ₽4 Pokémon',c:6}];
+  const offers=wishOffers();
   const jir=T>=4&&!run.jirachiDone;
-  const body=`<div class="setgrid">${offers.map(o=>optBtn(`data-wish="${o.id}"`,null,o.n,o.d,`${o.c} Wish${o.c>1?'es':''}`,W<o.c)).join('')}${jir?optBtn('data-jirachi="1"',por(385),'Jirachi\'s Wish','Call any Pokémon you\'ve unlocked, at 2★','8 Wishes · once',W<8):''}</div>`;
+  const body=`<div class="setgrid">${offers.map(o=>optBtn(`data-wish="${o.id}"`,null,o.n,o.d,`${o.c} Wish${o.c>1?'es':''}`,W<o.c)).join('')}${jir?optBtn('data-jirachi="1"',por(385),'Jirachi\'s Wish','Choose one of three ₽3–₽5 Pokémon, at 2★','8 Wishes · once',W<8):''}</div>`;
   setMenu('Wish Well',`You have <b>${W} Wish${W===1?'':'es'}</b>. Each win with Fae Folk active adds ${T>=3?2:1}.`,body,{icon:'star-piece'});
   ov.querySelectorAll('[data-wish]').forEach(b=>b.onclick=()=>{const o=offers.find(x=>x.id===b.dataset.wish);if((run.wishes||0)<o.c)return;run.wishes-=o.c;
-    if(o.id==='reroll')run.freeRerolls=(run.freeRerolls||0)+3;else if(o.id==='heal')run.hp=Math.min(run.maxHp,run.hp+8);else if(o.id==='item'){if(run.bag.length<BAGMAX)run.bag.push({k:randCraft(),mut:[]});}else if(o.id==='unit'){const r=pick(MODE.byCost[3]);if(r&&!addCopy(r))toast('Your bench is full.');}
+    if(o.id==='comp'){if(run.bag.length<BAGMAX)run.bag.push({k:randComp(),mut:[]});}else if(o.id==='xp')gainXP(5);else if(o.id==='gold')run.gold+=4;else if(o.id==='reroll')run.freeRerolls=(run.freeRerolls||0)+3;else if(o.id==='heal')run.hp=Math.min(run.maxHp,run.hp+8);else if(o.id==='item'){if(run.bag.length<BAGMAX)run.bag.push({k:randCraft(),mut:[]});}else if(o.id==='unit'){const r=pick(MODE.byCost[3]);if(r&&!addCopy(r))toast('Your bench is full.');}
     sfx('heal');showWishWell();});
   const j=ov.querySelector('[data-jirachi]');if(j)j.onclick=()=>showJirachi();}
-function showJirachi(q=''){const U=typeof unlockedSet==='function'?unlockedSet():null;const roots=MODE.roots.filter(r=>(!U||U.has(r))&&MODE.lines[r].cost<=5);
-  const list=roots.filter(r=>!q||D[r].n.toLowerCase().includes(q.toLowerCase())||D[MODE.lines[r].mem.slice(-1)[0]].n.toLowerCase().includes(q.toLowerCase())).slice(0,60);
-  ov.innerHTML=`<div class="scrim" id="jr-scrim"></div><div class="screen"><div class="win featwin"><h1 class="h1">Jirachi's Wish</h1><p class="sub">Make a wish: this Pokémon joins your bench at 2★.</p>
-    <input id="jr-q" class="search" type="search" placeholder="Search Pokémon" value="${esc(q)}"><div class="setgrid jr">${list.map(r=>`<button class="setopt" data-jr="${r}"><img src="${por(r)}" alt=""><b>${esc(D[r].n)}</b><span>₽${MODE.lines[r].cost}</span></button>`).join('')}</div>
+// Jirachi grants one of three random ₽3–₽5 Pokémon, at 2★
+function showJirachi(){const U=typeof unlockedSet==='function'?unlockedSet():null;
+  if(!run.jirOff){const pool=MODE.roots.filter(r=>(!U||U.has(r))&&MODE.lines[r].cost>=3&&MODE.lines[r].cost<=5);run.jirOff=shuffle(pool).slice(0,3);}
+  const list=run.jirOff;
+  ov.innerHTML=`<div class="scrim" id="jr-scrim"></div><div class="screen"><div class="win featwin"><img class="featwin-ico" src="${por(385)}" alt=""><h1 class="h1">Jirachi's Wish</h1><p class="sub">Jirachi offers three wishes. The one you choose joins your bench at 2★.</p>
+    <div class="setgrid">${list.map(r=>`<button class="setopt" data-jr="${r}"><img src="${por(r)}" alt=""><b>${esc(D[r].n)}</b><span>₽${MODE.lines[r].cost} · ${esc(kitOf(r).styles.slice(0,2).join(', '))}</span></button>`).join('')}</div>
     <div class="umacts"><button class="btn" id="jr-back" data-back>Back</button></div></div></div>`;
   $('jr-back').onclick=()=>showWishWell();$('jr-scrim').onclick=()=>showWishWell();
-  $('jr-q').oninput=e=>{const v=e.target.value;clearTimeout(showJirachi.t);showJirachi.t=setTimeout(()=>{showJirachi(v);const i=$('jr-q');i.focus();i.setSelectionRange(v.length,v.length);},220);};
   ov.querySelectorAll('[data-jr]').forEach(b=>b.onclick=()=>{if((run.wishes||0)<8)return;const r=+b.dataset.jr;run.wishes-=8;run.jirachiDone=1;if(typeof gainUnit==='function')gainUnit(r,2);else addCopy(r);sfx('achieve');banner('Your wish came true!',`${D[r].n} joined at 2★`,2400);ov.innerHTML='';renderUI();});
-  if(!q)(ov.querySelector('.setopt')||$('jr-back')).focus();}
+  (ov.querySelector('.setopt')||$('jr-back')).focus();}
 
 /* ---------- Daycare ---------- */
 function showDaycare(){const S=daycareSlots(),dc=run.daycare||[],bench=run.bench.filter(Boolean);

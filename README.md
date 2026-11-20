@@ -42,7 +42,7 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 | III · Tidepool Grotto | Sea cave | Water, Ice, Dark, Ghost | Guardian of the Grotto |
 
 - About 70% of enemy Pokémon come from the act's theme types (drawn from every line in the mode, not just your shop pool), and trainers are themed too (Hikers and Firebreathers in the canyon, Swimmers and Hex Maniacs in the grotto). The guardian is a legendary of the act's theme when the mode has one, and never one you've already beaten.
-- Each act hits harder: more enemies per team, more 2★ and 3★ Pokémon, more items, enemies rolling up to ₽5 shops, and tougher guardians.
+- Each act hits harder: more enemies per team, more 2★ and 3★ Pokémon, more items, enemies rolling up to ₽5 shops, and tougher guardians. Enemies also get a little stronger from the start of each act to its guardian (up to +4% HP and attack), and trainers field 2★ Pokémon a bit sooner.
 - Beating a guardian clears the act: your trainer heals to full HP, you can take a relic, and the next act starts with its own carousel. Each act unlocks another generation gimmick on floor 4.
 - Beat Act III's guardian to become Champion, then choose **Enter Endless mode** to keep going. Endless builds new acts forever (Thunder Plains, Haunted Ruins, Sky Pillar, Frozen Peak, Toxic Marsh, then around again), each one +12% stronger than the last on top of the floor curve, with a themed guardian at the end of each.
 - Floor 1 opens with a carousel: eight ₽1 Pokémon walk a ring, each holding an item component. Pick one and it joins your bench while its item goes to your bag. Floor 6 of every act and floor 1 of later acts bring more carousels with Pokémon your trainer level can roll, and from Act II they carry some finished items. Your field is hidden during a carousel so you can see the Pokémon walking the ring.
@@ -55,9 +55,9 @@ After each floor you choose where to go next from two or three paths. One is usu
 
 | Path | What happens | Reward |
 |---|---|---|
-| Trainer Battle | A regular battle | Chest |
-| Challenge | One extra enemy, stronger stats, some mutated enemies | Better chest (4 choices, more completed items) and +₽3 |
-| Alpha Pokémon | A huge Alpha Pokémon (2.8× HP, +30% damage) with escorts | Enhancer pick, rich chest, 25% chance of a relic |
+| Trainer Battle | A regular battle | Common chest |
+| Challenge | One extra enemy, stronger stats, some mutated enemies | Silver chest and +₽3 |
+| Alpha Pokémon | A huge Alpha Pokémon (2.8× HP, +30% damage) with escorts | Enhancer pick, Gold chest, 25% chance of a relic |
 | Endurance | Wild waves arrive every 7 seconds and whenever the field is cleared. Survive 15s to win | +₽2 / ₽4 / ₽7 and better loot at 15 / 25 / 40 seconds |
 | Time Attack | Knock out a giant target within 40 seconds; its guards don't count | +₽2 / ₽4 / ₽7 and better loot under 40 / 25 / 15 seconds |
 | Mystery | A random event (below) | Varies |
@@ -257,8 +257,18 @@ Form items (Red Orb, Griseous Core, Rusted Sword, masks…) sit in their own slo
 - The **Eject Pack** takes every item off a Pokémon and puts them back in your bag. It turns up in rival, alpha and challenge chests (and sometimes at Kecleon's).
 - Drag a component over another component (in the bag, or onto a Pokémon holding one) to see what they'd make. In chest choices, hover any recipe to see the finished item.
 
-- A chest appears after every battle. Open it and pick one of three items, or skip for ₽2. Regular chests hold components (plus the odd consumable or gimmick item); completed items come from challenge, alpha and rival chests (or the Super Rod relic).
-- **Reroll items** in a chest for ₽2, going up ₽1 each time for that chest.
+- A chest appears after every battle, and its tier depends on the fight:
+
+  | Chest | From | Inside |
+  |---|---|---|
+  | Common | Regular wins | ₽2 (+₽1 per act), and about half the time one random component (never 3 empty chests in a row). Everything inside is yours; no choosing |
+  | Consolation | A loss | ₽3 (+₽1 per act) |
+  | Silver | Challenge floors, and Endurance or Time Attack played well | Pick 1 of 3: mostly components, sometimes a completed item, consumable or Eject Pack |
+  | Gold | Rivals, Alphas, and Endurance or Time Attack played very well | Pick 1 of 3 completed items, often a type Plate |
+
+  Rare items (Mega Stones and other gimmick items, form items) mostly come from Silver and Gold chests. You can skip a Silver or Gold pick for ₽2.
+- **Reroll items** in a Silver or Gold chest for ₽2, going up ₽1 each time for that chest.
+- **Croagunk's Swap Shop** (the Swap button on the bag, from Explorers of Sky) trades an item for a random one: a component for a different component, or a completed item for another completed item that shares one of its components. It works on items in your bag or held by your Pokémon, and mutations and enhancers stay on. A component swap costs ₽2 and a completed item ₽4 in Act I, going up by ₽1 and ₽2 each act.
 - **View team** hides the chest choice so you can check your board, sets and items; **Back to the chest** (or the Battle button) brings it back.
 - Items work like TFT: 8 components (Protein, Calcium, Carbos, Iron, Zinc, HP Up, PP Up, Dire Hit) combine into 36 completed items. Put two components on the same Pokémon, or drop one on another in your bag. Each Pokémon holds up to 3 items, and selling it returns them to the bag.
 - Items can roll mutators (Shiny, Blazing, Vampiric, Swift, Sturdy, Charged, Lucky, Golden, Growing, Thorny, Blessed, Shadow) that carry over when components combine.
@@ -374,7 +384,7 @@ Each set has a signature playstyle, and several open a **feature** once you reac
 
 | Set | Lines | Breakpoints | Capstone needs | Playstyle |
 |---|---|---|---|---|
-| Team Rocket | 21 (Alolan Persian, Arbok, Dugtrio, Dustox, Perrserker, Persian…) | 2 / 4 / 6 / 7 | a Guild Badge | Knockouts (and lost rounds at 4) earn Loot to spend at **Rocket HQ**; at 6 fallen Rockets blast off and HQ can Steal; capstone **Giovanni's Gambit** cashes all Loot in for a jackpot |
+| Team Rocket | 21 (Alolan Persian, Arbok, Dugtrio, Dustox, Perrserker, Persian…) | 2 / 4 / 6 / 7 | a Guild Badge | Knockouts (and lost rounds at 4) earn Loot to spend at **Rocket HQ** (three random deals each floor); at 6 fallen Rockets blast off and deals can include Steal or Heist; capstone **Giovanni's Gambit** cashes all Loot in for a jackpot |
 | Titans | 25 (Alolan Golem, Camerupt, Golem, Scolipede, Gigalith, Golurk…) | 2 / 4 / 6 / 8 | a Guild Badge | +HP and Size, an opening stomp; they grow mid-fight at 4 and drain PP at 6; capstone **Colossus** makes the biggest Titan huge and shield the team |
 | Leviathans | 12 (Clodsire, Sharpedo, Dewgong, Seismitoad, Kingdra, Wailord…) | 2 / 3 / 4 / 5 | a Guild Badge | Flood **water lanes** in their columns, grow +4% Size every 2s in the water; waves down the lane at 4; capstone **Leviathan Rising** |
 | Sky Squadron | 23 (Chatot, Corviknight, Delibird, Farfetch’d, Fearow, Noctowl…) | 2 / 4 / 6 / 7 | a Guild Badge | Take off and dive onto your **Flight Plan** target (back line, carry or healer); re-dive on knockouts at 6; capstone **Air Raid** |
@@ -387,7 +397,7 @@ Each set has a signature playstyle, and several open a **feature** once you reac
 | Deep Sea | 19 (Lanturn, Lumineon, Luvdisc, Palafin, Seaking, Wishiwashi…) | 2 / 4 / 5 / 6 | a Guild Badge | Bonus damage to wounded enemies, executes at 4, defenses crumble under pressure at 5; capstone **The Abyss** |
 | Reef | 12 (Corsola, Wugtrio, Crabominable, Crawdaunt, Kingler, Barbaracle…) | 2 / 3 / 4 / 5 | a Guild Badge | Defenses and reflected basic-attack damage; shells thicken every battle at 3; Crab Hammer counters at 4; capstone **Coral Reef** |
 | Riverside | 6 (Ludicolo, Quagsire, Bellibolt, Floatzel, Politoed, Golduck) | 2 / 3 / 4 | that many different lines | Dodge and regen; with 4 different lines, **Flash Flood** swamps the field |
-| Fae Folk | 19 (Aromatisse, Breloom, Cherrim, Delcatty, Granbull, Jumpluff…) | 2 / 4 / 5 / 6 | a Guild Badge | Wishes heal allies; wins add Wishes to the **Wish Well** (rerolls, HP, items, Pokémon); capstone **Jirachi's Wish** |
+| Fae Folk | 19 (Aromatisse, Breloom, Cherrim, Delcatty, Granbull, Jumpluff…) | 2 / 4 / 5 / 6 | a Guild Badge | Wishes heal allies; wins add Wishes to the **Wish Well** (three random wishes each floor: rerolls, HP, gold, XP, items, Pokémon); capstone **Jirachi's Wish** (choose one of three random ₽3–₽5 Pokémon, at 2★) |
 | Mouse Brigade | 17 (Alolan Raticate, Alolan Sandslash, Bibarel, Dedenne, Emolga, Furret…) | 2 / 4 / 5 / 6 | a Guild Badge | Attack Speed per rodent; cheese ₽ on knockouts; healing cheese at 5; capstone **Maushold** calls in Tandemaus |
 | Fox Spirits | 5 (Thievul, Alolan Ninetales, Hisuian Zoroark, Ninetales, Zoroark) | 2 / 3 / 4 | that many different lines | Decoy illusions; Zorua/Zoroark disguise as your strongest at 3; with 4 different foxes, **Nine Tails** |
 | Nursery | 14 (Azumarill, Chimecho, Clefable, Hitmontop, Jynx, Sudowoodo…) | 1 / 2 / 3 / 4 | a Guild Badge | Babies are sheltered by allies; the **Daycare** grows benched Pokémon and lays Eggs; capstone **Proud Parents** |
@@ -485,9 +495,11 @@ Everything here is saved in your browser across runs (simulated runs never touch
 
 73 achievements, saved in your browser across runs. One earned during a fight pops up (with PMD's item-obtained fanfare) when the fight ends; one earned anywhere else pops up straight away. Each one gives a reward (see Progression). **Achievements** on the title screen lists them all, with progress bars for the ones that count up across runs (battles won, knockouts, Pokémon bought, rerolls, chests, Pokémon Centers, Mystery paths, Kecleon Shops, evolution lines owned, runs started, regions and expeditions tried). The rest cover battles (Clean Sweep, Lone Wolf, Knockout Artist, Lightning Round…), acts and wins (Perfect Act, Comeback Kid, Untouchable, Champion…), your team (Three Stars, Triple Crown, Living Legend, Set Master, Rainbow Team…) and moments like fusing two Pokémon or taking a 2★ from a carousel. Simulated runs never earn achievements.
 
-### Scouting
+### Limited copies and scouting
 
-Once you've invested in a set (3+ different lines and ₽6+ worth of units, from floor 3), shop slots have a chance to show Pokémon from your two most-invested sets. The chance grows with investment and with every shop that misses. Scouted cards are tagged in the shop. Each shop that misses adds 12% (15% in National Dex), so a dry streak ends quickly. Lines that are in both of your top sets are favoured. The National Dex pool is about seven times bigger than a single generation's, so there scouting starts on floor 2 at 2 lines and ₽5.
+Like TFT, each line has a limited number of copies: 22 of each ₽1 line, 20 of each ₽2, 17 of each ₽3, 10 of each ₽4 and 9 of each ₽5. Copies you own (a 2★ is 3 copies, a 3★ is 9) and copies already in the shop are out of the pool, and selling puts them back. The shop picks lines in proportion to the copies left, so the more of a line you hold, the rarer it gets; each shop card shows how many are left.
+
+**Scouting** gives a small nudge once you've invested in a set (3+ different lines and ₽6+ worth of units, from floor 3): shop slots have a chance to show Pokémon from your two most-invested sets. It starts at 8% and grows slowly with investment, up to 30% (14% to 40% in National Dex, where the pool is about seven times bigger). Scouted cards are tagged in the shop, and lines in both of your top sets are favoured.
 
 ### Kits: real moves and abilities
 
@@ -629,6 +641,7 @@ js/status.js        stacking status conditions and weather
 js/cine.js          move-name animations and legendary cinematics
 js/kitdex.js        in-game Kit Dex and discoveries
 js/fx.js            PMD particle player, beams, PMD chests
+js/swap.js          Croagunk's Swap Shop (trade an item for a random one)
 js/fx_manifest.js   frame layout of every particle sheet
 js/carousel.js      carousel rounds
 js/ui.js            pause menu, settings, collapsible shop and bag
