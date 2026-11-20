@@ -4,9 +4,9 @@
 const FIXED={1:'wild',2:'wild',5:'rival',10:'boss'};
 const isRouteFloor=f=>f<=FLOORS&&!FIXED[f];
 const NODES={
-  battle:{n:'Trainer Battle',icon:'poke-ball',tag:'Normal',col:'#e2433f',d:'A regular trainer battle.',r:'Chest'},
-  challenge:{n:'Challenge',icon:'ultra-ball',tag:'Hard',col:'#2b2b2f',d:'A stronger trainer with one extra Pokémon, some of them mutated.',r:'Better chest · +₽3'},
-  alpha:{n:'Alpha Pokémon',icon:'dusk-ball',tag:'Mini-boss',col:'#b8352c',d:'A huge, enraged Alpha Pokémon and its escorts.',r:'Enhancer · rich chest · 25% relic'},
+  battle:{n:'Trainer Battle',icon:'poke-ball',tag:'Normal',col:'#e2433f',d:'A regular trainer battle.',r:'Common chest'},
+  challenge:{n:'Challenge',icon:'ultra-ball',tag:'Hard',col:'#2b2b2f',d:'A stronger trainer with one extra Pokémon, some of them mutated.',r:'Silver chest · +₽3'},
+  alpha:{n:'Alpha Pokémon',icon:'dusk-ball',tag:'Mini-boss',col:'#b8352c',d:'A huge, enraged Alpha Pokémon and its escorts.',r:'Enhancer · Gold chest · 25% relic'},
   endurance:{n:'Endurance',icon:'timer-ball',tag:'Survive',col:'#d8742a',d:'Wild Pokémon keep coming in waves. Last as long as you can, up to 40 seconds.',r:'Rewards at 15 / 25 / 40s'},
   timeattack:{n:'Time Attack',icon:'quick-ball',tag:'Speed',col:'#3d79d6',d:'Knock out a giant target as fast as you can. Its guards don\'t count.',r:'Best rewards under 15s'},
   event:{n:'Mystery',icon:'mystery-egg',tag:'Event',col:'#8a6ce0',d:'Something is happening on this path. No telling what.',r:'?'},
