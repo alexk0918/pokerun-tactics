@@ -78,7 +78,7 @@ const ACHS=[
   {id:'bagfull',ev:'state',icon:'box-normal',name:'Hoarder',d:'Fill your item bag.',t:()=>run.bag.length>=BAGMAX},
   {id:'prism',ev:'state',icon:'prism-scale',name:'Prismatic',d:'Take a Prismatic augment.',t:()=>(run.augs||[]).some(a=>a.tier==='prismatic')},
   {id:'prism3',ev:'state',icon:'rainbow-wing',name:'Full Spectrum',d:'Have 3 Prismatic augments in one run.',t:()=>(run.augs||[]).filter(a=>a.tier==='prismatic').length>=3},
-  {id:'aug5',ev:'state',icon:'star-piece',name:'Augmented',d:'Have 5 augments in one run.',t:()=>(run.augs||[]).length>=5},
+  {id:'aug5',ev:'state',icon:'star-piece',name:'Augmented',d:'Have 4 augments in one run.',t:()=>(run.augs||[]).length>=4},
   {id:'relic3',ev:'state',icon:'relic-statue',name:'Relic Hunter',d:'Hold 3 relics in one run.',t:()=>(run.relics||[]).length>=3},
   {id:'fullbench',ev:'state',icon:'box-silver',name:'Packed Bench',d:'Fill every bench slot.',t:()=>run.bench.every(Boolean)},
   {id:'fullfield',ev:'state',icon:'friend-ball',name:'Full Squad',d:'Have 9 Pokémon on your field.',t:()=>field().length>=9},

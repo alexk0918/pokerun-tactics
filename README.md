@@ -46,7 +46,7 @@ A Pokémon autobattler roguelike in the style of TFT, The Last Flame and Guildru
 - Beating a guardian clears the act: your trainer heals to full HP, you can take a relic, and the next act starts with its own carousel. Each act unlocks another generation gimmick on floor 4.
 - Beat Act III's guardian to become Champion, then choose **Enter Endless mode** to keep going. Endless builds new acts forever (Thunder Plains, Haunted Ruins, Sky Pillar, Frozen Peak, Toxic Marsh, then around again), each one +12% stronger than the last on top of the floor curve, with a themed guardian at the end of each.
 - Floor 1 opens with a carousel: eight ₽1 Pokémon walk a ring, each holding an item component. Pick one and it joins your bench while its item goes to your bag. Floor 6 of every act and floor 1 of later acts bring more carousels with Pokémon your trainer level can roll, and from Act II they carry some finished items. Your field is hidden during a carousel so you can see the Pokémon walking the ring.
-- Augments come on floors 2 and 7 of every act (floor 2 in Endless). See Augments. The floor track marks augment floors with a diamond.
+- One augment per act, on floor 2 (Endless acts too). See Augments. The floor track marks augment floors with a diamond.
 - The shop sells the first stage of each evolution line, priced ₽1–₽5 (₽5 is legendaries and mythicals). Three copies combine into the next star level and evolve; branching lines let you choose the evolution. National Dex runs draw a 100-line pool from all 541 so copies are findable.
 
 ### Routes
@@ -438,7 +438,7 @@ Every starter line (Gen I–IX, plus Hisuian Decidueye) grows with its **Friends
 
 ### Augments
 
-You pick one of three augments on floors 2 and 7 of every act (6 in a full run, plus one per endless act). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first. **No augment you've been offered comes back later in the run**, so every pick shows you new options.
+You pick one of three augments on floor 2 of every act (3 in a full run, plus one per endless act; Augment Fund adds one on floor 5). All three cards share a tier: the first pick is Silver 30% / Gold 50% / Prismatic 20%, later picks Silver 15% / Gold 50% / Prismatic 35%, and endless picks Gold 40% / Prismatic 60%. Each card can be rerolled once, and **View team** hides the screen so you can check your board first. **No augment you've been offered comes back later in the run**, so every pick shows you new options.
 
 There are 32 Silver, 33 Gold and 31 Prismatic hand-made augments, plus Heart / Crest / Crown augments for every type, class and trait. **Every augment has its own job**: no two do the same thing at different strengths, so no card is just a weaker copy of another. Many are more than stat boosts: Built Different (Pokémon outside any active set get stronger), Helping Hand and Lone Wolf (positioning), Blitz and Ascension (timing), Spite, Final Gambit, Explosion, Rebirth, Tag Team and Reinforcements (when your Pokémon faint), First Blood and Apex Predator (knockouts), Lock-On and Hypnosis (shutting down the enemy carry), Wonder Trade, Copy Machine, Pandora's Items, Double Team, Golden Egg, Metronome, Mind Meld, Trick Room and Perish Song.
 

@@ -1,11 +1,11 @@
 "use strict";
 /* PokéRun Tactics — augments (TFT-style).
-   You pick one of three augments on floors 2 and 7 of every act (floor 2 in Endless). Nothing you've been offered
+   You pick one of three augments on floor 2 of every act, Endless included. Nothing you've been offered
    comes back later in the run.
    All three choices share a tier (silver, gold or prismatic); each card can be rerolled once, and one card is
    often a set augment (Heart / Crest / Crown) for a set you already play. Augments last the rest of the run. */
 
-const AUG_FLOORS=a=>{const f=a<3?[2,7]:[2];return run&&run.strat&&run.strat.id==='augfund'?[2,5,...f.slice(1)]:f;};
+const AUG_FLOORS=a=>run&&run.strat&&run.strat.id==='augfund'?[2,5]:[2];
 const AUGTAG={combat:'Combat',econ:'Economy',status:'Status',items:'Items',team:'Team',set:'Set',weather:'Weather'};
 const WEATHER_TXT={sun:'harsh sunlight (Fire moves +20%, Water moves −15%)',rain:'rain (Water moves +20%, Fire moves −15%)',
   sand:'a sandstorm (everything but Rock, Ground and Steel loses 1% max HP per second)',snow:'snow (your Ice Pokémon get +20 Def and Sp. Def, enemies lose 10% Attack Speed, everything but Ice loses 1% max HP per second)'};
