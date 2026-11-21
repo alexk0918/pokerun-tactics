@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PokéRun Screen Test</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#13201a">
+<style>
+:root{--bg:#10202a;--card:#1b2c38;--ink:#eef2ea;--muted:#a9b8c4;--ok:#4fc16a;--bad:#e2574c;--warn:#e0a526;--edge:#05080b;--acc:#ffe27a;}
+@media (prefers-color-scheme:light){:root{--bg:#dfe7d6;--card:#fdfcf7;--ink:#1b2430;--muted:#4b5563;--edge:#1b2430;}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+main{max-width:760px;margin:0 auto;padding:16px;}
+h1{font-size:22px;margin:4px 0 2px} h2{font-size:17px;margin:0 0 8px}
+p{margin:0 0 8px}.muted{color:var(--muted);font-size:14px}
+.card{background:var(--card);border:3px solid var(--edge);border-radius:12px;box-shadow:0 3px 0 var(--edge);padding:12px 14px;margin:12px 0;}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:700;min-height:44px;padding:8px 16px;border-radius:10px;border:2px solid var(--edge);background:var(--acc);color:#1b2430;cursor:pointer;}
+button.alt{background:var(--card);color:var(--ink)}
+button:disabled{opacity:.45}
+.r{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #8884;padding:4px 0;font-size:14px}
+.r b{font-weight:600}.r span{text-align:right;word-break:break-word}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+#pad{height:220px;border:3px dashed var(--muted);border-radius:12px;position:relative;touch-action:none;display:grid;place-items:center;color:var(--muted);user-select:none;-webkit-user-select:none;overflow:hidden;text-align:center;padding:0 16px}
+.dot{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--edge);pointer-events:none;animation:fade 1.2s forwards}
+@keyframes fade{to{opacity:0;transform:scale(1.8)}}
+#log{font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;max-height:180px;overflow:auto;background:#0004;border-radius:8px;padding:8px;margin:0}
+.big{font-size:34px;font-weight:800;text-align:center;margin:8px 0}
+.role{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--acc);color:#1b2430;font-weight:800;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Dual screen test <span class="role" id="roleTag">Not set</span></h1>
+  <p class="muted">This page checks which ways PokéRun could use the AYN Thor's two screens. Nothing here changes your save. At the end, press <b>Copy results</b> and paste them in the chat.</p>
+
+  <div class="card">
+    <h2>1. This screen</h2>
+    <div id="info"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Presentation API (one window drives both screens)</h2>
+    <p class="muted">Run this on the <b>top screen</b>. If Chrome can present to the bottom screen, a picker appears; choose the bottom display. A green "Hello from the other screen" page should show up there.</p>
+    <div class="row"><button id="presBtn">Try Presentation API</button><span id="presState" class="muted"></span></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Companion page (two windows that talk to each other)</h2>
+    <p class="muted">Chrome only allows one window, so the second copy runs as a small installed app:</p>
+    <ol class="muted" style="margin:0 0 10px;padding-left:20px">
+      <li>In Chrome, open the ⋮ menu → <b>Add to Home screen</b> (or <b>Install app</b>) → Install. It's called <b>PokéRun Screen Test</b> and is separate from the game.</li>
+      <li>Open <b>PokéRun Screen Test</b> from your home screen and move it to the bottom screen (AYN button → Task, or your screen-switch shortcut).</li>
+      <li>Keep this page open in Chrome on the top screen.</li>
+      <li>Tap "This is the top screen" here and "This is the bottom screen" in the app. Within a couple of seconds both should say <b>Connected</b>.</li>
+    </ol>
+    <p class="muted">Right now this copy is running as <b id="where"></b>.</p>
+    <div class="row"><button id="asTop">This is the top screen</button><button id="asBottom" class="alt">This is the bottom screen</button></div>
+    <div class="big" id="peer">No other screen yet</div>
+    <p class="muted" id="lat"></p>
+    <div id="pad">Tap or drag here. Taps appear on the other screen.</div>
+    <div class="row" style="margin-top:8px"><button id="ping" class="alt">Send ping</button><span class="muted" id="chan"></span></div>
+    <div class="row" style="margin-top:8px"><button id="newwin" class="alt">Try opening a second window</button><button id="scr" class="alt">Ask Chrome for the screen list</button></div>
+  </div>
+
+  <div class="card">
+    <h2>4. Touch</h2>
+    <p class="muted">Tap the box above on each screen. The count shows whether this screen gets touch.</p>
+    <div class="r"><b>Touches on this screen</b><span id="touches">0</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <pre id="log"></pre>
+    <div class="row" style="margin-top:8px"><button id="copy">Copy results</button><span id="copied" class="muted"></span></div>
+  </div>
+</main>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const ID=Math.random().toString(36).slice(2,7);
+const R={id:ID,role:'',checks:{},events:[]};
+function log(m){const t=new Date().toLocaleTimeString();R.events.push(t+' '+m);if(R.events.length>60)R.events.shift();render();}
+const yes=(v,txt)=>`<span class="${v?'ok':'bad'}">${txt||(v?'Yes':'No')}</span>`;
+function row(k,v){return`<div class="r"><b>${k}</b><span>${v}</span></div>`;}
+
+// ---- 1. environment
+function env(){
+  const s=screen,st=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  const c=R.checks;
+  c.screen=`${s.width}×${s.height} CSS px (×${devicePixelRatio} = ${Math.round(s.width*devicePixelRatio)}×${Math.round(s.height*devicePixelRatio)})`;
+  c.window=`${innerWidth}×${innerHeight}`;
+  c.installedApp=st;c.touchPoints=navigator.maxTouchPoints||0;
+  c.presentationApi=!!(navigator.presentation&&window.PresentationRequest);
+  c.receiver=!!(navigator.presentation&&navigator.presentation.receiver);
+  c.windowManagement='getScreenDetails' in window;
+  c.screenIsExtended=s.isExtended===undefined?'unknown':s.isExtended;
+  c.broadcastChannel='BroadcastChannel' in window;
+  c.ua=navigator.userAgent;
+  $('info').innerHTML=row('Screen',c.screen)+row('Window',c.window)+row('Running as installed app',yes(st,st?'Yes':'No (browser tab)'))
+    +row('Touch points',c.touchPoints?`<span class="ok">${c.touchPoints}</span>`:'<span class="bad">0</span>')
+    +row('Presentation API',yes(c.presentationApi))+row('Window Management API',yes(c.windowManagement))
+    +row('Second screen reported',c.screenIsExtended==='unknown'?'<span class="muted">Unknown</span>':yes(c.screenIsExtended))
+    +row('BroadcastChannel',yes(c.broadcastChannel))+row('Browser',`<span class="muted">${c.ua.replace(/</g,'&lt;')}</span>`);
+}
+env();addEventListener('resize',()=>{env();render();});
+
+// Window Management API: list screens if allowed
+// (needs a tap: Chrome only shows the permission prompt after a user gesture)
+function askScreens(){if(!('getScreenDetails' in window)){log('Window Management API not available');return;}
+  getScreenDetails().then(d=>{R.checks.screens=d.screens.map(x=>`${x.label||'screen'} ${x.width}×${x.height} at ${x.left},${x.top}${x.isPrimary?' primary':''}${x===d.currentScreen?' (this one)':''}`);log('Screens: '+R.checks.screens.join(' | '));})
+  .catch(e=>{R.checks.screens=['refused: '+e.name];log('Screen list refused: '+e.name+' '+e.message);});}
+
+// ---- 2. Presentation API
+const isReceiver=!!(navigator.presentation&&navigator.presentation.receiver);
+if(isReceiver){
+  document.body.innerHTML='<main><div class="card" style="text-align:center;border-color:#4fc16a"><h1 class="ok">Hello from the other screen!</h1><p>The Presentation API works: the top screen is driving this one.</p><div class="big" id="rmsg">Waiting for a message…</div></div></main>';
+  navigator.presentation.receiver.connectionList.then(list=>{const hook=c=>{c.onmessage=e=>{document.getElementById('rmsg').textContent=e.data;c.send('pong:'+e.data);};c.send('receiver-ready');};list.connections.forEach(hook);list.onconnectionavailable=e=>hook(e.connection);});
+} else if(R.checks.presentationApi){
+  const req=new PresentationRequest(['index.html?role=receiver']);
+  if(req.getAvailability)req.getAvailability().then(a=>{const f=()=>{R.checks.presentationDisplay=a.value;$('presState').innerHTML=a.value?'<span class="ok">A display is available</span>':'<span class="warn">No display found yet</span>';render();};f();a.onchange=f;}).catch(e=>{R.checks.presentationDisplay='availability check failed: '+e.name;$('presState').textContent='Availability unknown ('+e.name+')';render();});
+  $('presBtn').onclick=()=>{log('Presentation: asking Chrome to present…');req.start().then(c=>{log('Presentation: connected ('+c.state+')');R.checks.presentationWorked=true;
+      let n=0;c.onmessage=e=>log('Presentation reply: '+e.data);const t=setInterval(()=>{if(c.state!=='connected'){clearInterval(t);return;}c.send('Tick '+(++n));},1000);
+      c.onclose=()=>log('Presentation: closed');c.onterminate=()=>log('Presentation: ended');})
+    .catch(e=>{R.checks.presentationWorked=false;R.checks.presentationError=e.name+': '+e.message;log('Presentation failed: '+e.name+' '+e.message);});};
+} else {$('presBtn').disabled=true;$('presState').innerHTML='<span class="bad">Not supported in this browser</span>';}
+
+// ---- 3. companion pages
+let ch=null;const peers={};
+function send(m){m.from=ID;m.role=R.role;m.t=performance.timeOrigin+performance.now();
+  if(ch)ch.postMessage(m);else try{localStorage.setItem('pokerun-dual',JSON.stringify(m));}catch(e){}}
+function recv(m){if(!m||m.from===ID)return;
+  const fresh=!peers[m.from];peers[m.from]={role:m.role,at:Date.now()};
+  if(fresh){log(`Found another screen (${m.role||'no role'})`);R.checks.companionWorked=true;}
+  if(m.type==='ping')send({type:'pong',echo:m.t,to:m.from});
+  if(m.type==='pong'&&m.to===ID){const ms=Math.round(performance.timeOrigin+performance.now()-m.echo);$('lat').textContent=`Round trip: ${ms} ms`;R.checks.roundTripMs=ms;}
+  if(m.type==='tap')dot(m.x,m.y);
+  if(m.type==='hello'&&fresh)send({type:'hello'});
+  updatePeer();}
+if('BroadcastChannel' in window){ch=new BroadcastChannel('pokerun-dual');ch.onmessage=e=>recv(e.data);$('chan').textContent='Using BroadcastChannel';}
+else{addEventListener('storage',e=>{if(e.key==='pokerun-dual'&&e.newValue)recv(JSON.parse(e.newValue));});$('chan').textContent='Using storage events (fallback)';}
+function updatePeer(){const now=Date.now(),live=Object.values(peers).filter(p=>now-p.at<5000);
+  $('peer').innerHTML=live.length?`<span class="ok">Connected to ${live.map(p=>p.role||'a screen with no role').join(', ')}</span>`:'No other screen yet';}
+setInterval(()=>{send({type:'hello'});updatePeer();},1500);send({type:'hello'});
+function setRole(r){R.role=r;$('roleTag').textContent=r==='top'?'Top screen':'Bottom screen';$('asTop').className=r==='top'?'':'alt';$('asBottom').className=r==='bottom'?'':'alt';log('Role: '+r);send({type:'hello'});}
+$('asTop').onclick=()=>setRole('top');$('asBottom').onclick=()=>setRole('bottom');
+$('ping').onclick=()=>{send({type:'ping'});log('Ping sent');};
+$('scr').onclick=askScreens;
+$('newwin').onclick=()=>{try{const w=window.open(location.href.split('#')[0]+'#second','_blank','popup,width=600,height=500');log('Second window: '+(w?'opened (check if it is a new window or just a tab)':'blocked'));R.checks.newWindow=!!w;}catch(e){log('Second window failed: '+e.name);}};
+$('where').textContent=R.checks.installedApp?'the installed app':'a Chrome tab';
+
+// ---- touch pad
+let touches=0;
+function dot(x,y){const p=$('pad'),d=document.createElement('div');d.className='dot';d.style.left=(x*100)+'%';d.style.top=(y*100)+'%';p.appendChild(d);setTimeout(()=>d.remove(),1300);}
+$('pad').addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touches++;$('touches').textContent=touches;R.checks['touches_'+(R.role||'unset')]=touches;}
+  const b=e.currentTarget.getBoundingClientRect(),x=(e.clientX-b.left)/b.width,y=(e.clientY-b.top)/b.height;dot(x,y);send({type:'tap',x,y});
+  e.currentTarget.onpointermove=ev=>{const x2=(ev.clientX-b.left)/b.width,y2=(ev.clientY-b.top)/b.height;send({type:'tap',x:x2,y:y2});};});
+addEventListener('pointerup',()=>{$('pad').onpointermove=null;});
+
+// ---- results
+function render(){const c=R.checks;const lines=[
+  'PokéRun dual screen test',
+  'Role: '+(R.role||'not set')+'  · screen '+c.screen+'  · window '+c.window,
+  'Installed app: '+c.installedApp+'  · touch points: '+c.touchPoints,
+  'Presentation API: '+c.presentationApi+'  · display available: '+(c.presentationDisplay===undefined?'?':c.presentationDisplay)+'  · worked: '+(c.presentationWorked===undefined?'not tried':c.presentationWorked)+(c.presentationError?' ('+c.presentationError+')':''),
+  'Window Management: '+c.windowManagement+(c.screens?' · '+c.screens.join(' | '):'')+'  · extended: '+c.screenIsExtended,
+  'Companion link: '+(c.companionWorked?'yes':'not yet')+(c.newWindow!==undefined?' · window.open: '+c.newWindow:'')+(c.roundTripMs!==undefined?' · round trip '+c.roundTripMs+' ms':''),
+  'Touches here: '+touches,
+  'Browser: '+c.ua,'',...R.events];
+  $('log').textContent=lines.join('\n');}
+render();
+$('copy').onclick=async()=>{const t=$('log').textContent;try{await navigator.clipboard.writeText(t);$('copied').textContent='Copied';}
+  catch(e){const r=document.createRange();r.selectNodeContents($('log'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copied').textContent='Selected: copy it with your device';}};
+</script>
+</body>
+</html>
