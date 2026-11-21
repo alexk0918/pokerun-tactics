@@ -4,7 +4,7 @@
      the starters; reaching 2★ with a line in any run unlocks it, and eggs unlock more. Regional modes always use their
      full roster.
    · Roster: for National Dex you can pick which unlocked lines appear (saved presets, a minimum per cost).
-   · Candy: each line earns candy when it wins battles for you (more for a 3★). Spend it on that line's shiny colours
+   · Candy: a line earns candy when you make it 3★ or hatch it again from an egg. Spend it on that line's shiny colours
      and two levels of training (+5% / +10% max HP and damage).
    · Shinies: every sprited Pokémon has a shiny. Unlock a line's shiny with candy, from an egg, or by finding one
      (1 in 200 Pokémon you get is shiny, which unlocks it for good).
@@ -62,9 +62,9 @@ function metaJoin(u){if(!u||!metaOn()||!run)return u;
   else if(!hasShiny(u.root)&&Math.random()<1/200){u.shiny=1;upOf(u.root).shiny=1;META.found++;metaSave();
     setTimeout(()=>popCard({img:shinyPor(u.root),k:'Shiny found!',title:`Shiny ${lineName(u.root)}`,text:'Its shiny colours are now unlocked for good.'}),400);}
   return u;}
-// battles won give candy to every line that fought (and count toward your favourite)
+// battles count toward each line's favourite score (candy comes from 3★ and repeat hatches, not from wins)
 function metaBattle(win){if(!metaOn())return;const seen=new Set();
-  for(const c of units)if(c.team===0&&!c.summon&&!seen.has(c.u.root)){seen.add(c.u.root);META.fav[c.u.root]=(META.fav[c.u.root]||0)+1;if(win)addCandy(c.u.root,1);}
+  for(const c of units)if(c.team===0&&!c.summon&&!seen.has(c.u.root)){seen.add(c.u.root);META.fav[c.u.root]=(META.fav[c.u.root]||0)+1;}
   if(win)META.xp+=5;metaLevel();metaSave();}
 function metaStar(u){if(!metaOn())return;if(u.star>=2&&natMode().lines[u.root])metaUnlock(u.root,'You reached 2★ with it. It can now appear in National Dex runs.');if(u.star>=3)addCandy(u.root,5);metaSave();}
 
@@ -180,7 +180,7 @@ function showCollection(back){
       ${t<2?`<button class="btn sm" id="ctrain" ${candyOf(r)<TRAIN_COST[t]?'disabled':''}>Training ${t?'II':'I'} (+${t?10:5}% HP and damage) · ${TRAIN_COST[t]} candy</button>`:'<p>Fully trained: +10% max HP and damage.</p>'}
       ${t?`<p class="small">Trained: +${t*5}% max HP and damage in every run.</p>`:''}</div>`;})():
     `<div class="cdet win"><h2>Your collection</h2><p>National Dex runs only use lines you've unlocked. Reach 2★ with a line in any run, or hatch it from an egg, to unlock it.</p>
-      <p>Lines earn <i class="candy"></i> candy for every battle they win (and 5 for a 3★). Spend it here on shiny colours and training.</p><p>Pick a Pokémon to see its upgrades.</p></div>`;
+      <p>Lines earn <i class="candy"></i> candy when you make them 3★ (5) or hatch them again from an egg (10). Spend it here on shiny colours and training.</p><p>Pick a Pokémon to see its upgrades.</p></div>`;
   ov.innerHTML=`<div class="scrim"></div><div class="screen colscreen"><h1 class="h1">Pokémon collection</h1>
     <p class="sub">${U.size} of ${all.length} lines unlocked · ${nSh} shinies · ${META.vouchers} egg voucher${META.vouchers===1?'':'s'}</p>${cardToggle()}
     <div class="cbar"><div class="seg">${[['all','All'],['unl','Unlocked'],['lock','Locked']].map(([k,l])=>`<button class="btn sm${S.f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div>
