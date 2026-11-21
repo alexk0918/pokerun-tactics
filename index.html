@@ -1004,6 +1004,18 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 .swapprices span{background:var(--chipbg);border-radius:999px;padding:2px 10px;}
 .swapwin .setgrid{max-height:46vh;overflow:auto;}
 .card .copies{position:absolute;right:8px;bottom:6px;font-family:var(--label);font-size:12px;color:var(--muted);background:var(--chipbg);border-radius:999px;padding:0 7px;pointer-events:none;}
+
+/* Dark mode: the selection cursor and focus highlights use bright gold, since the dark frame colour vanishes on dark windows */
+:root[data-theme="dark"] .mi:hover::before,:root[data-theme="dark"] .mi:focus-visible::before,:root[data-theme="dark"] .mi.padhover::before{border-left-color:var(--gold);filter:drop-shadow(0 0 3px #ffe27a99);}
+:root[data-theme="dark"] .mi:focus-visible,:root[data-theme="dark"] .mi.padhover,:root[data-theme="dark"] .mi:hover{background:#ffe27a26;box-shadow:inset 3px 0 0 var(--gold);}
+:root[data-theme="dark"] .srow:hover,:root[data-theme="dark"] .srow:focus-visible,:root[data-theme="dark"] .srow.padhover,
+:root[data-theme="dark"] .stab.padhover:not([aria-selected="true"]),:root[data-theme="dark"] .evopt:hover:not(:disabled),:root[data-theme="dark"] .evopt:focus-visible,
+:root[data-theme="dark"] #overlay [data-craft]:hover,:root[data-theme="dark"] #overlay [data-craft].padhover{background:#ffe27a22;outline:2px solid var(--gold);outline-offset:-2px;}
+:root[data-theme="dark"] .setopt:not([disabled]):hover,:root[data-theme="dark"] .setopt:not([disabled]):focus-visible,:root[data-theme="dark"] .setopt.padfocus,
+:root[data-theme="dark"] .feedopt:hover,:root[data-theme="dark"] .feedopt:focus-visible,:root[data-theme="dark"] .feedopt.padfocus{border-color:var(--gold);box-shadow:0 3px 0 #000,0 0 0 2px var(--gold);}
+:root[data-theme="dark"] .card.padhover:not(.empty),:root[data-theme="dark"] .card:hover:not(.empty){outline:3px solid var(--gold);outline-offset:1px;}
+:root[data-theme="dark"] .btn.padhover:not(:disabled),:root[data-theme="dark"] .btn:hover:not(:disabled){background:#3a4a24;}
+:root[data-theme="dark"] .padhover,:root[data-theme="dark"] .padfocus{outline-color:var(--gold);}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
