@@ -1016,6 +1016,10 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 :root[data-theme="dark"] .card.padhover:not(.empty),:root[data-theme="dark"] .card:hover:not(.empty){outline:3px solid var(--gold);outline-offset:1px;}
 :root[data-theme="dark"] .btn.padhover:not(:disabled),:root[data-theme="dark"] .btn:hover:not(:disabled){background:#3a4a24;}
 :root[data-theme="dark"] .padhover,:root[data-theme="dark"] .padfocus{outline-color:var(--gold);}
+#ld-fix{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:100000;width:min(520px,calc(100vw - 32px));text-align:center;font-family:var(--display);color:#f7f6ee;background:#0b1510e6;border:3px solid #05080b;border-radius:14px;padding:12px 14px;}
+#ld-fix p{margin:0 0 8px;font-size:16px;color:#ffd0c8;word-break:break-word}
+#ld-fix button{font-family:var(--display);font-size:22px;padding:8px 22px;border-radius:12px;border:3px solid #05080b;background:#ffe27a;color:#1b2430;box-shadow:0 4px 0 #05080b;cursor:pointer;min-height:44px}
+#ld-fix small{display:block;margin-top:8px;font-size:14px;color:#c9d8c4}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -1103,18 +1107,30 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
     function tick(){shown+=(target-shown)*.18;if(target-shown<.2)shown=target;fill.style.width=shown+'%';pct.textContent=Math.round(shown)+'%';
       fill.className='ld-fill'+(shown<30?' low':shown<60?' mid':'');if(window.LOAD&&!LOAD.gone)requestAnimationFrame(tick);}
     requestAnimationFrame(tick);
+    // if loading stalls, offer a repair after 25 seconds; show script errors that happen while loading
+    setTimeout(function(){if(window.LOAD&&!LOAD.gone)LOAD.repair('');},25000);
+    window.addEventListener('error',function(e){if(window.LOAD&&!LOAD.gone&&e&&e.message)LOAD.repair(e.message+(e.filename?' ('+e.filename.split('/').pop()+':'+e.lineno+')':''));});
     window.LOAD={gone:false,set:function(p,m){target=Math.max(target,Math.min(100,p));if(m)msg.textContent=m;},
       pad:function(){var e=document.getElementById('ld-pad');if(e)e.hidden=false;},
+      fail:function(e){msg.textContent='Something went wrong while loading.';LOAD.repair(String(e&&e.message||e||''));},
+      // a way out of a stuck load: clear the saved copy of the game (not your saves) and download it fresh
+      repair:function(why){var L=document.getElementById('loader');if(!L||document.getElementById('ld-fix'))return;
+        var d=document.createElement('div');d.id='ld-fix';d.innerHTML='<p>'+(why?'Error: '+why.replace(/</g,'&lt;').slice(0,160):'Taking longer than usual?')+'</p><button type="button">Repair and reload</button><small>Your saves and progress are kept. The game files are downloaded again.</small>';
+        L.appendChild(d);d.querySelector('button').onclick=function(){this.disabled=true;this.textContent='Repairing…';
+          var jobs=[];try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}catch(x){}
+          try{if(window.caches)jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));}catch(x){}
+          try{localStorage.removeItem('pokerun-pack-v1');localStorage.removeItem('pokerun-pack-v1-man');}catch(x){}
+          Promise.all(jobs).catch(function(){}).then(function(){location.replace(location.pathname+'?repair='+Date.now());});};},
       done:function(){var L=document.getElementById('loader');if(!L)return;LOAD.set(100,'Ready!');setTimeout(function(){L.classList.add('out');setTimeout(function(){LOAD.gone=true;clearInterval(tt);L.remove();},520);},280);}};
   })();
   </script>
 </div></div>
 
 <script src="js/data.js?v=22"></script>
-<script src="js/offline.js?v=4"></script>
+<script src="js/offline.js?v=5"></script>
 <script src="js/sets.js?v=24"></script>
 <script src="js/homes.js?v=1"></script>
-<script src="js/game.js?v=76"></script>
+<script src="js/game.js?v=77"></script>
 <script src="js/cards.js?v=1"></script>
 <script src="js/swap.js?v=2"></script>
 <script src="js/fx_manifest.js?v=3"></script>
@@ -1146,7 +1162,7 @@ input.padhover,.cbar input:focus{outline:3px solid var(--gold);}
 <script src="js/audio.js?v=15"></script>
 <script src="js/kitdex.js?v=5"></script>
 <script src="js/augments.js?v=15"></script>
-<script src="js/ui.js?v=21"></script>
+<script src="js/ui.js?v=22"></script>
 <script src="js/setui.js?v=5"></script>
 <script src="js/meter.js?v=1"></script>
 <script src="js/gamepad.js?v=25"></script>

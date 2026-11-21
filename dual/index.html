@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PokéRun Screen Test</title>
-<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#13201a">
 <style>
 :root{--bg:#10202a;--card:#1b2c38;--ink:#eef2ea;--muted:#a9b8c4;--ok:#4fc16a;--bad:#e2574c;--warn:#e0a526;--edge:#05080b;--acc:#ffe27a;}
@@ -33,6 +32,7 @@ button:disabled{opacity:.45}
 <body>
 <main>
   <h1>Dual screen test <span class="role" id="roleTag">Not set</span></h1>
+  <p><a href="../" style="color:inherit">← Back to the game</a></p>
   <p class="muted">This page checks which ways PokéRun could use the AYN Thor's two screens. Nothing here changes your save. At the end, press <b>Copy results</b> and paste them in the chat.</p>
 
   <div class="card">
@@ -48,12 +48,12 @@ button:disabled{opacity:.45}
 
   <div class="card">
     <h2>3. Companion page (two windows that talk to each other)</h2>
-    <p class="muted">Chrome only allows one window, so the second copy runs as a small installed app:</p>
+    <p class="muted">Chrome only allows one window, so the second copy runs inside the PokéRun app you already installed:</p>
     <ol class="muted" style="margin:0 0 10px;padding-left:20px">
-      <li>In Chrome, open the ⋮ menu → <b>Add to Home screen</b> (or <b>Install app</b>) → Install. It's called <b>PokéRun Screen Test</b> and is separate from the game.</li>
-      <li>Open <b>PokéRun Screen Test</b> from your home screen and move it to the bottom screen (AYN button → Task, or your screen-switch shortcut).</li>
       <li>Keep this page open in Chrome on the top screen.</li>
-      <li>Tap "This is the top screen" here and "This is the bottom screen" in the app. Within a couple of seconds both should say <b>Connected</b>.</li>
+      <li>Open the <b>PokéRun</b> app and move it to the bottom screen (AYN button → Task, or your screen-switch shortcut).</li>
+      <li>In the app: <b>Options → Data → Two-screen test (AYN Thor)</b>. This same page opens inside the app.</li>
+      <li>Tap "This is the top screen" in Chrome and "This is the bottom screen" in the app. Within a couple of seconds both should say <b>Connected</b>.</li>
     </ol>
     <p class="muted">Right now this copy is running as <b id="where"></b>.</p>
     <div class="row"><button id="asTop">This is the top screen</button><button id="asBottom" class="alt">This is the bottom screen</button></div>

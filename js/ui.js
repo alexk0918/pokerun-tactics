@@ -73,7 +73,7 @@ const SET_TABS=[
     {k:'padRS',n:'Right stick',v:['zoom','fine'],l:['Zoom and pan','Fine cursor']}],
    info:[['Left stick','Move the cursor'],['D-pad','Jump between buttons and Pokémon'],['A','Select · press on a Pokémon or item to pick it up, again to place it'],['B','Back · put down what you are carrying'],['X','Reroll the shop'],['Y','Level up'],['LB','Hide or show the shop'],['RB','Release the Pokémon under the cursor'],['RT','Open the menu of the Pokémon under the cursor (items, details, Mega toggle)'],['Right stick','Zoom (up/down) and pan (left/right)'],['R3','Reset the zoom'],['L3','Battle speed'],['Start','Battle · open the chest · confirm'],['Select','Menu']]},
   {id:'controls',n:'Controls',rows:[],info:[['Click','Select, buy, open the chest'],['Click, then click','Pick up a Pokémon or item, then place it (dragging also works)'],['Drag empty ground','Pan the board'],['Right-click a Pokémon','Its menu: items, details, Mega toggle'],['Mouse wheel','Zoom the board'],['+ / − / 0','Zoom in, out, reset'],['Space','Battle · open the chest'],['D','Reroll'],['F','Level up'],['Tab','Hide or show the shop'],['B','Hide or show the bag'],['Esc','Menu']]},
-  {id:'data',n:'Data',rows:[],acts:[['o-del','Delete saved run'],['o-dex','Forget Kit Dex discoveries'],['o-reset','Reset all settings']]},
+  {id:'data',n:'Data',rows:[],acts:[['o-del','Delete saved run'],['o-dex','Forget Kit Dex discoveries'],['o-reset','Reset all settings'],['o-dual','Two-screen test (AYN Thor)']]},
 ];
 let setTab='general',setFrom='title';
 function optIdx(r){const i=r.v.indexOf(OPTS[r.k]);return i<0?0:i;}
@@ -101,6 +101,7 @@ function showSettings(from,tab){
   sure('o-del',()=>clearSave());
   sure('o-dex',()=>{DEXSEEN.clear();try{localStorage.removeItem(DEXKEY);}catch(e){}});
   sure('o-reset',()=>{const keep={shopOpen:OPTS.shopOpen,bagOpen:OPTS.bagOpen};Object.assign(OPTS,{speed:1,dmg:1,autoHide:1,autoZoom:1,zoomSpd:1,fx:2,rays:1,padSens:1,padRS:'zoom',padDZ:.18,shake:1,unsprited:0,masterVol:.8,musVol:.5,sfxVol:.6,uiVol:.7,theme:'system'},keep);auVolumes();applyTheme();saveOpts();speed=1;});
+  {const b=$('o-dual');if(b)b.onclick=()=>{location.href='dual/';};}
   $('setclose').onclick=closeSettings;
   const f=ov.querySelector(`.stab[aria-selected="true"]`);if(f)f.focus();
 }

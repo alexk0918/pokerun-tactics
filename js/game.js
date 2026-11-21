@@ -1845,7 +1845,7 @@ function showEnd(won){music(won?'theme':'menu');achCheck('end',{won});metaRunEnd
   requestAnimationFrame(frame);
   L.done();
   if(typeof offAll==='function')setTimeout(offAll,1500);
-  }catch(e){console.error(e);L.set(got,'Something went wrong while loading. Check your connection and reload the page to try again.');}
+  }catch(e){console.error(e);L.set(got,'Something went wrong while loading.');if(L.fail)L.fail(e);}
 })();
 // pictures in menus: if one can't load, show a stand-in (Ditto's portrait for Pokémon, a Poké Ball for items)
 function imgFallback(src){if(/\/assets\/\d{4}\/(shiny\/)?portrait/.test(src)||/portrait\.png/.test(src))return por(SUB_DEX);if(src.includes('/assets/items/'))return iconOf('poke-ball');return null;}

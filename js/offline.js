@@ -7,9 +7,10 @@
    Anything that still can't load falls back to a substitute after a few seconds (see loadImg in game.js). */
 const OFF={PACK:'pokerun-pack',APP:'pokerun-app-v2',man:null,have:null,queue:[],busy:0,done:0,total:0,bytes:0,got:0,state:'idle',pri:new Set()};
 const OFFKEY='pokerun-pack-v1';
-function offHave(){if(OFF.have)return OFF.have;try{OFF.have=JSON.parse(localStorage.getItem(OFFKEY)||'{}');}catch(e){OFF.have={};}return OFF.have;}
-let offSaveT=0;function offSave(){if(offSaveT)return;offSaveT=setTimeout(()=>{offSaveT=0;try{localStorage.setItem(OFFKEY,JSON.stringify(OFF.have));}catch(e){}},1500);}
-addEventListener('pagehide',()=>{try{localStorage.setItem(OFFKEY,JSON.stringify(OFF.have));}catch(e){}});
+// (a bad or empty saved list, e.g. "null" from an early version, just means nothing is saved yet)
+function offHave(){if(OFF.have)return OFF.have;let h=null;try{h=JSON.parse(localStorage.getItem(OFFKEY)||'{}');}catch(e){}OFF.have=h&&typeof h==='object'&&!Array.isArray(h)?h:{};return OFF.have;}
+let offSaveT=0;function offSave(){if(offSaveT)return;offSaveT=setTimeout(()=>{offSaveT=0;if(!OFF.have)return;try{localStorage.setItem(OFFKEY,JSON.stringify(OFF.have));}catch(e){}},1500);}
+addEventListener('pagehide',()=>{if(!OFF.have)return;try{localStorage.setItem(OFFKEY,JSON.stringify(OFF.have));}catch(e){}});
 const offOK=()=>'caches' in window&&location.protocol!=='file:';
 async function offManifest(){if(OFF.man)return OFF.man;
   try{const r=await fetch('asset-manifest.json',{cache:'no-cache'});if(r.ok){OFF.man=await r.json();try{localStorage.setItem(OFFKEY+'-man',JSON.stringify({v:OFF.man.v}));}catch(e){}return OFF.man;}}catch(e){}
@@ -21,7 +22,8 @@ async function offGet(cache,[path,size,h]){const have=offHave();if(have[path]===
 async function offRun(list,cache,conc,onStep){let i=0,ok=0;const work=async()=>{while(i<list.length){const e=list[i++];if(await offGet(cache,e))ok++;OFF.done++;onStep&&onStep();}};
   await Promise.all(Array.from({length:conc},work));return ok;}
 /* during the loading screen: the core pack and the game's own files */
-async function offCore(L){if(!offOK())return;try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
+async function offCore(L){if(!offOK())return;try{return await offCoreRun(L);}catch(e){console.warn('offline pack skipped',e);}}
+async function offCoreRun(L){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
   const man=await offManifest();if(!man)return;const cache=await caches.open(OFF.PACK);const have=offHave();
   const need=man.core.filter(e=>have[e[0]]!==e[2]);
   // the game shell, so the page itself opens offline
