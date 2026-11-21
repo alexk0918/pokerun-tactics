@@ -200,36 +200,57 @@ function showCollection(back){
 let hatchLog=[];
 const loadPic=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i.naturalWidth?src:null);i.onerror=()=>res(null);i.src=src;});
 const waitMs=ms=>new Promise(r=>setTimeout(r,ms));
-function showHatchery(back){back=back||showTitle;let busy=false;
-  const egg=`<img src="${iconOf('mystery-egg')}" alt="An egg">`;
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">Hatchery</h1>
-    <p class="sub">Spend an egg voucher to hatch an egg. New lines unlock for National Dex; a line you already have gives 10 candy instead. 1 in 16 eggs is shiny.</p>
-    <div class="win dialog wide hatch"><div class="eggbox"><div class="egg" id="egg">${egg}</div><div class="rname" id="rname" aria-live="polite"></div>
-      <p id="hinfo"></p><p class="small" id="hpity"></p>
-      <button class="btn go" id="hatch" data-autofocus>Hatch an egg</button>
-      <p class="small">Common 60% (₽1–2) · Rare 28% (₽3) · Epic 10% (₽4) · Legendary 2% (₽5)<br>Vouchers come from achievements, act clears, wins and trainer levels.</p></div>
-      <div class="hlist" id="hlist"></div></div>
-    <button class="btn" id="back">Back</button></div>`;
-  const upd=()=>{const left=Math.max(1,10-META.eggs.pity);
-    $('hinfo').innerHTML=`<b>${META.vouchers}</b> egg voucher${META.vouchers===1?'':'s'} · ${META.eggs.n} hatched`;
-    $('hpity').textContent=`Epic or better guaranteed within ${left} egg${left===1?'':'s'}`;
-    $('hatch').disabled=META.vouchers<1&&!busy;$('hatch').setAttribute('aria-busy',busy);$('hatch').textContent=META.vouchers<1?'No vouchers left':'Hatch an egg';
-    $('hlist').innerHTML=hatchLog.slice(0,8).map(h=>`<div class="hres ${h.tier}"><img src="${h.pic||por(h.r)}" alt=""><b>${h.shiny?'★ ':''}${esc(lineName(h.r))}</b><span>${EGG[h.tier].n} · ${h.isNew?'New!':'+10 candy'}</span></div>`).join('')||'<p>Your hatches will show up here.</p>';};
-  upd();
-  // presses while an egg is hatching are ignored (the button stays put so a mashed A can't hit anything else)
-  $('hatch').onclick=async()=>{if(busy||META.vouchers<1)return;busy=true;const hadFocus=document.activeElement===$('hatch');upd();
-    const E=$('egg');E.className='egg wobble';E.innerHTML=egg;$('rname').textContent='';sfx('hatch');
-    let h=null;try{h=hatchEgg();}catch(e){console.error(e);}
-    if(!h){busy=false;E.className='egg';upd();return;}
-    // wait for the wobble and for the picture (shiny first, then the normal one), up to 5 seconds
-    const pic=await Promise.race([Promise.all([loadPic(porOf(h.r,h.shiny)).then(p=>p||loadPic(por(h.r))),waitMs(1000)]).then(r=>r[0]),waitMs(5000).then(()=>null)]);
-    h.pic=pic||por(h.r);hatchLog.unshift(h);
-    if(!$('egg'))return; // left the screen meanwhile
-    E.className='egg crack';E.innerHTML=`<div class="reveal ${h.tier}"><img src="${h.pic}" alt="${esc(lineName(h.r))}"></div>`;
-    $('rname').innerHTML=`<b>${h.shiny?'★ Shiny ':''}${esc(lineName(h.r))}</b> · ${EGG[h.tier].n} · ${h.isNew?'New line unlocked!':'+10 candy'}`;
-    sfx(h.tier==='legendary'||h.shiny?'evolve':h.isNew?'join':'treasure');busy=false;upd();
-    if(hadFocus&&!$('hatch').disabled){$('hatch').focus({preventScroll:true});if(typeof PAD!=='undefined'&&PAD.on)padPutCursorOn($('hatch'));}};
-  $('back').onclick=back;
+/* Hatchery: hatch 1, 10 or every voucher at once. Several eggs crack in a grid, one after another, with a summary;
+   press any hatch button (or A) again to skip straight to the results. */
+function showHatchery(back){back=back||showTitle;let busy=false,skip=null;
+  const eggImg=`<img src="${iconOf('mystery-egg')}" alt="">`;
+  ov.innerHTML=`<div class="scrim"></div><div class="screen hatch2"><h1 class="h1">Hatchery</h1>
+    <div class="hx">
+      <div class="hx-left win">
+        <div class="hx-nest"><div class="egg" id="egg">${eggImg}</div></div>
+        <div class="hx-vouch"><img src="${iconOf('mystery-egg')}" alt=""><b id="hvn">0</b><span>egg vouchers</span></div>
+        <div class="hx-pity"><div class="hx-pbar"><span id="hpb"></span></div><small id="hpity"></small></div>
+        <div class="hx-btns"><button class="btn go" id="h1" data-autofocus>Hatch 1</button><button class="btn go" id="h10">Hatch 10</button><button class="btn" id="hall">Hatch all</button></div>
+        <div class="hx-odds">${Object.entries(EGG).map(([k,e])=>`<span class="hx-odd ${k}"><i></i>${e.n} ${({common:'60%',rare:'28%',epic:'10%',legendary:'2%'})[k]}</span>`).join('')}</div>
+        <p class="hx-note">New lines unlock for National Dex. A line you already have gives 10 candy. 1 in 16 eggs is shiny.</p>
+      </div>
+      <div class="hx-right win"><div class="hx-head"><h2 id="hhead">Hatched</h2><span id="hsum"></span></div><div class="hx-grid" id="hgrid"></div></div>
+    </div>
+    <button class="btn" id="back" data-back>Back</button></div>`;
+  const tile=h=>`<div class="hx-t ${h.tier}${h.shiny?' shiny':''}${h.isNew?' new':''}"><div class="hx-p"><img src="${h.pic||por(h.r)}" alt=""></div><b>${h.shiny?'★ ':''}${esc(lineName(h.r))}</b><span>${h.isNew?'New!':'+10 candy'}</span></div>`;
+  const summary=L=>{const n=L.filter(h=>h.isNew).length,c=L.filter(h=>!h.isNew).length*10,sh=L.filter(h=>h.shiny).length,lg=L.filter(h=>h.tier==='legendary').length;
+    return[n?`<b>${n}</b> new line${n>1?'s':''}`:'',c?`<b>${c}</b> candy`:'',sh?`<b>${sh}</b> shiny`:'',lg?`<b>${lg}</b> legendary`:''].filter(Boolean).join(' · ');};
+  const upd=()=>{const v=META.vouchers,left=Math.max(1,10-META.eggs.pity);
+    $('hvn').textContent=v;$('hpity').textContent=`Epic or better within ${left} egg${left===1?'':'s'} · ${META.eggs.n} hatched`;$('hpb').style.width=(100*Math.min(10,META.eggs.pity)/10)+'%';
+    $('h1').disabled=v<1&&!busy;$('h10').disabled=v<2&&!busy;$('hall').disabled=v<2&&!busy;
+    $('h10').textContent=busy?'Skip':`Hatch ${Math.min(10,Math.max(v,2))}`;$('hall').textContent=busy?'Skip':`Hatch all (${v})`;$('h1').textContent=busy?'Skip':'Hatch 1';};
+  const showLast=()=>{const L=hatchLog.slice(0,30);$('hgrid').innerHTML=L.length?L.map(tile).join(''):'<p class="hx-empty">Your hatches will show up here.</p>';$('hhead').textContent=L.length?'Recent hatches':'Hatched';$('hsum').innerHTML='';};
+  upd();showLast();
+  async function hatch(n){
+    if(busy){if(skip)skip();return;}n=Math.min(n,META.vouchers);if(n<1)return;busy=true;const foc=document.activeElement;upd();
+    const E=$('egg');E.className='egg wobble';E.innerHTML=eggImg;sfx('hatch');
+    const got=[];for(let i=0;i<n;i++){let h=null;try{h=hatchEgg();}catch(e){console.error(e);}if(h)got.push(h);}
+    if(!got.length){busy=false;E.className='egg';upd();return;}
+    // pictures (shiny first), at most 5 seconds
+    await Promise.race([Promise.all([...got.map(h=>loadPic(porOf(h.r,h.shiny)).then(p=>p||loadPic(por(h.r))).then(p=>{h.pic=p||por(h.r);})),waitMs(n>1?700:1000)]),waitMs(5000)]);
+    for(const h of got)h.pic=h.pic||por(h.r);
+    if(!$('egg'))return;
+    hatchLog.unshift(...got.slice().reverse());if(hatchLog.length>60)hatchLog.length=60;
+    E.className='egg';
+    const best=got.find(h=>h.tier==='legendary'||h.shiny)||got.find(h=>h.isNew)||got[0];
+    E.innerHTML=`<div class="reveal ${best.tier}"><img src="${best.pic}" alt="${esc(lineName(best.r))}"></div>`;
+    $('hhead').textContent=n>1?`${got.length} eggs hatched`:'Hatched';$('hsum').innerHTML=summary(got);
+    const G=$('hgrid');G.innerHTML=got.map(h=>tile(h).replace('class="hx-t','class="hx-t hide')).join('');
+    let skipped=false;skip=()=>{skipped=true;};
+    const tiles=[...G.querySelectorAll('.hx-t')];
+    for(let i=0;i<tiles.length;i++){if(!$('egg'))return;tiles[i].classList.remove('hide');tiles[i].classList.add('pop');
+      const h=got[i];if(!skipped){if(h.tier==='legendary'||h.shiny)sfx('evolve');else if(h.isNew)sfx('join',200);else sfx('coin',60);await waitMs(n>1?140:0);}}
+    if(skipped)tiles.forEach(t=>t.classList.remove('hide'));
+    if(n===1)sfx(best.tier==='legendary'||best.shiny?'evolve':best.isNew?'join':'treasure');
+    busy=false;skip=null;upd();
+    if(foc&&foc.id&&$(foc.id)&&!$(foc.id).disabled){$(foc.id).focus({preventScroll:true});if(typeof PAD!=='undefined'&&PAD.on)padPutCursorOn($(foc.id));}}
+  $('h1').onclick=()=>hatch(1);$('h10').onclick=()=>hatch(10);$('hall').onclick=()=>hatch(META.vouchers);
+  $('back').onclick=()=>{if(busy&&skip)skip();back();};
 }
 function showProfile(back){back=back||showTitle;
   const fav=favRoot(),N=natMode(),all=N.roots.filter(r=>SM[r]||OPTS.unsprited),U=unlockedSet();

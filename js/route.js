@@ -151,15 +151,19 @@ function finishNode(){run.ev=null;run.ks=null;run.results[run.floor]=run.results
 function nodeToBattle(node){run.nodes[run.floor]=node;run.ev=null;ov.innerHTML='';setupCombatFloor(true);}
 
 /* ================= Route screen ================= */
+// each path's reward, shown with its chest
+const NODE_REW={battle:'box-normal',challenge:'box-rare',alpha:'box-gold',endurance:'box-rare',timeattack:'box-rare',event:'mystery-egg',center:'max-potion',shop:'nugget'};
 function showRoute(){
   mode='route';hideTip();const nf=run.floor+1;renderUI();
   const ahead=[5,10,15].find(x=>x>nf);
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><div class="tierbanner gold">FLOOR ${nf} / ${FLOORS}</div><h1 class="h1">Choose your path</h1>
-    <p class="sub">${ahead?`${ahead===15?'The Guardian':'A rival'} waits on floor ${ahead}.`:''} Harder paths pay out more.</p>
-    <div class="picks route">${run.route.map((o,i)=>{const N=NODES[o.k];return`<button class="pick win path" data-i="${i}" style="--nc:${N.col}">
-      <div class="icon${o.k==='shop'?' kec':''}"><img src="${nodeIcon(o.k)}" alt=""></div><span class="tier" style="background:${N.col}">${N.tag}</span>
-      <h2>${N.n}</h2><p>${N.d}</p><div class="rew"><span class="lbl">Reward</span> ${N.r}</div></button>`;}).join('')}</div></div>`;
-  ov.querySelectorAll('.path').forEach(b=>b.onclick=()=>chooseRoute(+b.dataset.i));
+  const track=Array.from({length:FLOORS},(_,i)=>`<i class="${i+1<nf?'d':i+1===nf?'c':''}${[5,10,15].includes(i+1)?' big':''}"></i>`).join('');
+  ov.innerHTML=`<div class="scrim"></div><div class="screen routescreen"><h1 class="h1">Choose your path</h1>
+    <p class="sub">Floor ${nf} of ${FLOORS}.${ahead?` ${ahead===FLOORS?'The Guardian':'A rival'} waits on floor ${ahead}.`:''} Harder paths pay out more.</p>
+    <div class="picks route2">${run.route.map((o,i)=>{const N=NODES[o.k];return`<button class="pick rnode" data-i="${i}" style="--nc:${N.col}">
+      <div class="rn-top"><img class="${o.k==='shop'?'kec':''}" src="${nodeIcon(o.k)}" alt=""><span class="rn-tag">${N.tag}</span></div>
+      <div class="rn-bd"><h2>${N.n}</h2><p>${N.d}</p></div><div class="rn-rew"><img src="${iconOf(NODE_REW[o.k]||'box-normal')}" alt="">${N.r}</div></button>`;}).join('')}</div>
+    <div class="ftrack">${track}<b>${FLOORS===15?'Guardian on floor 15':'Guardian on floor '+FLOORS}</b></div></div>`;
+  ov.querySelectorAll('.rnode').forEach(b=>b.onclick=()=>chooseRoute(+b.dataset.i));
   saveRun();
 }
 
@@ -288,31 +292,34 @@ function genKShop(){
   return{mut,stock};
 }
 function kBuy(i){
-  const s=run.ks.stock[i];if(!s||s.sold)return;
-  if(run.gold<s.price){toast('Kecleon: "You don\'t have enough money!"');return;}
-  if(s.t==='unit'){const slot=run.bench.indexOf(null);if(slot<0){toast('Your bench is full.');return;}const u=mkUnit(s.root);u.mut=s.mut||undefined;run.bench[slot]=u;ensure(s.root);}
-  else if(s.t==='item'){if(run.bag.length>=BAGMAX){toast('Your bag is full.');return;}run.bag.push(JSON.parse(JSON.stringify(s.it)));}
+  const s=run.ks.stock[i];if(!s||s.sold)return;const nm=kCardName(s);
+  if(run.gold<s.price){sfx('error');showKecleon({t:`Oh! ${nm} is ₽${s.price}... You don't have enough money!`,e:'Worried'});return;}
+  if(s.t==='unit'){const slot=run.bench.indexOf(null);if(slot<0){showKecleon({t:'Your bench is full! Make some room first.',e:'Surprised'});return;}const u=mkUnit(s.root);u.mut=s.mut||undefined;run.bench[slot]=u;ensure(s.root);}
+  else if(s.t==='item'){if(run.bag.length>=BAGMAX){showKecleon({t:'Your bag is full! Make some room first.',e:'Surprised'});return;}run.bag.push(JSON.parse(JSON.stringify(s.it)));}
   else if(s.t==='relic')run.relics.push(s.id);
-  run.gold-=s.price;s.sold=1;
+  run.gold-=s.price;s.sold=1;sfx('buy');
   if(s.t==='unit')combine();
-  renderUI();showKecleon();
+  renderUI();showKecleon({t:pick([`${nm}? Thank you very much!`,`${nm}! An excellent choice!`,`Thank you! ${nm} is yours!`]),e:'Joyous',focus:i});
 }
 function kCardName(s){if(s.t==='unit')return(s.mut?MUTS[s.mut].n+' ':'')+D[s.root].n;if(s.t==='relic')return RELICS[s.id].n;return itemName(s.it);}
 function kCardIcon(s){if(s.t==='unit')return por(s.root);if(s.t==='relic')return iconOf(s.id);return iconOf(itemDef(s.it).id);}
 function kCardTag(s){if(s.t==='unit')return`Pokémon · ₽${MODE.lines[s.root].cost}`;if(s.t==='relic')return'Relic';const t=itemTier(s.it);return t==='common'?'Component':t==='epic'?'Completed':t==='enh'?'Enhancer':'Consumable';}
-function showKecleon(){
-  mode='kshop';hideTip();if(!SIM.on)music('kecleon');const K=run.ks,M=K.mut?MUTS[K.mut]:null;
-  const line=M?`Heh heh... Today everything has a certain ${M.n.toLowerCase()} touch. ${M.d}.`:'Welcome! Take your time and buy whatever you like!';
-  ov.innerHTML=`<div class="scrim"></div><div class="screen kshop">
-    <div class="win khead${M?' mutated':''}" style="${M?`--mc:${MUTCOL[K.mut]}`:''}"><img class="kpor" src="${por(KECLEON)}" alt="" style="${M?`filter:${KFILTER[K.mut]}`:''}"><div><div class="lbl">${M?'Mutated shop':'Kecleon Shop'}</div><h2>${M?M.n+' ':''}Kecleon</h2><p>${esc(line)}</p></div><div class="kgold"><span class="lbl">Your money</span><b>₽${run.gold}</b></div></div>
-    <div class="kgrid">${K.stock.map((s,i)=>`<button class="win kcard${s.sold?' sold':''}${run.gold<s.price&&!s.sold?' poor':''}${s.t==='unit'?' unit':''}" data-k="${i}" ${s.sold?'disabled':''}>
-      <div class="kic${s.t==='relic'?' relic':''}${s.t==='item'&&isEnh(s.it)?' enh':''}"><img src="${kCardIcon(s)}" alt="">${(s.t==='unit'?s.mut:s.t==='item'&&s.it.mut.length)?'<i class="mutdot"></i>':''}</div>
-      <div class="kinfo"><span class="lbl">${kCardTag(s)}</span><b>${esc(kCardName(s))}</b></div><span class="kprice">${s.sold?'Sold':'₽'+s.price}</span></button>`).join('')}</div>
-    <button class="btn go" id="kleave">Leave the shop</button></div>`;
-  ov.querySelectorAll('.kcard').forEach(b=>{b.onclick=()=>kBuy(+b.dataset.k);
+function showKecleon(msg){
+  mode='kshop';hideTip();if(!SIM.on&&!msg)music('kecleon');const K=run.ks,M=K.mut?MUTS[K.mut]:null;
+  const line=msg?msg.t:M?`Heh heh... Today everything has a certain ${M.n.toLowerCase()} touch. ${M.d}.`:'Welcome! Please, take your time and look around!';
+  const tc=s=>s.t==='unit'?['#9aa3ad','#4d9a3a','#3d79d6','#8b5cf6','#e0a526'][MODE.lines[s.root].cost-1]:s.t==='relic'?'#8b5cf6':isEnh(s.it)?'#2fb8a0':isCraft(s.it)?'#e0a526':isComp(s.it)?'#9aa3ad':'#4d9a3a';
+  ov.innerHTML=`<div class="scrim"></div><div class="screen kscene kshop2">
+    ${keeperStall('kecleon',{sign:M?M.n+' Kecleon':'Kecleon Shop',filter:M?KFILTER[K.mut]:''})}
+    <div class="ks-head"><div><h1 class="h1">${M?'Mutated shop':'Kecleon Shop'}</h1><p>${M?esc(M.n)+' goods: '+esc(M.d)+'.':'Pokémon, items, enhancers and relics. Hover a card for details.'}</p></div><div class="ks-money"><img src="${iconOf('nugget')}" alt="">₽${run.gold}</div></div>
+    <div class="ks-main"><div class="kwares">${K.stock.map((s,i)=>`<button class="kware${s.sold?' sold':''}${run.gold<s.price&&!s.sold?' poor':''}${s.t==='unit'?' unit':''}" data-k="${i}" ${s.sold?'aria-disabled="true"':''} style="--tc:${tc(s)}">
+      <div class="kic"><img src="${kCardIcon(s)}" alt="">${(s.t==='unit'?s.mut:s.t==='item'&&s.it.mut.length)?'<i class="mutdot"></i>':''}</div><b>${esc(kCardName(s))}</b><span class="kk">${kCardTag(s)}</span><span class="kp">${s.sold?'Sold':'₽'+s.price}</span></button>`).join('')}</div></div>
+    ${keeperTalk('kecleon','<button class="btn go" id="kleave">Leave</button>')}</div>`;
+  const say=keeperStart(ov.querySelector('.kscene'),'kecleon');say(line,msg?msg.e:M?'Inspired':'Happy');
+  ov.querySelectorAll('.kware').forEach(b=>{b.onclick=()=>kBuy(+b.dataset.k);
     b.onpointermove=e=>{const s=K.stock[+b.dataset.k];if(s.t==='unit'){const u=mkUnit(s.root);u.mut=s.mut;showTip(u,e);}else if(s.t==='relic')showInfoTip(cardTip(s.id),e);else showItemTip(s.it,e);};
     b.onpointerleave=hideTip;});
   $('kleave').onclick=()=>{hideTip();finishNode();};
+  const f=msg&&msg.focus!=null?ov.querySelector(`[data-k="${msg.focus}"]`):null;(f||ov.querySelector('.kware:not(.sold)')||$('kleave')).focus({preventScroll:true});
   saveRun();
 }
 

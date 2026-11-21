@@ -1728,12 +1728,12 @@ function showLootPicks(){
   const cost=lootRerollCost(),K=run.lootKind||'silver';
   if(K==='common'||K==='lost'){
     const goldCard=`<div class="pick icard p-coin" style="--tc:#d9a520;cursor:default"><div class="iband"></div><div class="ihead"><div class="iico"><img src="${iconOf('nugget')}" alt=""></div><div class="inm"><h2>₽${run.lootGold}</h2><div class="itier">Poké Dollars</div></div></div><div class="idesc"><p>${K==='lost'?'A little something for the road.':'Found in the chest.'}</p></div></div>`;
-    ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${K==='lost'?'Consolation chest':'Chest'}</h1><p class="sub">${run.loot.length?'Everything inside is yours.':K==='lost'?'Losing still pays a little.':'No item this time. Rivals and special floors have bigger chests.'}</p>
+    ov.innerHTML=`<div class="scrim"></div><div class="screen lootscreen"><h1 class="h1">${K==='lost'?'Consolation chest':'Chest'}</h1><p class="sub">${run.loot.length?'Everything inside is yours.':K==='lost'?'Losing still pays a little.':'No item this time. Rivals and special floors have bigger chests.'}</p>
       <div class="picks">${goldCard}${run.loot.map((it,i)=>itemCard(it,i,'nopick')).join('')}</div>
       <div class="lootacts"><button class="btn" id="lootteam">View team</button><button class="btn primary" id="collect">Collect</button></div></div>`;
     $('collect').onclick=()=>chooseLoot(0);$('lootteam').onclick=()=>{hideTip();ov.innerHTML='';lootPeek(true);};
     requestAnimationFrame(()=>{const c=$('collect');if(c)c.focus();});return;}
-  ov.innerHTML=`<div class="scrim"></div><div class="screen"><h1 class="h1">${K==='gold'?'Gold chest!':'Silver chest!'}</h1><p class="sub">Choose one item. Two components on the same Pokémon combine into a completed item.</p>
+  ov.innerHTML=`<div class="scrim"></div><div class="screen lootscreen"><h1 class="h1"><img class="chestic" src="${iconOf(K==='gold'?'box-gold':'box-rare')}" alt="">${K==='gold'?'Gold chest!':'Silver chest!'}</h1><p class="sub">Choose one item. Two components on the same Pokémon combine into a completed item.</p>
     <div class="picks">${run.loot.map((it,i)=>itemCard(it,i)).join('')}</div>
     <div class="lootacts"><button class="btn" id="lootteam">View team</button><button class="btn" id="lootroll" ${run.gold<cost?'disabled':''}>Reroll items ₽${cost}</button><button class="btn skip" id="skip">Skip and take ₽2</button></div></div>`;
   ov.querySelectorAll('.pick').forEach(b=>b.onclick=()=>chooseLoot(+b.dataset.i));

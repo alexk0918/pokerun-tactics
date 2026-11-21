@@ -268,7 +268,7 @@ Form items (Red Orb, Griseous Core, Rusted Sword, masks…) sit in their own slo
 
   Rare items (Mega Stones and other gimmick items, form items) mostly come from Silver and Gold chests. You can skip a Silver or Gold pick for ₽2.
 - **Reroll items** in a Silver or Gold chest for ₽2, going up ₽1 each time for that chest.
-- **Croagunk's Swap Shop** (the Swap button on the bag, from Explorers of Sky) trades an item for a random one: a component for a different component, or a completed item for another completed item that shares one of its components. It works on items in your bag or held by your Pokémon, and mutations and enhancers stay on. A component swap costs ₽2 and a completed item ₽4 in Act I, going up by ₽1 and ₽2 each act.
+- **Croagunk's Swap Shop** (the Swap button on the bag, from Explorers of Sky) trades an item for a random one. Pick an item, press Swap, and the pot shakes out the result: a component for a different component, or a completed item for another completed item that shares one of its components. It works on items in your bag or held by your Pokémon, and mutations and enhancers stay on. A component swap costs ₽2 and a completed item ₽4 in Act I, going up by ₽1 and ₽2 each act.
 - **View team** hides the chest choice so you can check your board, sets and items; **Back to the chest** (or the Battle button) brings it back.
 - Items work like TFT: 8 components (Protein, Calcium, Carbos, Iron, Zinc, HP Up, PP Up, Dire Hit) combine into 36 completed items. Put two components on the same Pokémon, or drop one on another in your bag. Each Pokémon holds up to 3 items, and selling it returns them to the bag.
 - Items can roll mutators (Shiny, Blazing, Vampiric, Swift, Sturdy, Charged, Lucky, Golden, Growing, Thorny, Blessed, Shadow) that carry over when components combine.
@@ -563,6 +563,31 @@ Settings › Audio has sliders for **Master**, **Music**, **Battle sounds** (mov
 
 Settings are split into sections like PokéRogue's: General (battle speed, damage numbers, shop and bag behaviour), Display (board auto-fit, zoom speed, move effects, light rays), Audio (music and sound effects volume), Gamepad (cursor speed, stick dead zone, right-stick mode, button list), Controls (keyboard and mouse list) and Data (delete the saved run, forget Kit Dex discoveries, reset settings).
 
+### Shopkeepers and big screens
+Menus run by a Pokémon show it behind its stall (its PMD idle animation) and talk in a PMD text box with its portrait, whose expression follows what you do: happy as you browse, joyous on a sale, worried when you're short of money.
+
+| Menu | Keeper |
+|---|---|
+| Kecleon Shop | Kecleon |
+| Swap Shop | Croagunk |
+| Rocket HQ | Meowth |
+| Wish Well | Jirachi |
+| Daycare | Chansey |
+| Dojo | Marowak |
+| Roulette | Spinda |
+| Flight Plan | Pelipper |
+| Mythical Event | Mew |
+| Sketch | Smeargle |
+| Augment picks | Xatu, the fortune-teller |
+
+Augment picks, path choices and chests use large cards. Paths show their reward with its chest and a floor track for the act. Expressions come from PMDCollab's SpriteCollab portraits (`assets/<dex>/emo/`).
+
+### Hatchery
+Hatch 1, 10 or all your vouchers at once. Several eggs crack one after another in a grid, followed by a summary (new lines, candy, shinies, legendaries); press a hatch button again to skip to the results. The bar shows how close the next guaranteed Epic or better is.
+
+### If loading gets stuck
+After 25 seconds (or straight away if something fails), the loading screen shows the error and a **Repair and reload** button. It clears the saved copy of the game files and downloads them again; saves, progress and settings are kept.
+
 ### Cards, icons and dark mode
 Item, relic and augment cards follow a TFT-style layout: icon, name and tier up top, stats as icon chips, the effect in a short paragraph, and recipes or components in a footer. Hovering an item in your bag shows the same card as a compact tooltip.
 - **Stat icons** are the items that raise each stat in the main games (Protein for Attack, Calcium for Sp. Atk, Iron for Defense, Zinc for Sp. Def, HP Up, Carbos for Attack Speed, PP Up, Dire Hit for crits, and so on).
@@ -642,6 +667,7 @@ js/cine.js          move-name animations and legendary cinematics
 js/kitdex.js        in-game Kit Dex and discoveries
 js/fx.js            PMD particle player, beams, PMD chests
 js/swap.js          Croagunk's Swap Shop (trade an item for a random one)
+js/keeper.js        Shopkeeper scenes: stall, idle animation, PMD text box with expressions
 js/fx_manifest.js   frame layout of every particle sheet
 js/carousel.js      carousel rounds
 js/ui.js            pause menu, settings, collapsible shop and bag

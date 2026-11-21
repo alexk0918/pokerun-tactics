@@ -21,11 +21,11 @@ for f in ['icon-192.png','icon-512.png','icon-maskable-192.png','icon-maskable-5
   if os.path.exists(p):core.append([f,os.path.getsize(p),h(p)])
 # the substitute Pokémon shown when a sprite can't load is always part of the core download
 core+=dex.get('132',[])
-# every regular portrait (about 2 MB) is saved during loading, so menus like run select never wait for them
+# every regular portrait (about 2 MB) and the shopkeepers' expressions is saved during loading, so menus like run select never wait for them
 for d,fs in dex.items():
   keep=[]
   for e in fs:
-    if e[0].endswith('/portrait.png') and '/shiny/' not in e[0] and d!='132':core.append(e)
+    if (e[0].endswith('/portrait.png') and '/shiny/' not in e[0] and d!='132') or '/emo/' in e[0]:core.append(e)
     else:keep.append(e)
   dex[d]=keep
 out={'v':hashlib.sha1(json.dumps([core,dex,music]).encode()).hexdigest()[:10],'bytes':size,'core':core,'music':music,'dex':dex}

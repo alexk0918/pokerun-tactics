@@ -52,8 +52,19 @@ function featClick(e){const b=e.target.closest('[data-feat],[data-engrave]');if(
 function featAnnounce(){if(!run||SIM.on)return;run.featSeen=run.featSeen||[];for(const f of featsOpen())if(!run.featSeen.includes(f.k)){run.featSeen.push(f.k);sfx('achieve');banner(`${f.n} unlocked!`,`${f.set} reached its breakpoint`,2200);}}
 
 /* ---------- shared menu shell ---------- */
+// menus run by a Pokémon get the shopkeeper scene; the rest stay a plain window
+const MENU_KEEP={'Rocket HQ':['meowth','Meowth\'s the name! Got Loot? Then let\'s make a deal, nyah!'],'Wish Well':['jirachi','Make a wish... I\'ll make it come true!'],
+  'Daycare':['chansey','Welcome to the Daycare! We\'ll take good care of them.'],'Dojo':['marowak','Hwah! Train hard and your Pokémon will grow strong!'],
+  'Roulette':['spinda','Round and round... where it stops, nobody knows!'],'Flight Plan':['pelipper','Where shall we fly today? Pick a target!'],
+  'Mythical Event':['mew','Mew! A little gift... pick one!'],'Sketch':['smeargle','Ooh, what a move! Shall I keep it on the canvas?']};
 function setMenu(title,sub,body,opts={}){
-  ov.innerHTML=`<div class="scrim" id="sm-scrim"></div><div class="screen"><div class="win featwin ${opts.cls||''}">${opts.icon?`<img class="setwin-ico" src="${iconOf(opts.icon)}" alt="">`:''}<h1 class="h1">${title}</h1><p class="sub">${sub}</p>${body}
+  const K=opts.keeper||MENU_KEEP[title];
+  if(K){const[k,greet]=Array.isArray(K)?K:[K,''];
+    ov.innerHTML=`<div class="scrim" id="sm-scrim"></div><div class="screen kscene ${opts.cls||''}">${keeperStall(k)}
+      <div class="ks-head"><div><h1 class="h1">${title}</h1><p>${sub}</p></div></div><div class="ks-main">${body}</div>
+      ${keeperTalk(k,`${opts.extra||''}<button class="btn" id="sm-back" data-back>Close</button>`)}</div>`;
+    const say=keeperStart(ov.querySelector('.kscene'),k);say(opts.say||greet,opts.emo||'Happy');}
+  else ov.innerHTML=`<div class="scrim" id="sm-scrim"></div><div class="screen"><div class="win featwin ${opts.cls||''}">${opts.icon?`<img class="setwin-ico" src="${iconOf(opts.icon)}" alt="">`:''}<h1 class="h1">${title}</h1><p class="sub">${sub}</p>${body}
     <div class="umacts">${opts.extra||''}<button class="btn" id="sm-back" data-back>Close</button></div></div></div>`;
   const close=()=>{ov.innerHTML='';renderUI();};$('sm-back').onclick=close;$('sm-scrim').onclick=close;
   const first=ov.querySelector('.setopt:not([disabled]),.featopt:not([disabled])')||$('sm-back');first.focus();

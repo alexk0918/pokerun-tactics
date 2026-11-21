@@ -222,14 +222,15 @@ function showAugment(){
   const O=run.augOffer,tier=O.tier,n=(run.augs||[]).length;
   const card=(id,i)=>{const a=AUGMAP[id];if(!a)return'';return augCardHtml(a,tier,i,O);};
   const mine=myAugs();
-  ov.innerHTML=`<div class="scrim"></div><div class="screen augscreen"><div class="tierbanner ${tier}">${tier.toUpperCase()} AUGMENT · ${['FIRST','SECOND','THIRD','FOURTH','FIFTH'][n]||'#'+(n+1)} PICK</div>
+  ov.innerHTML=`<div class="scrim"></div><div class="screen augscreen big"><div class="tierbanner ${tier}">${tier.toUpperCase()} AUGMENT · ${['FIRST','SECOND','THIRD','FOURTH','FIFTH'][n]||'#'+(n+1)} PICK</div>
     <h1 class="h1">Choose an augment</h1><p class="sub">Augments last for the rest of the run. Each card can be rerolled once.</p>
     <div class="augrow">${O.ids.map(card).join('')}</div>
-    <div class="lootacts"><button class="btn" id="augteam">View team</button></div>
+    <div class="augfoot"><div class="augxatu">${keeperTalk('xatu','<button class="btn" id="augteam">View team</button>')}</div></div>
     ${mine.length?`<div class="augmine"><span class="lbl">Your augments</span>${mine.map(a=>`<span class="augchip t-${a.t}" title="${esc(a.d)}"><img src="${iconOf(a.icon)}" alt="">${esc(a.name)}</span>`).join('')}</div>`:''}</div>`;
   ov.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const a=AUGMAP[O.ids[+b.dataset.pick]];run.augOffer=null;ov.innerHTML='';mode='plan';applyAug(a,tier);renderUI();
     toast(`${a.name}: ${a.d}`);if(!evoOpen)afterAugment();});
   ov.querySelectorAll('[data-rr]').forEach(b=>b.onclick=()=>{const i=+b.dataset.rr;if(O.rr[i])return;const ex=new Set(O.ids);const a=rollAugCard(tier,ex,true);if(a){O.ids[i]=a.id;seenAug([a.id]);}O.rr[i]=1;showAugment();});
   $('augteam').onclick=()=>{hideTip();ov.innerHTML='';peekOn('Back to augments',showAugment);};
+  {const sayX=keeperStart(ov.querySelector('.augxatu'),'xatu');sayX(tier==='prismatic'?'A rare and shining future... Choose wisely.':tier==='gold'?'I see three bright futures... Choose one.':'I see three futures... Choose one.','Inspired');}
 }
 function afterAugment(){if(gimDue())return showGimmickChoice();banner(`Floor ${run.floor}`,trainerName(run.floor),1400);}
